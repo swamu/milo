@@ -25,6 +25,7 @@ export default async function init(el) {
   const categoryTaxonomy = taxonomy.get(category) || 'News';
 
   const pic = doc.body.querySelector('picture');
+  pic.querySelector('img').removeAttribute('loading');
   const featuredImg = createTag('div', { class: 'featured-article-card-image' }, pic);
   const categoryLink = createTag('a', { href: categoryTaxonomy.link }, categoryTaxonomy.name);
   const categoryEl = createTag('div', { class: 'featured-article-card-category' }, categoryLink);
