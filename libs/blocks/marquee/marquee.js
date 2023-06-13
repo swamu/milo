@@ -27,7 +27,7 @@ const decorateVideo = (container) => {
 };
 
 const decorateBlockBg = (block, node) => {
-  const viewports = ['mobileOnly', 'tabletOnly', 'desktopOnly'];
+  const viewports = ['mobile-only', 'tablet-only', 'desktop-only'];
   const childCount = node.childElementCount;
   const { children } = node;
 
