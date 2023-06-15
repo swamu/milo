@@ -468,6 +468,21 @@ export const getConfig = async (originalState, strs = {}) => {
       lastViewedSession: state.lastViewedSession || '',
     },
     customCard: ['card', `return \`${state.customCard}\``],
+    // Props required for rebuilding state in parseCaasConfig
+    additionalRequestParams: state.additionalRequestParams,
+    andLogicTags: state.andLogicTags,
+    autoCountryLang: state.autoCountryLang,
+    contentTypeTags: state.contentTypeTags,
+    countryState: state.country,
+    doNotLazyLoad: state.doNotLazyLoad,
+    excludedCards: state.excludedCards,
+    excludeTags: state.excludeTags,
+    featuredCardsState: state.featuredCards,
+    filtersCustom: state.filtersCustom,
+    includeTags: state.includeTags,
+    languageState: state.language,
+    orLogicTags: state.orLogicTags,
+    source: state.source,
   };
   return config;
 };
@@ -497,7 +512,7 @@ export const defaultState = {
   analyticsCollectionName: '',
   analyticsTrackImpression: false,
   andLogicTags: [],
-  autoCountryLang: false,
+  autoCountryLang: true,
   bookmarkIconSelect: '',
   bookmarkIconUnselect: '',
   cardStyle: 'half-height',
@@ -574,5 +589,4 @@ export const defaultState = {
   useLightText: false,
   useOverlayLinks: false,
   collectionButtonStyle: 'primary',
-  userInfo: [],
 };
