@@ -20,19 +20,22 @@
   margin: auto;
 }
 
-.gallery img.green {
-  outline:solid 5px green;
+.gallery .image-container {
   position: relative;
 }
 
-.gallery img.green::after {
+.gallery .image-container.green {
+  outline:solid 5px green;
+}
+
+.gallery .image-container.green::after {
   content: '\2713'; /* Checkmark symbol */
   position: absolute;
-  top: 50%;
-  right: 5px;
+  top: 0%;
+  right: -12px;
   transform: translateY(-50%);
-  color: #fff; /* Color of the checkmark */
-  background-color: rgba(0, 0, 0, 0.5); /* Background color for the checkmark */
+  color: #fff;
+  background-color: green; 
   padding: 5px;
   font-size: 16px;
   line-height: 1;

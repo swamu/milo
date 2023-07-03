@@ -11,10 +11,12 @@ export default function init(el) {
         // add button
         urlRes.data.forEach((url, index) => {
           const bg = createTag('img', { src: `${url[0]}`, class: `gallery__item`});
-          gallery.append(bg);
+          const imageContainer = createTag('div', {class: 'image-container'});
+          imageContainer.append(bg);
+          gallery.append(imageContainer);
           bg.addEventListener('click', (clickedImg) => {
-            gallery.querySelectorAll('img').forEach(img => img.classList.remove('green'));
-            clickedImg.currentTarget.classList.add('green');
+            gallery.querySelectorAll('.image-container').forEach(img => img.classList.remove('green'));
+            clickedImg.currentTarget.closest('.image-container').classList.add('green');
             console.log('selected src', clickedImg.currentTarget);
           });
         });
