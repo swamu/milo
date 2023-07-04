@@ -76,7 +76,7 @@ indices:
         select: none
         value: |
           parseTimestamp(headers['last-modified'], 'ddd, DD MMM YYYY hh:mm:ss GMT')
-  promotions:
+  promo:
     include:
       - '/drafts/mariia/POC/promotions/**'
     target: /drafts/mariia/POC/query-index.xlsx
