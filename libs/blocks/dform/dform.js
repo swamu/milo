@@ -21,7 +21,9 @@ function AddButton({onClick}) {
     formData.value = [...formData.value, uuid];
   }
   return html`<div>
-    <button id="add" onClick=${onClick}>+</button>
+    <button class="icon-button" id="add" onClick=${onClick}>
+      <img src="/img/home/add-plus.svg" />
+    </button>
   </div>`;
 }
 
@@ -62,7 +64,9 @@ const createFromRow = (localData, key, value, spacer) => {
         <option value="image">image</option>
         <option value="object">object</option>
       </select>
-      <button onClick=${removeElement}>-</button>
+      <button class="icon-button" onClick=${removeElement}>
+        <img src="/img/home/minus-circle.svg" />
+      </button>
       ${localDataType === 'string' && html`<div class="mulfield">
         <input type="text" placeholder="key" value=${key}/>
         <input type="text" placeholder="value" value=${localData[key]}/>

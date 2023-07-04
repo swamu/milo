@@ -20,7 +20,21 @@
 
 
 .dform {
-  margin-left: 20px;
+  margin: 20px;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+.icon-button img{
+  width: 26px;
+  height: 15px;
+  padding-left: 0;
+  margin-left: -11px;
 }
 
 .form-row {
@@ -105,13 +119,14 @@
   display: none;
 }
 
-button {
-  border: 1px solid #d2d2d2;
-}
-
 select, input {
-  border: 1px solid #d2d2d2;
+  border: 1px solid #a96ad8;
   padding: 4px;
   margin-right: 10px;
 }
 
+select {
+  background: #a96ad8;
+  color: white;
+  text-transform: capitalize;
+}
