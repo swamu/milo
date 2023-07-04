@@ -78,8 +78,8 @@ indices:
           parseTimestamp(headers['last-modified'], 'ddd, DD MMM YYYY hh:mm:ss GMT')
   promo:
     include:
-      - '/drafts/mariia/POC/promotions/**'
-    target: /drafts/mariia/POC/query-index.xlsx
+      - '/promotions/**'
+    target: /promotions/query-index.xlsx
     properties:
       title:
         select: head > meta[property="og:title"]
