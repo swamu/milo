@@ -1486,4 +1486,18 @@ window.MyNamespace.context = defaultContext;
 
 export default function init(el) {
   import('/libs/deps/pandora-bundle.js');
+  document.addEventListener('paywallLoaded', (data) => {
+    setEditButtons();
+  });
+}
+
+const setEditButtons = () => {
+  const editButtons = document.querySelectorAll('.action-button');
+  const handleClick = () => {
+    const dform = document.querySelector('.dform');
+    dform.classList.add('show-dform-edit');
+  }
+  editButtons.forEach(button => {
+    button.addEventListener('click', handleClick);
+  });
 }

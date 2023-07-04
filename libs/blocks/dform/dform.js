@@ -44,13 +44,16 @@ const createFromRow = (localData, key, value, spacer) => {
     localDataType = 'object';
   } else if (typeof localData[key] === 'string') {
     localDataType = 'string';
-  }
+  } 
+  // else if (typeof localData[key] === 'string' && localData[key] === 'src') {
+  //   localDataType = 'image';
+  // }
   // const [selectedOption, setSelectedOption] = useState(localDataType);
+  // <input type="button" id="btnImage" value="Add" onClick=${showImagePicker} />  
   const handleSelectChange = (event) => {
     // setSelectedOption(event.target.value);
     localDataType = event.target.value;
   };
-
   // const removeElement = () => {
     
   // };
@@ -64,7 +67,7 @@ const createFromRow = (localData, key, value, spacer) => {
         <option value="image">image</option>
         <option value="object">object</option>
       </select>
-      <button class="icon-button" onClick=${removeElement}>
+      <button class="icon-button minus-circle" onClick=${removeElement}>
         <img src="/img/home/minus-circle.svg" />
       </button>
       ${localDataType === 'string' && html`<div class="mulfield">
