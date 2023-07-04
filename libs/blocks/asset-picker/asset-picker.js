@@ -7,9 +7,11 @@ export default function init(el) {
     if (!res.ok) return;
     res.json().then((urlRes) => {
         const gallery = createTag('div', {class:'gallery'});
-        const checkmark = createTag('div', {class: 'checkmark'});
-        // add button
-        urlRes.data.forEach((url, index) => {
+        const galleryContainer = createTag('div', {class:'gallery-container'});
+        const addButton = createTag('button', { class: 'gallery-add-button feds-cta feds-cta--primary' }, 'Add');
+        galleryContainer.append(addButton);
+        galleryContainer.append(gallery);
+        urlRes.data.forEach(url => {
           const bg = createTag('img', { src: `${url[0]}`, class: `gallery__item`});
           const imageContainer = createTag('div', {class: 'image-container'});
           imageContainer.append(bg);
@@ -20,7 +22,10 @@ export default function init(el) {
             console.log('selected src', clickedImg.currentTarget);
           });
         });
-        el.append(gallery);
+        addButton.addEventListener('click',() => {
+          console.log('button click!');
+        });
+        el.append(galleryContainer);
     })
 
   });

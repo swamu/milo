@@ -12,12 +12,19 @@
 
 .gallery {
   display: grid;
-  padding-top: 100px;
+  padding-top: 10px;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 10vw);
   grid-gap: 15px;
+}
+
+.gallery-container {
   width: 1000px;
   margin: auto;
+}
+
+.gallery-add-button {
+  margin-top: 10px;
 }
 
 .gallery .image-container {
