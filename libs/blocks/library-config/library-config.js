@@ -1,6 +1,6 @@
 import { createTag } from '../../utils/utils.js';
 
-const LIBRARY_PATH = 'https://computing-machine--milo--adobecom.hlx.page/drafts/sarangi/hack/docs/library/library.json';
+const LIBRARY_PATH = '/drafts/sarangi/hack/docs/library/library.json';
 
 async function loadBlocks(content, list, query) {
   const { default: blocks } = await import('./lists/blocks.js');
