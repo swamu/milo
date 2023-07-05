@@ -18,6 +18,15 @@
       "includePaths": [ "**.docx**" ]
     },
     {
+      "id": "warcraft",
+      "title": "Warcraft",
+      "environments": [ "edit" ],
+      "isPalette": true,
+      "paletteRect": "top: 174px; left: auto;right: 0; height: 1000px; width: 1300px;",
+      "url": "/drafts/sarangi/hack/paywall?akamaiLocale=en",
+      "includePaths": [ "**.docx**" ]
+    },
+    {
       "id": "tools",
       "title": "Tools",
       "isContainer": true
