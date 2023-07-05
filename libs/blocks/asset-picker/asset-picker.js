@@ -26,6 +26,8 @@ export default function init(el) {
           const src = document.querySelector('.green img').getAttribute('src');
           window.location.hash = '';
           window.addButton.previousSibling.value = src;
+          window.MyNamespace.data.master.images[0].image._publishUrl = src;
+          window.dispatchEvent(new Event('paywallUpdated'));
         });
         el.append(galleryContainer);
     })
