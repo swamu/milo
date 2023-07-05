@@ -22,8 +22,10 @@ export default function init(el) {
             console.log('selected src', clickedImg.currentTarget);
           });
         });
-        addButton.addEventListener('click',() => {
-          console.log('button click!');
+        addButton.addEventListener('click',(event) => {
+          const src = document.querySelector('.green img').getAttribute('src');
+          window.location.hash = '';
+          window.addButton.previousSibling.value = src;
         });
         el.append(galleryContainer);
     })

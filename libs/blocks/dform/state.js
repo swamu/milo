@@ -5,6 +5,7 @@ const initState = {
       "html": "<p>Upgrade</p>\n",
       "markdown": "Upgrade\n\n ",
       "plaintext": "Upgrade",
+      "_publishUrl": "https://main--cc--adobecom.hlx.page/media_1d9ea525fb4d8f4a65e6a96497ea4db204e66e223.jpeg#width=2000&height=3000",
       "json": [{
           "nodeType": "paragraph",
           "content": [{

@@ -42,10 +42,9 @@ const createFromRow = (localData, key, value, spacer) => {
     localDataType = 'array';
   } else if (typeof localData[key] === 'object' && !Array.isArray(localData[key]) && localData[key] !== null) {
     localDataType = 'object';
-  } else if (typeof localData[key] === '_publishUrl') {
+  } else if (key === '_publishUrl') {
     localDataType = 'image';
-  } 
-  else if (typeof localData[key] === 'string') {
+  } else if (typeof localData[key] === 'string') {
     localDataType = 'string';
   }  
   // const [selectedOption, setSelectedOption] = useState(localDataType);
@@ -54,7 +53,8 @@ const createFromRow = (localData, key, value, spacer) => {
     localDataType = event.target.value;
   };
 
-  const showImagePicker = () => {
+  const showImagePicker = (event) => {
+    window.addButton = event.currentTarget;
     const assetPicker = document.querySelector('.modal.link-block').getAttribute('href');
     window.location.href = assetPicker;
   };
