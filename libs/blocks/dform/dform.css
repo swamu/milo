@@ -175,3 +175,7 @@ header.global-navigation {
 .hlx-sk-palette .palette-title, .hlx-sk-palette .palette-content .global-navigation{
   display: none !important;
 }
+
+.modal-curtain.is-open {
+  background: rgb(50 50 50 / 40%) !important;
+}
