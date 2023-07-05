@@ -78,14 +78,22 @@ indices:
           parseTimestamp(headers['last-modified'], 'ddd, DD MMM YYYY hh:mm:ss GMT')
   promo:
     include:
-      - '/promotions/**'
-    target: /promotions/query-index.xlsx
+      - '/drafts/mariia/promopoc/promotions/**'
+    target: /drafts/mariia/promopoc/promotions/query-index.xlsx
     properties:
-      title:
-        select: head > meta[property="og:title"]
+      promocode:
+        select: head > meta[name="promocode"]
         value: |
           attribute(el, 'content')
-      image:
-        select: head > meta[property="og:image"]
+      promostart:
+        select: head > meta[name="promostart"]
         value: |
-          match(attribute(el, 'content'), 'https:\/\/[^/]+(\/.*)')
+          attribute(el, 'content')
+      promoend:
+        select: head > meta[name="promoend"]
+        value: |
+          attribute(el, 'content')
+      promopages:
+        select: head > meta[name="promopages"]
+        value: |
+          attribute(el, 'content')
