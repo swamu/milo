@@ -42,21 +42,24 @@ const createFromRow = (localData, key, value, spacer) => {
     localDataType = 'array';
   } else if (typeof localData[key] === 'object' && !Array.isArray(localData[key]) && localData[key] !== null) {
     localDataType = 'object';
-  } else if (typeof localData[key] === 'string') {
-    localDataType = 'string';
+  } else if (typeof localData[key] === '_publishUrl') {
+    localDataType = 'image';
   } 
-  // else if (typeof localData[key] === 'string' && localData[key] === 'src') {
-  //   localDataType = 'image';
-  // }
+  else if (typeof localData[key] === 'string') {
+    localDataType = 'string';
+  }  
   // const [selectedOption, setSelectedOption] = useState(localDataType);
-  // <input type="button" id="btnImage" value="Add" onClick=${showImagePicker} />  
   const handleSelectChange = (event) => {
     // setSelectedOption(event.target.value);
     localDataType = event.target.value;
   };
+
+  const showImagePicker = () => {
+    const assetPicker = document.querySelector('.modal.link-block').getAttribute('href');
+    window.location.href = assetPicker;
+  };
   // const removeElement = () => {
-    
-  // };
+  // };  
 
   return html`<div class='form-row spacer-${spacer * 8}'>
       <select value=${localDataType} onChange=${handleSelectChange}>
@@ -74,6 +77,11 @@ const createFromRow = (localData, key, value, spacer) => {
         <input type="text" placeholder="key" value=${key}/>
         <input type="text" placeholder="value" value=${localData[key]}/>
       </div>`}
+      ${localDataType === 'image' && html`<div class="mulfield">
+      <input type="text" placeholder="src" value=${key}/>
+      <input type="text" placeholder="value" value=${localData[key]}/>
+      <input type="button" id="btnImage" value="Add" onClick=${showImagePicker} />  
+    </div>`}
       ${localDataType === 'boolean' && html`<div class="mulfield">
         <input type="text" placeholder="key"/>
         <select>
