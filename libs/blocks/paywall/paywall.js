@@ -1493,9 +1493,14 @@ export default function init(el) {
 
 const setEditButtons = () => {
   const editButtons = document.querySelectorAll('.action-button');
-  const handleClick = () => {
+  const handleClick = (e) => {
     const dform = document.querySelector('.dform');
     dform.classList.add('show-dform-edit');
+    const pandoraElementType = e.target.parentElement.parentElement.nextElementSibling.getAttribute('data-testid').substring(8);
+    const editPandoraEvent = new CustomEvent('editPandoraElement', {
+        'detail' : { type: pandoraElementType }
+    });
+    document.dispatchEvent(editPandoraEvent);
   }
   editButtons.forEach(button => {
     button.addEventListener('click', handleClick);

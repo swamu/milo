@@ -109,6 +109,13 @@ function Form() {
 }
 
 export default function init(el) {
+
+  document.addEventListener('editPandoraElement', (event) => {
+    console.log(event);
+    console.log('inside dform: type:', event.detail.type);
+  });
+  
+
   render(html`
       <${Form} />`, el);
 }
