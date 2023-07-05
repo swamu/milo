@@ -29,11 +29,24 @@ const initState = {
 // };
 
 export const formData = signal(initState);
+export const type = signal('');
 
 export function addElement(obj, emptyType) {
   obj[''] = '';
   formData.value = {...formData.value}
 };
+
+export function updateData(value, obj, key) {
+  obj[key] = value;
+  formData.value = {...formData.value}
+  window.MyNamespace.data.master[type.value+"s"][0] = formData.value;
+  window.dispatchEvent(new Event('paywallUpdated'));
+}
+
+export function setFormData(t) {
+  type.value = t;
+  formData.value = window.MyNamespace.data.master[t+"s"][0];
+}
 
 // export function select
 

@@ -21,6 +21,11 @@
   margin-left: 40px;
 } */
 
+.dform {
+  height: 100vh;
+  overflow-y: scroll;
+}
+
 main .section {
   display: flex;
   overflow-x: hidden;

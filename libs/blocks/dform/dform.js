@@ -4,21 +4,11 @@ import {
   useState,
 } from '../../deps/htm-preact.js';
 
-import { formData, addElement, removeElement } from './state.js';
-
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    .replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-}
+import { formData, addElement, removeElement, setFormData, updateData } from './state.js';
 
 function AddButton({onClick}) {
   function updateFormData() {
-    const uuid = uuidv4();
-    formData.value = [...formData.value, uuid];
+    formData.value = [...formData.value];
   }
   return html`<div>
     <button class="icon-button" id="add" onClick=${onClick}>
@@ -58,8 +48,11 @@ const createFromRow = (localData, key, value, spacer) => {
     const assetPicker = document.querySelector('.modal.link-block').getAttribute('href');
     window.location.href = assetPicker;
   };
-  // const removeElement = () => {
-  // };  
+
+  const onDataChanged = (e, localData, key) => {
+    updateData(e.target.value, localData, key);
+    // window.dispatchEvent(new Event('paywallUpdated'));
+  };
 
   return html`<div class='form-row spacer-${spacer * 8}'>
       <select value=${localDataType} onChange=${handleSelectChange}>
@@ -75,7 +68,7 @@ const createFromRow = (localData, key, value, spacer) => {
       </button>
       ${localDataType === 'string' && html`<div class="mulfield">
         <input type="text" placeholder="key" value=${key}/>
-        <input type="text" placeholder="value" value=${localData[key]}/>
+        <input type="text" onKeyup=${(e) => onDataChanged(e, localData, key)} placeholder="value" value=${localData[key]}/>
       </div>`}
       ${localDataType === 'image' && html`<div class="mulfield">
       <input type="text" placeholder="src" value=${key}/>
@@ -102,17 +95,14 @@ const createFromRow = (localData, key, value, spacer) => {
 }
 
 function Form() {
-  console.log(formData.value);
   return html`
     <${AddButton} onClick=${() => { addElement(formData.value, {}); }}/>
     <${CreateElements} localData=${formData.value} spacer=0 />`;
 }
 
 export default function init(el) {
-
   document.addEventListener('editPandoraElement', (event) => {
-    console.log(event);
-    console.log('inside dform: type:', event.detail.type);
+    setFormData(event.detail.type);
   });
   
 
