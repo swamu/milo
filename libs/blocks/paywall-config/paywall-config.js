@@ -19,7 +19,7 @@ const LS_KEY = 'paywall_key';
 
 function generateUUID() {
   let d = new Date().getTime();
-  const d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
+  let d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     let r = Math.random() * 16;
     if (d > 0) {
@@ -164,22 +164,35 @@ const CopyBtn = () => {
     }, 2000);
   };
 
-  const getUrl = () => {
+  const getUrl = async () => {
     const url = window.location.href.split('#')[0];
     const uuid = generateUUID();
-    const uniqState = {...state, uuid: uuid };
-    return `${url}#${utf8ToB64(JSON.stringify(state))}`;
+    const uniqState = { ...state, uuid };
+    fetch('/drafts/sarangi/hack/content', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          id: uuid,
+          data: window.MyNamespace.data,
+        }
+      }),
+    })
+    return `${url}#${utf8ToB64(JSON.stringify(uniqState))}`;
   };
 
   const copyConfig = () => {
-    setConfigUrl(getUrl());
+    const url = getUrl();
+    setConfigUrl(url);
     if (!navigator?.clipboard) {
       setTempStatus(setIsError);
       return;
     }
 
     const link = document.createElement('a');
-    link.href = getUrl();
+    link.href = url;
     const dateStr = new Date().toLocaleString('us-EN', {
       weekday: 'long',
       year: 'numeric',

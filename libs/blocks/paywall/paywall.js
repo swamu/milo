@@ -25,7 +25,7 @@ export default async function init(el) {
     })
     .then(dataArray => {
       window.dataArray = dataArray;
-      window.MyNamespace.data = dataArray[0].data.data;
+      window.MyNamespace.data = JSON.parse(dataArray[0].data[0].data);
       let index = 0;
       if(el.classList.contains('right')) {
         index = 1;
