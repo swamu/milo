@@ -17,6 +17,22 @@ import { Select as FormSelect } from '../../ui/controls/formControls.js';
 const defaultState = { layout: '0', theme: 'light', container: '1024px' };
 const LS_KEY = 'paywall_key';
 
+function generateUUID() {
+  let d = new Date().getTime();
+  const d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    let r = Math.random() * 16;
+    if (d > 0) {
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      r = (d2 + r)%16 | 0;
+      d2 = Math.floor(d2/16);
+    }
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 const cloneObj = (obj) => JSON.parse(JSON.stringify(obj));
 
 const updateObj = (obj, defaultObj) => {
@@ -150,6 +166,8 @@ const CopyBtn = () => {
 
   const getUrl = () => {
     const url = window.location.href.split('#')[0];
+    const uuid = generateUUID();
+    const uniqState = {...state, uuid: uuid };
     return `${url}#${utf8ToB64(JSON.stringify(state))}`;
   };
 

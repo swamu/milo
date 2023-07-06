@@ -24,19 +24,12 @@ export default async function init(el) {
       return Promise.all(dataPromises);
     })
     .then(dataArray => {
-      const dt = {master: {label: "master"}};
-      dataArray[0].data.forEach(function(obj){
-        if(!dt.master[obj.key]) {
-          dt.master[obj.key] = [];
-        }
-        dt.master[obj.key].push(JSON.parse(obj.value));
-      });
-      window.MyNamespace.data = dt;
+      window.dataArray = dataArray;
+      window.MyNamespace.data = dataArray[0].data.data;
       let index = 0;
       if(el.classList.contains('right')) {
         index = 1;
       }
-      window.dataArray = dataArray;
       const lt = JSON.parse(dataArray[1].data[index].data);
       window.MyNamespace.layout = lt;
       import('/libs/deps/pandora-bundle.js');
