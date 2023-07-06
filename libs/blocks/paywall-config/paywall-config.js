@@ -114,7 +114,7 @@ const reducer = (state, action) => {
     case 'INPUT_CHANGE':
     case 'MULTI_SELECT_CHANGE':
       if (action.prop === 'layout') {
-        const lt = JSON.parse(window.dataArray[1].data[action.value].data);
+        const lt = JSON.parse(window.MyNamespace.dataArray[1].data[action.value].data);
         window.MyNamespace.layout = lt;
         window.dispatchEvent(new Event('paywallUpdated'));
       }
@@ -176,15 +176,15 @@ const CopyBtn = () => {
       body: JSON.stringify({
         data: {
           id: uuid,
-          data: window.MyNamespace.data,
+          data: JSON.stringify(window.MyNamespace.data)
         }
       }),
     })
     return `${url}#${utf8ToB64(JSON.stringify(uniqState))}`;
   };
 
-  const copyConfig = () => {
-    const url = getUrl();
+  const copyConfig = async () => {
+    const url = await getUrl();
     setConfigUrl(url);
     if (!navigator?.clipboard) {
       setTempStatus(setIsError);
@@ -203,7 +203,7 @@ const CopyBtn = () => {
       hour12: false,
     });
     const collectionName = state.collectionName ? `- ${state.collectionName} ` : '';
-    link.textContent = `Paywall ${collectionName}- ${dateStr}${state.doNotLazyLoad ? ' (no-lazy)' : ''}`;
+    link.textContent = `Paywall ${collectionName}- ${dateStr}-standalone`;
 
     const blob = new Blob([link.outerHTML], { type: 'text/html' });
     const data = [new ClipboardItem({ [blob.type]: blob })];

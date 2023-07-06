@@ -1,9 +1,32 @@
+import { parseEncodedConfig } from '../../utils/utils.js';
+
 const defaultContext = '{\n\t"formattedPrice": "US$15.99 per month",\n\t"productName": "Photoshop",\n\t"productDescription": "Creative Cloud single-app membership for Photoshop",\n\t"promotionTermLength": 1,\n\t"promotionTermUnit": "Month"\n}';
 
 window.MyNamespace = {};
 window.MyNamespace.context = defaultContext;
 
+const loadPaywall = async (a) => {
+  const encodedConfig = a.href.split('#')[1];
+  const state = parseEncodedConfig(encodedConfig);
+  window.MyNamespace.layout = state.layout;
+  window.MyNamespace.uuid = state.uuid;
+  window.MyNamespace.width = state.container;
+  const block = document.createElement('div');
+  block.className = a.className;
+  block.id = 'paywall';
+
+  a.insertAdjacentElement('afterend', block);
+  a.remove();
+};
+
 export default async function init(el) {
+  if (el.textContent.includes('standalone')) {
+    loadPaywall(el);
+  }
+  window.MyNamespace.layout = window.MyNamespace.layout || '0';
+  window.MyNamespace.uuid = window.MyNamespace.uuid || '0';
+  window.MyNamespace.width = window.MyNamespace.width || '1024px';
+
   const urls = [
     '/drafts/sarangi/hack/content.json',
     '/drafts/sarangi/hack/layout.json',
@@ -24,13 +47,10 @@ export default async function init(el) {
       return Promise.all(dataPromises);
     })
     .then(dataArray => {
-      window.dataArray = dataArray;
-      window.MyNamespace.data = JSON.parse(dataArray[0].data[0].data);
-      let index = 0;
-      if(el.classList.contains('right')) {
-        index = 1;
-      }
-      const lt = JSON.parse(dataArray[1].data[index].data);
+      window.MyNamespace.dataArray = dataArray;
+      const arr =  dataArray[0].data.filter(obj => obj.id === window.MyNamespace.uuid);
+      window.MyNamespace.data = JSON.parse(arr[0].data);
+      const lt = JSON.parse(dataArray[1].data[window.MyNamespace.layout].data);
       window.MyNamespace.layout = lt;
       import('/libs/deps/pandora-bundle.js');
       document.addEventListener('paywallLoaded', (data) => {

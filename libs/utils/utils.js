@@ -69,6 +69,7 @@ const AUTO_BLOCKS = [
   { adobetv: 'https://video.tv.adobe.com' },
   { gist: 'https://gist.github.com' },
   { caas: '/tools/caas' },
+  { paywall: '/hack/paywall' },
   { faas: '/tools/faas' },
   { fragment: '/fragments/' },
   { instagram: 'https://www.instagram.com' },
