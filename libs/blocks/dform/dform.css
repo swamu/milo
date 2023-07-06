@@ -29,17 +29,19 @@
 main .section {
   display: flex;
   overflow-x: hidden;
-  margin-top: 5px;
+  margin-top: 50px;
 }
 
 .section .paywall, .section .dform {
   transition: transform 0.3s ease;
+  margin-top: 10px;
 }
 
 .section .paywall {
   flex: 2;
   max-width: 1024px;
   margin: 0 auto;
+  max-height: 492px;
 }
 
 .section .dform {
@@ -50,6 +52,7 @@ main .section {
   margin-right: 15px;
   display: none;
   min-height: 500px;
+  padding-left: 10px;
 }
 
 .section > .content {
@@ -186,4 +189,8 @@ header.global-navigation {
 
 .modal-curtain.is-open {
   background: rgb(50 50 50 / 40%) !important;
+}
+
+.upw-edit-draft {
+  height: auto !important;
 }

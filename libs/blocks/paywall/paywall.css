@@ -1,4 +1,8 @@
 /* stylelint-disable*/
+.mainAppContainer {
+  margin: 0;
+  height: 100%;
+}
 
 .mainAppContainer .action-button-wrapper {
   background-color: '#3B82F6';
@@ -27,4 +31,8 @@
 .flexWrapper:hover {
   border-style: solid;
   border-color: #3b82f6;
+}
+
+.paywall-config button.copy-config {
+  margin: 0 0 15px;
 }

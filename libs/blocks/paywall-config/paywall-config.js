@@ -12,7 +12,7 @@ import {
   parseEncodedConfig,
   utf8ToB64,
 } from '../../utils/utils.js';
-import { Select as FormSelect } from '../../ui/controls/formControls.js';
+import { Input, Select as FormSelect } from '../../ui/controls/formControls.js';
 
 const defaultState = { layout: '0', theme: 'light', container: '1024px' };
 const LS_KEY = 'paywall_key';
@@ -67,9 +67,9 @@ const defaultOptions = {
     '2': 'Acrobat',
   },
   container: {
-    '1024px': '1024px Container',
-    '1200px': '1200px Container',
-    '1600px': '1600px Container',
+    '1024px': '1024px',
+    '1200px': '1200px',
+    '1600px': '1600px',
   },
   theme: {
     lightest: 'Lightest Theme',
@@ -106,6 +106,7 @@ const UiPanel = () => html`
   <${Select} label="Layout" prop="layout" options=${defaultOptions.layout} />
   <${Select} label="Container" prop="container" options=${defaultOptions.container} />
   <${Select} label="Theme" prop="theme" options=${defaultOptions.theme} />
+  <${Input}  label="Sophia Url" />
 `;
 
 const reducer = (state, action) => {
@@ -121,6 +122,11 @@ const reducer = (state, action) => {
 
       if (action.prop === 'container') {
         document.querySelector('.paywall').style.maxWidth = action.value;
+        switch(action.value) {
+          case '1600px': document.querySelector('.paywall').style.maxHeight = '625px';break;
+          case '1200px': document.querySelector('.paywall').style.maxHeight = '545px';break;
+          default: document.querySelector('.paywall').style.maxHeight = '492px';break;
+        }
       }
       return { ...state, [action.prop]: action.value };
     case 'RESET_STATE':
@@ -252,16 +258,19 @@ const Configurator = () => {
   return html`
     <${ConfiguratorContext.Provider} value=${{ state, dispatch }}>
     <div class="tool-header">
+        <div class="tool-title">
+          <h1>Paywall</h1>
+        </div>
         <${CopyBtn} />
       </div>
-      <div class="tool-content">
-        <div class="config-panel">
+      <dd class="tool-content content">
+        <div class="config-panel content-container">
         ${html`<${UiPanel} />`}
         </div>
         <div class="content-panel">
           <div id="caas" class="caas-preview"></div>
         </div>
-      </div>
+      </dd>
     </ConfiguratorContext.Provider>`;
 };
 

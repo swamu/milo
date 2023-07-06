@@ -1,9 +1,14 @@
+import { getConfig, loadStyle } from '../../utils/utils.js';
 const defaultContext = '{\n\t"formattedPrice": "US$15.99 per month",\n\t"productName": "Photoshop",\n\t"productDescription": "Creative Cloud single-app membership for Photoshop",\n\t"promotionTermLength": 1,\n\t"promotionTermUnit": "Month"\n}';
 
 window.MyNamespace = {};
 window.MyNamespace.context = defaultContext;
 
 export default async function init(el) {
+  const { miloLibs, codeRoot } = getConfig();
+  loadStyle(`${miloLibs || codeRoot}/ui/controls/copyBtn.css`);
+  loadStyle(`${miloLibs || codeRoot}/ui/page/page.css`);
+
   const urls = [
     '/drafts/sarangi/hack/content.json',
     '/drafts/sarangi/hack/layout.json',

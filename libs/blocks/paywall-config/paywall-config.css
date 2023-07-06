@@ -1,0 +1,54 @@
+.config-panel .field {
+  padding: 10px 20px;
+}
+
+.config-panel{
+  background-color: #f5f5f5;
+  font-size: 16px;
+  color: #3C3C3C;
+  min-height: 800px;
+  clip-path: polygon(0% 0%, var(--notch-size) 0%, 100% 0%, 100% 0%, 100% calc(100% - var(--notch-size)), calc(100% - var(--notch-size)) 100%, 0% 100%, 0% 100%);
+}
+
+.paywall-config {
+  max-width: 300px;
+}
+
+.paywall-config .tool-header {
+  grid-template-columns: 0 auto 1fr auto;
+}
+
+.content-container .field, .dform .field {
+    display: grid;
+    max-width: var(--field-max-size);
+}
+
+.field input, .field select,.dform select, .dform input {
+  border: none;
+  background: #3C3C3C;
+  color: #EFEFEF;
+  padding: 8px 5px;
+  font-family: adobe-clean, sans-serif;
+  font-size: 16px;
+  max-width: var(--field-max-size);
+  margin-right: 2px;
+}
+
+.dform select, .dform input {
+  margin-bottom: 5px;
+}
+
+.tool-content {
+  margin-left: 22px;
+  display: block !important;
+}
+
+.paywall-config .tool-header button.copy-config {
+  grid-column: auto;
+  margin: 10px 0;
+}
+
+.dform select {
+  background: gray;
+  text-transform: capitalize;
+}
