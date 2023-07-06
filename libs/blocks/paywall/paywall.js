@@ -1,5 +1,5 @@
-import { parseEncodedConfig } from '../../utils/utils.js';
 
+import { getConfig, loadStyle, parseEncodedConfig } from '../../utils/utils.js';
 const defaultContext = '{\n\t"formattedPrice": "US$15.99 per month",\n\t"productName": "Photoshop",\n\t"productDescription": "Creative Cloud single-app membership for Photoshop",\n\t"promotionTermLength": 1,\n\t"promotionTermUnit": "Month"\n}';
 
 window.MyNamespace = {};
@@ -26,6 +26,10 @@ export default async function init(el) {
   window.MyNamespace.layout = window.MyNamespace.layout || '0';
   window.MyNamespace.uuid = window.MyNamespace.uuid || '0';
   window.MyNamespace.width = window.MyNamespace.width || '1024px';
+
+  const { miloLibs, codeRoot } = getConfig();
+  loadStyle(`${miloLibs || codeRoot}/ui/controls/copyBtn.css`);
+  loadStyle(`${miloLibs || codeRoot}/ui/page/page.css`);
 
   const urls = [
     '/drafts/sarangi/hack/content.json',
