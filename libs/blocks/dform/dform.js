@@ -31,7 +31,8 @@ function CreateElements({ localData, spacer }) {
   if (typeof localData === 'object' && !Array.isArray(localData) && localData !== null) {
     return html`${Object.keys(localData).map((value, key) => createFromRow(localData, value, key, Number(spacer) + 1))}`;
   } else if (Array.isArray(localData)) {
-    return html`${localData.map((value, key) => createFromRow(localData, value, key, Number(spacer) + 1))}`;
+    // return html`${localData.map((value, key) => createFromRow(localData, value, key, Number(spacer) + 1))}`;
+    return html`${localData.map((value, key) => html`<${CreateElements} localData=${value} spacer=${Number(spacer) + 1} />`)}`;
   }
   return '';
 }
@@ -46,7 +47,7 @@ const createFromRow = (localData, key, value, spacer) => {
     localDataType = 'image';
   } else if (typeof localData[key] === 'string') {
     localDataType = 'string';
-  }  
+  }
   // const [selectedOption, setSelectedOption] = useState(localDataType);
   const handleSelectChange = (event) => {
     // setSelectedOption(event.target.value);
@@ -61,7 +62,6 @@ const createFromRow = (localData, key, value, spacer) => {
 
   const onDataChanged = (e, localData, key) => {
     updateData(e.target.value, localData, key);
-    // window.dispatchEvent(new Event('paywallUpdated'));
   };
 
   return isShowField(key) && html`<div class='form-row spacer-${spacer * 8}'>

@@ -1,18 +1,13 @@
-import { createTag, getConfig, loadScript } from '../../utils/utils.js';
-
 const defaultContext = '{\n\t"formattedPrice": "US$15.99 per month",\n\t"productName": "Photoshop",\n\t"productDescription": "Creative Cloud single-app membership for Photoshop",\n\t"promotionTermLength": 1,\n\t"promotionTermUnit": "Month"\n}';
 
 window.MyNamespace = {};
 window.MyNamespace.context = defaultContext;
 
 export default async function init(el) {
-  const a = [...el.querySelectorAll('a')];
-  const urls = a.map((elem) => elem.href);
-  a.forEach(elem => elem.remove());
-  // const urls = [
-  //   '/drafts/sarangi/hack/content.json',
-  //   '/drafts/sarangi/hack/layout.json',
-  // ];
+  const urls = [
+    '/drafts/sarangi/hack/content.json',
+    '/drafts/sarangi/hack/layout.json',
+  ];
   const fetchPromises = urls.map((url) => fetch(url));
 
   Promise.all(fetchPromises)
@@ -41,6 +36,7 @@ export default async function init(el) {
       if(el.classList.contains('right')) {
         index = 1;
       }
+      window.dataArray = dataArray;
       const lt = JSON.parse(dataArray[1].data[index].data);
       window.MyNamespace.layout = lt;
       import('/libs/deps/pandora-bundle.js');
