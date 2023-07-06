@@ -17,6 +17,16 @@ function AddButton({onClick}) {
   </div>`;
 }
 
+function isShowField(key) {
+  return key !== '_path'
+    && key !== '_variation'
+    && key !== 'fragmentId'
+    && key !== '_metadata'
+    && key !== '_model'
+    && key !== '_tags'
+    && key !== '_variations';
+}
+
 function CreateElements({ localData, spacer }) {
   if (typeof localData === 'object' && !Array.isArray(localData) && localData !== null) {
     return html`${Object.keys(localData).map((value, key) => createFromRow(localData, value, key, Number(spacer) + 1))}`;
@@ -54,7 +64,7 @@ const createFromRow = (localData, key, value, spacer) => {
     // window.dispatchEvent(new Event('paywallUpdated'));
   };
 
-  return html`<div class='form-row spacer-${spacer * 8}'>
+  return isShowField(key) && html`<div class='form-row spacer-${spacer * 8}'>
       <select value=${localDataType} onChange=${handleSelectChange}>
         <option value="">Select a Type</option>
         <option value="string">string</option>
@@ -88,6 +98,7 @@ const createFromRow = (localData, key, value, spacer) => {
       <${CreateElements} localData=${localData[key]} spacer=${spacer} />
       <${AddButton} onClick=${() => addElement(localData[key], [])} />`}
       ${localDataType === 'object' && html`<div class="mulfield">
+      <input type="text" placeholder="key" value=${key} />
       </div><${CreateElements} localData=${localData[key]} spacer=${spacer} />
       <${AddButton} onClick=${() => addElement(localData[key], {})} />`}
     </div>
