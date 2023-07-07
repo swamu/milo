@@ -189,14 +189,6 @@ select {
   text-transform: capitalize;
 }
 
-.global-footer{
-  display: none !important;
-}
-
-header.global-navigation {
-  display: none !important;
-}
-
 .hlx-sk-palette .palette-title, .hlx-sk-palette .palette-content .global-navigation{
   display: none !important;
 }

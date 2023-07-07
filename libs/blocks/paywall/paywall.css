@@ -36,3 +36,11 @@
 .paywall-config button.copy-config {
   margin: 0 0 15px;
 }
+
+.global-footer{
+  display: none !important;
+}
+
+header.global-navigation {
+  display: none !important;
+}
