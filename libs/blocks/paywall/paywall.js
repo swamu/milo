@@ -30,7 +30,7 @@ export default async function init(el) {
   const { miloLibs, codeRoot } = getConfig();
   loadStyle(`${miloLibs || codeRoot}/ui/controls/copyBtn.css`);
   loadStyle(`${miloLibs || codeRoot}/ui/page/page.css`);
-
+  // const layoutValue = document.querySelector("#layout").value;
   const urls = [
     '/drafts/sarangi/hack/content.json',
     '/drafts/sarangi/hack/layout.json',
@@ -57,9 +57,13 @@ export default async function init(el) {
       const lt = JSON.parse(dataArray[1].data[window.MyNamespace.layout].data);
       window.MyNamespace.layout = lt;
       import('/libs/deps/pandora-bundle.js');
-      document.addEventListener('paywallLoaded', (data) => {
+      window.addEventListener('paywallLoaded', (data) => {
         setEditButtons();
       });
+      window.addEventListener('paywallModified', (data) => {
+        setEditButtons();
+      });
+      
     })
     .catch(error => {
       console.error('Error:', error);
@@ -76,7 +80,7 @@ const setEditButtons = () => {
     const editPandoraEvent = new CustomEvent('editPandoraElement', {
         'detail' : { type: pandoraElementType }
     });
-    document.dispatchEvent(editPandoraEvent);
+    window.dispatchEvent(editPandoraEvent);
   }
   editButtons.forEach(button => {
     button.addEventListener('click', handleClick);

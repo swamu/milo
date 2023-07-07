@@ -63,8 +63,8 @@ const defaultOptions = {
   },
   layout: {
     '0': 'Default',
-    '1': 'Right',
-    '2': 'Acrobat',
+    '1': 'Left View',
+    '2': 'Right View',
   },
   container: {
     '1024px': '1024px',
@@ -117,7 +117,9 @@ const reducer = (state, action) => {
       if (action.prop === 'layout') {
         const lt = JSON.parse(window.MyNamespace.dataArray[1].data[action.value].data);
         window.MyNamespace.layout = lt;
-        window.dispatchEvent(new Event('paywallUpdated'));
+        const layoutNumber = action.value == '0' ? '0' : '1';
+        const arr =  window.MyNamespace.dataArray[0].data.filter(obj => obj.id === layoutNumber);
+        window.MyNamespace.data = JSON.parse(arr[0].data);
       }
 
       if (action.prop === 'container') {
@@ -128,6 +130,8 @@ const reducer = (state, action) => {
           default: document.querySelector('.paywall').style.maxHeight = '492px';break;
         }
       }
+      window.dispatchEvent(new Event('paywallUpdated'));
+      window.dispatchEvent(new Event('paywallModified'));
       return { ...state, [action.prop]: action.value };
     case 'RESET_STATE':
       return cloneObj(defaultState);

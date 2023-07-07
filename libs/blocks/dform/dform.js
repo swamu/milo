@@ -112,7 +112,7 @@ function Form() {
 }
 
 export default function init(el) {
-  document.addEventListener('editPandoraElement', (event) => {
+  window.addEventListener('editPandoraElement', (event) => {
     setFormData(event.detail.type);
   });
   
