@@ -4,18 +4,20 @@
 
 .config-panel{
   background-color: #f5f5f5;
+  border-top: 0 !important;
   font-size: 16px;
   color: #3C3C3C;
-  min-height: 800px;
+  min-height: 900px;
   clip-path: polygon(0% 0%, var(--notch-size) 0%, 100% 0%, 100% 0%, 100% calc(100% - var(--notch-size)), calc(100% - var(--notch-size)) 100%, 0% 100%, 0% 100%);
 }
 
 .paywall-config {
-  max-width: 300px;
+  min-width: 300px;
 }
 
 .paywall-config .tool-header {
   grid-template-columns: 0 auto 1fr auto;
+  padding-top: 16px;
 }
 
 .content-container .field, .dform .field {
@@ -24,18 +26,23 @@
 }
 
 .field input, .field select,.dform select, .dform input {
-  border: none;
-  background: #3C3C3C;
-  color: #EFEFEF;
   padding: 8px 5px;
   font-family: adobe-clean, sans-serif;
   font-size: 16px;
   max-width: var(--field-max-size);
   margin-right: 2px;
+  color: #4b4b4b;
+  background-color: #fafafa;
+  border-color: #e1e1e1;
+  border-radius: 3px;
 }
 
 .dform select, .dform input {
   margin-bottom: 5px;
+}
+
+.paywall-config .content-panel {
+  border-top: 0;
 }
 
 .tool-content {
@@ -45,10 +52,16 @@
 
 .paywall-config .tool-header button.copy-config {
   grid-column: auto;
-  margin: 10px 0;
+  background-image: none;
+  clip-path: none;
+  border-radius: 18px;
+  padding: 0;
+  min-width: 100px;
+  background-color: #1473e6;
+  border-color: #1473e6;
+  color: #fff;
 }
 
-.dform select {
-  background: gray;
-  text-transform: capitalize;
+.tool-header::after{
+  background-image: none !important;
 }

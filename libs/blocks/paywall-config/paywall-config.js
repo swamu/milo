@@ -221,9 +221,9 @@ const CopyBtn = () => {
       () => {
         setTempStatus((status) => {
           if (status) {
-            setBtnText('OK!');
+            // setBtnText('Navigate to draft');
           } else {
-            setBtnText('Copy');
+            setBtnText('Save and navigate');
           }
           setIsSuccess(status);
         });
@@ -261,18 +261,12 @@ const Configurator = () => {
 
   return html`
     <${ConfiguratorContext.Provider} value=${{ state, dispatch }}>
-    <div class="tool-header">
-        <div class="tool-title">
-          <h1>Paywall</h1>
-        </div>
-        <${CopyBtn} />
-      </div>
       <dd class="tool-content content">
         <div class="config-panel content-container">
         ${html`<${UiPanel} />`}
-        </div>
-        <div class="content-panel">
-          <div id="caas" class="caas-preview"></div>
+          <div class="tool-header">
+            <${CopyBtn} />
+          </div>
         </div>
       </dd>
     </ConfiguratorContext.Provider>`;

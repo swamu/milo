@@ -1,7 +1,7 @@
 /* stylelint-disable*/
 .mainAppContainer {
-  margin: 0;
   height: 100%;
+  margin-top: 4px !important;
 }
 
 .mainAppContainer .action-button-wrapper {
