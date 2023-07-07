@@ -29,7 +29,7 @@
 main .section {
   display: flex;
   overflow-x: hidden;
-  margin-top: 75px;
+  margin-top: 15px;
 }
 
 .section .paywall, .section .dform {
@@ -41,6 +41,7 @@ main .section {
   max-width: 1024px;
   margin: 0 auto;
   max-height: 492px;
+  padding-top: 5px;
 }
 
 .section .dform {
