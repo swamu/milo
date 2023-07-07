@@ -12,6 +12,7 @@ import {
   parseEncodedConfig,
   utf8ToB64,
 } from '../../utils/utils.js';
+import { initDraft } from './draft.js';
 import { Input, Select as FormSelect } from '../../ui/controls/formControls.js';
 
 const defaultState = { layout: '0', theme: 'light', container: '1024px' };
@@ -165,7 +166,7 @@ const CopyBtn = () => {
   const [isError, setIsError] = useState();
   const [isSuccess, setIsSuccess] = useState();
   const [configUrl, setConfigUrl] = useState('');
-  const [btnText, setBtnText] = useState('Copy');
+  const [btnText, setBtnText] = useState('Save as Draft');
 
   const setTempStatus = (setFn, status = true) => {
     setFn(status);
@@ -201,8 +202,8 @@ const CopyBtn = () => {
       return;
     }
 
-    const link = document.createElement('a');
-    link.href = url;
+    // const link = document.createElement('a');
+    // link.href = url;
     const dateStr = new Date().toLocaleString('us-EN', {
       weekday: 'long',
       year: 'numeric',
@@ -213,32 +214,14 @@ const CopyBtn = () => {
       hour12: false,
     });
     const collectionName = state.collectionName ? `- ${state.collectionName} ` : '';
-    link.textContent = `Paywall ${collectionName}- ${dateStr}-standalone`;
+    // link.textContent = `Paywall ${collectionName}- ${dateStr}-standalone`;
+    const textContent = `Paywall ${collectionName}- ${dateStr}-standalone`;
+    const fileName = await initDraft(url, textContent);
+    setBtnText(fileName);
 
-    const blob = new Blob([link.outerHTML], { type: 'text/html' });
-    const data = [new ClipboardItem({ [blob.type]: blob })];
-    navigator.clipboard.write(data).then(
-      () => {
-        setTempStatus((status) => {
-          if (status) {
-            // setBtnText('Navigate to draft');
-          } else {
-            setBtnText('Save and navigate');
-          }
-          setIsSuccess(status);
-        });
-      },
-      () => {
-        setTempStatus((status) => {
-          if (status) {
-            setBtnText('Error');
-          } else {
-            setBtnText('Copy');
-          }
-          setIsError(status);
-        });
-      },
-    );
+    setTimeout(() => {
+      setBtnText('Save as Draft');
+    }, 10000);
   };
 
   return html` <textarea style="display:none;" class=${`copy-text ${(!navigator?.clipboard) ? '' : 'hide'}`}>${configUrl}</textarea>
