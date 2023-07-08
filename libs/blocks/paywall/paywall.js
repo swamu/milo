@@ -72,6 +72,16 @@ export default async function init(el) {
 }
 
 const setEditButtons = () => {
+  const paywallElement = document.querySelector('.section .content .paywall.link-block');
+
+  if (paywallElement != null) {
+    document.querySelectorAll('.flexWrapper').forEach((element) => {
+      element.style.borderColor = 'transparent';
+    });
+    document.querySelectorAll('.actionButtons').forEach((element) => {
+      element.style.display = 'none';
+    });
+  }
   const editButtons = document.querySelectorAll('.action-button');
   const handleClick = (e) => {
     const dform = document.querySelector('.dform');
