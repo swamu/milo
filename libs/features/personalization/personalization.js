@@ -15,6 +15,11 @@ export const PERSONALIZATION_TAGS = {
   lightmode: () => !PERSONALIZATION_TAGS.darkmode(),
 };
 
+export const ENTITLEMENT_TAGS = {
+  phsp: () => {},
+  lgtr: () => {},
+};
+
 // Replace any non-alpha chars except comma, space and hyphen
 const RE_KEY_REPLACE = /[^a-z0-9\- ,=]/g;
 
@@ -240,17 +245,43 @@ export function parseConfig(data) {
   return null;
 }
 
-function getPersonalizationVariant(variantNames = [], variantLabel = null) {
-  const tagNames = Object.keys(PERSONALIZATION_TAGS);
-  const matchingVariant = variantNames.find((variant) => {
-    // handle multiple variants that are space / comma delimited
-    const names = variant.split(',').map((v) => v.trim()).filter(Boolean);
-    return names.some((name) => {
-      if (name === variantLabel) return true;
-      if (name.startsWith('param-')) return checkForParamMatch(name);
-      return tagNames.includes(name) && PERSONALIZATION_TAGS[name]();
-    });
+
+const loadEntitlements = (() => {
+  let entitlements;
+  return (async () => {
+    if (!entitlements) {
+      const { default: getUserEntitlements } = await import('../../blocks/global-navigation/utilities/getUserEntitlements.js');
+      entitlements = await getUserEntitlements();
+    }
+    return entitlements;
   });
+})();
+
+
+async function getPersonalizationVariant(variantNames = [], variantLabel = null) {
+  const personalizationTags = Object.keys(PERSONALIZATION_TAGS);
+  const entitlementTags = Object.keys(ENTITLEMENT_TAGS);
+  const variantInfo = variantNames.reduce((acc, name) => {
+    const vNames = name.split(',').map((v) => v.trim()).filter(Boolean);
+    acc[name] = vNames;
+    acc.allNames = [...acc.allNames, ...vNames];
+    return acc;
+  }, { allNames: [] });
+  const entitlements = await loadEntitlements();
+  const hasEntitlementTag = entitlementTags.some((tag) => variantInfo.allNames.includes(tag));
+  // if (hasEntitlementTag) {
+  console.log(entitlements);
+
+  // }
+  const matchingVariant = variantNames.find((variant) => variantInfo[variant].some((name) => {
+    if (name === variantLabel) return true;
+    if (name.startsWith('param-')) return checkForParamMatch(name);
+    if (entitlementTags.includes(name)) {
+      // await loadEntitlements();
+      return ENTITLEMENT_TAGS[name]();
+    }
+    return personalizationTags.includes(name) && PERSONALIZATION_TAGS[name]();
+  }));
   return matchingVariant;
 }
 
@@ -260,7 +291,7 @@ export async function getPersConfig(name, variantLabel, manifestData, manifestPa
   let data = manifestData;
   if (!data) {
     const fetchedData = await fetchData(manifestPath, DATA_TYPE.JSON);
-    if (fetchedData) data = fetchedData.data;
+    if (fetchedData) data = fetchedData.data || fetchedData.experiences?.data;
   }
   if (!data) return {};
   const config = parseConfig(data);
@@ -270,7 +301,7 @@ export async function getPersConfig(name, variantLabel, manifestData, manifestPa
     return {};
   }
 
-  const selectedVariant = getPersonalizationVariant(config.variantNames, variantLabel);
+  const selectedVariant = await getPersonalizationVariant(config.variantNames, variantLabel);
 
   if (selectedVariant && config.variantNames.includes(selectedVariant)) {
     config.run = true;

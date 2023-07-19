@@ -703,6 +703,8 @@ async function checkForPageMods() {
   let martechLoaded = false;
   if (targetEnabled) {
     martechLoaded = await loadMartech({ persEnabled: true, persManifests, targetMd });
+  } else {
+    loadIms();
   }
 
   if (persMd && persMd !== 'off' && !martechLoaded) {
