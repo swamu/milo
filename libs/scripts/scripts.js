@@ -156,4 +156,10 @@ const eagerLoad = (img) => {
   setConfig(config);
   loadLana({ clientId: 'milo' });
   await loadArea();
+  // const promo = getMetadata('promo');
+  const promo = 'on';
+  if (promo === 'on') {
+    const { default: loadPromotion } = await import('../features/promotion/promotion.js');
+    await loadPromotion(config);
+  }
 }());
