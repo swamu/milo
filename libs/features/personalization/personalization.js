@@ -3,6 +3,7 @@ let utils;
 
 const CLASS_EL_DELETE = 'p13n-deleted';
 const CLASS_EL_REPLACE = 'p13n-replaced';
+const PAGE_URL = new URL(window.location.href);
 
 export const PERSONALIZATION_TAGS = {
   chrome: () => navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Mobile'),
@@ -36,20 +37,29 @@ const DATA_TYPE = {
   TEXT: 'text',
 };
 
-const createFrag = (url) => {
+const createFrag = (url, manifestId) => {
   const a = utils.createTag('a', { href: url }, url);
+  if (manifestId) a.dataset.manifestId = manifestId;
   const p = utils.createTag('p', undefined, a);
   utils.loadLink(`${url}.plain.html`, { as: 'fetch', crossorigin: 'anonymous', rel: 'preload' });
   return p;
 };
 
 const COMMANDS = {
-  insertcontentafter: (el, target) => el.insertAdjacentElement('afterend', createFrag(target)),
-  insertcontentbefore: (el, target) => el.insertAdjacentElement('beforebegin', createFrag(target)),
-  removecontent: (el, target) => (target !== 'false' && el.classList.add(CLASS_EL_DELETE)),
-  replacecontent: (el, target) => {
+  insertcontentafter: (el, target, manifestId) => el
+    .insertAdjacentElement('afterend', createFrag(target, manifestId)),
+  insertcontentbefore: (el, target, manifestId) => el.insertAdjacentElement('beforebegin', createFrag(target, manifestId)),
+  removecontent: (el, target, manifestId) => {
+    if (target === 'false') return;
+    if (manifestId) {
+      const div = utils.createTag('div', { 'data-removed-manifest-id': manifestId });
+      el.insertAdjacentElement('beforebegin', div);
+    }
+    el.classList.add(CLASS_EL_DELETE);
+  },
+  replacecontent: (el, target, manifestId) => {
     if (el.classList.contains(CLASS_EL_REPLACE)) return;
-    el.insertAdjacentElement('beforebegin', createFrag(target));
+    el.insertAdjacentElement('beforebegin', createFrag(target, manifestId));
     el.classList.add(CLASS_EL_DELETE, CLASS_EL_REPLACE);
   },
 };
@@ -122,21 +132,10 @@ export async function replaceInner(path, element) {
   return true;
 }
 
-const getPageSearchParams = (() => {
-  let psParams;
-  return () => {
-    if (!psParams) {
-      psParams = new URL(window.location).searchParams;
-    }
-    return psParams;
-  };
-})();
-
 const checkForParamMatch = (paramStr) => {
   const [name, val] = paramStr.split('param-')[1].split('=');
   if (!name) return false;
-  const searchParams = getPageSearchParams();
-  const searchParamVal = searchParams.get(name);
+  const searchParamVal = PAGE_URL.searchParams.get(name);
   if (searchParamVal !== null) {
     if (val) return val === searchParamVal;
     return true; // if no val is set, just check for existence of param
@@ -169,7 +168,7 @@ function normalizeKeys(obj) {
   }, {});
 }
 
-function handleCommands(commands, rootEl = document) {
+function handleCommands(commands, manifestId, rootEl = document) {
   commands.forEach((cmd) => {
     if (VALID_COMMANDS.includes(cmd.action)) {
       let selectorEl = rootEl.querySelector(cmd.selector);
@@ -180,7 +179,7 @@ function handleCommands(commands, rootEl = document) {
         selectorEl = selectorEl.parentElement || selectorEl;
       }
 
-      COMMANDS[cmd.action](selectorEl, cmd.target);
+      COMMANDS[cmd.action](selectorEl, cmd.target, manifestId);
     } else {
       console.log('Invalid command found: ', cmd);
     }
@@ -254,6 +253,49 @@ const loadEntitlements = (() => {
       entitlements = await getUserEntitlements();
     }
     return entitlements;
+function parsePlaceholders(placeholders, config, selectedVariantName = '') {
+  if (!placeholders?.length || selectedVariantName === 'no changes') return config;
+  const valueNames = [
+    'value',
+    selectedVariantName.toLowerCase(),
+    config.locale.ietf.toLowerCase(),
+    ...config.locale.ietf.toLowerCase().split('-'),
+  ];
+  const [val] = Object.entries(placeholders[0])
+    .find(([key]) => valueNames.includes(key.toLowerCase()));
+  if (val) {
+    const results = placeholders.reduce((res, item) => {
+      res[item.key] = item[val];
+      return res;
+    }, {});
+    config.placeholders = { ...(config.placeholders || {}), ...results };
+  }
+  return config;
+}
+
+function getPersonalizationVariant(manifestPath, variantNames = [], variantLabel = null) {
+  const config = utils.getConfig();
+  let manifestFound = false;
+  if (config.mep?.override !== '') {
+    config.mep?.override.split(',').forEach((item) => {
+      const pair = item.trim().split('--');
+      if (pair[0] === manifestPath && pair.length > 1) {
+        // eslint-disable-next-line prefer-destructuring
+        manifestFound = pair[1];
+      }
+    });
+    if (manifestFound) return manifestFound;
+  }
+
+  const tagNames = Object.keys(PERSONALIZATION_TAGS);
+  const matchingVariant = variantNames.find((variant) => {
+    // handle multiple variants that are space / comma delimited
+    const names = variant.split(',').map((v) => v.trim()).filter(Boolean);
+    return names.some((name) => {
+      if (name === variantLabel) return true;
+      if (name.startsWith('param-')) return checkForParamMatch(name);
+      return tagNames.includes(name) && PERSONALIZATION_TAGS[name]();
+    });
   });
 })();
 
@@ -286,27 +328,44 @@ async function getPersonalizationVariant(variantNames = [], variantLabel = null)
 }
 
 export async function getPersConfig(name, variantLabel, manifestData, manifestPath) {
-  console.log('Personalization: ', name || manifestPath);
-
   let data = manifestData;
   if (!data) {
     const fetchedData = await fetchData(manifestPath, DATA_TYPE.JSON);
-    if (fetchedData) data = fetchedData.data || fetchedData.experiences?.data;
+    if (fetchData) data = fetchedData;
   }
-  if (!data) return {};
-  const config = parseConfig(data);
+  let placeholders = false;
+  if (data?.placeholders?.data) {
+    placeholders = data.placeholders.data;
+  }
+
+  const persData = data?.data || data?.experiences?.data || data?.experiments?.data;
+  if (!persData) return {};
+  const config = parseConfig(persData);
 
   if (!config) {
     console.log('Error loading personalization config: ', name || manifestPath);
     return {};
   }
 
-  const selectedVariant = await getPersonalizationVariant(config.variantNames, variantLabel);
+  const selectedVariantName = getPersonalizationVariant(
+    manifestPath,
+    config.variantNames,
+    variantLabel,
+  );
 
-  if (selectedVariant && config.variantNames.includes(selectedVariant)) {
+  if (selectedVariantName && config.variantNames.includes(selectedVariantName)) {
     config.run = true;
-    config.selectedVariantName = selectedVariant;
-    config.selectedVariant = config.variants[selectedVariant];
+    config.selectedVariantName = selectedVariantName;
+    config.selectedVariant = config.variants[selectedVariantName];
+  } else {
+    config.selectedVariantName = 'no changes';
+    config.selectedVariant = 'no changes';
+  }
+
+  if (placeholders) {
+    utils.updateConfig(
+      parsePlaceholders(placeholders, utils.getConfig(), config.selectedVariantName),
+    );
   }
 
   config.name = name;
@@ -336,7 +395,8 @@ const getFPInfo = (fpTableRows) => {
   return { info, names };
 };
 
-const modifyFragment = (selectedEl, action, htmlFragment) => {
+const modifyFragment = (selectedEl, action, htmlFragment, manifestId) => {
+  htmlFragment.dataset.manifestId = manifestId;
   switch (action) {
     case 'replace': case 'replacecontent':
       selectedEl.replaceWith(htmlFragment);
@@ -348,6 +408,7 @@ const modifyFragment = (selectedEl, action, htmlFragment) => {
       selectedEl.insertAdjacentElement('afterend', htmlFragment);
       break;
     case 'remove': case 'removecontent':
+      selectedEl.insertAdjacentElement('beforebegin', utils.createTag('div', { 'data-remove-manifest-id': manifestId }));
       selectedEl.remove();
       break;
     default:
@@ -361,19 +422,21 @@ const deleteMarkedEls = () => {
 };
 
 export async function fragmentPersonalization(el) {
-  const fpTableRows = el.querySelectorAll(':scope > div');
-  el.remove();
-  if (!fpTableRows) return el;
+  const fpTable = el.querySelector('div.fragment-personalization');
+  if (!fpTable) return el;
+  const fpTableRows = fpTable.querySelectorAll(':scope > div');
 
   const { info, names } = getFPInfo(fpTableRows);
+  fpTable.remove();
 
-  const selectedVariant = getPersonalizationVariant(names);
+  const manifestId = 'fragment-personalization';
+  const selectedVariant = getPersonalizationVariant(manifestId, names);
   if (!selectedVariant) return el;
 
   info[selectedVariant].forEach((cmd) => {
     const selectedEl = el.querySelector(cmd.selector);
     if (!selectedEl) return;
-    modifyFragment(selectedEl, cmd.action, cmd.htmlFragment);
+    modifyFragment(selectedEl, cmd.action, cmd.htmlFragment, manifestId);
   });
 
   return el;
@@ -384,7 +447,7 @@ const normalizeFragPaths = ({ selector, val }) => ({
   val: normalizePath(val),
 });
 
-export async function runPersonalization(info) {
+export async function runPersonalization(info, config) {
   const {
     name,
     manifestData,
@@ -396,16 +459,26 @@ export async function runPersonalization(info) {
 
   const { selectedVariant } = experiment;
   if (!selectedVariant) return {};
+  if (selectedVariant === 'no changes') {
+    return { experiment };
+  }
 
   if (selectedVariant.replacepage) {
     // only one replacepage can be defined
     await replaceInner(selectedVariant.replacepage[0]?.val, document.querySelector('main'));
+    document.querySelector('main').dataset.manifestId = manifestPath;
   }
 
   selectedVariant.insertscript?.map((script) => utils.loadScript(script.val));
   selectedVariant.updatemetadata?.map((metadata) => setMetadata(metadata));
 
-  handleCommands(selectedVariant.commands);
+  let manifestId = experiment.manifest;
+  if (!config.mep?.preview) {
+    manifestId = false;
+  } else if (experiment.name) {
+    manifestId = `${experiment.name}: ${manifestId}`;
+  }
+  handleCommands(selectedVariant.commands, manifestId);
 
   selectedVariant.replacefragment &&= selectedVariant.replacefragment.map(normalizeFragPaths);
 
@@ -416,29 +489,54 @@ export async function runPersonalization(info) {
   };
 }
 
+function cleanManifestList(manifests) {
+  const manifestPaths = [];
+  const cleanedList = [];
+  manifests.forEach((manifest) => {
+    try {
+      const url = new URL(manifest.manifestPath);
+      manifest.manifestPath = url.pathname;
+    } catch (e) {
+      // do nothing
+    }
+    const foundIndex = manifestPaths.indexOf(manifest.manifestPath);
+    if (foundIndex === -1) {
+      manifestPaths.push(manifest.manifestPath);
+      cleanedList.push(manifest);
+    } else {
+      cleanedList[foundIndex] = { ...cleanedList[foundIndex], ...manifest };
+    }
+  });
+  return cleanedList;
+}
+
 export async function applyPers(
   manifests,
-  { createTag, getConfig, loadLink, loadScript, updateConfig },
+  utilities,
 ) {
   if (!manifests?.length) return;
+  const cleanedManifests = cleanManifestList(manifests);
 
-  utils = { createTag, getConfig, loadLink, loadScript };
+  utils = utilities;
+  const config = utils.getConfig();
 
   let results = [];
-  for (const manifest of manifests) {
-    results.push(await runPersonalization(manifest));
+  for (const manifest of cleanedManifests) {
+    results.push(await runPersonalization(manifest, config));
   }
   results = results.filter(Boolean);
   deleteMarkedEls();
 
-  // Currently required for preview.js
-  window.hlx ??= {};
-  window.hlx.experiments = results.map((r) => r.experiment);
-
-  updateConfig({
-    ...getConfig(),
-    experiments: results.map((r) => r.experiment),
+  const experiments = results.map((r) => r.experiment);
+  utils.updateConfig({
+    ...config,
+    experiments,
     expBlocks: consolidateObjects(results, 'blocks'),
     expFragments: consolidateObjects(results, 'fragments'),
   });
+
+  if (config.mep?.preview) {
+    const { default: decoratePreviewMode } = await import('./preview.js');
+    decoratePreviewMode(experiments, utils);
+  }
 }
