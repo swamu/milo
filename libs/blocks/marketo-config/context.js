@@ -1,5 +1,5 @@
 import { createContext, html, useReducer } from '../../deps/htm-preact.js';
-import { parseEncodedConfig } from '../../utils/utils.js';
+import { parseEncodedConfig } from '../../utils/helpers.js';
 
 export const saveStateToLocalStorage = (state, lsKey) => {
   localStorage.setItem(lsKey, JSON.stringify(state));

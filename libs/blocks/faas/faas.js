@@ -1,4 +1,4 @@
-import { parseEncodedConfig } from '../../utils/utils.js';
+import { parseEncodedConfig } from '../../utils/helpers.js';
 import { initFaas, loadFaasFiles } from './utils.js';
 
 export default async function init(a) {

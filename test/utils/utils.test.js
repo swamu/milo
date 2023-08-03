@@ -3,6 +3,8 @@ import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 import { waitFor, waitForElement } from '../helpers/waitfor.js';
 import { mockFetch } from '../helpers/generalHelpers.js';
+import loadDeferred from '../../libs/utils/loadDeferred.js';
+import { utf8ToB64, b64ToUtf8, parseEncodedConfig } from '../../libs/utils/helpers.js';
 
 const utils = {};
 
@@ -128,7 +130,7 @@ describe('Utils', () => {
 
     it('Does not setup nofollow links', async () => {
       window.fetch = mockFetch({ payload: { data: [] } });
-      await utils.loadDeferred(document, [], { links: 'on' });
+      await loadDeferred(document, [], { links: 'on' });
       const gaLink = document.querySelector('a[href="https://analytics.google.com/"]');
       expect(gaLink.getAttribute('rel')).to.be.null;
     });
@@ -143,23 +145,23 @@ describe('Utils', () => {
       metaPath.content = '/test/utils/mocks/nofollow.json';
 
       document.head.append(metaOn, metaPath);
-      await utils.loadDeferred(document, [], { contentRoot: '' });
+      await loadDeferred(document, [], { contentRoot: '' });
       const gaLink = document.querySelector('a[href^="https://analytics.google.com"]');
       expect(gaLink).to.exist;
     });
 
     it('Converts UTF-8 to Base 64', () => {
-      const b64 = utils.utf8ToB64('hello world');
+      const b64 = utf8ToB64('hello world');
       expect(b64).to.equal('aGVsbG8gd29ybGQ=');
     });
 
     it('Converts Base 64 to UTF-8', () => {
-      const b64 = utils.b64ToUtf8('aGVsbG8gd29ybGQ=');
+      const b64 = b64ToUtf8('aGVsbG8gd29ybGQ=');
       expect(b64).to.equal('hello world');
     });
 
     it('Successfully dies parsing a bad config', () => {
-      utils.parseEncodedConfig('error');
+      parseEncodedConfig('error');
       // eslint-disable-next-line no-console
       expect(console.log.args[0][0].name).to.equal('InvalidCharacterError');
     });

@@ -1,5 +1,5 @@
 import { initCaas, loadCaasFiles, loadStrings } from './utils.js';
-import { parseEncodedConfig, createIntersectionObserver } from '../../utils/utils.js';
+import { parseEncodedConfig, createIntersectionObserver } from '../../utils/helpers.js';
 
 const ROOT_MARGIN = 1000;
 

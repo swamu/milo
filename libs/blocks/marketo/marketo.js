@@ -13,7 +13,8 @@
 /*
  * Marketo Form
  */
-import { parseEncodedConfig, loadScript, createTag, createIntersectionObserver } from '../../utils/utils.js';
+import { loadScript, createTag } from '../../utils/utils.js';
+import { createIntersectionObserver, parseEncodedConfig } from '../../utils/helpers.js';
 
 const FORM_ID = 'form id';
 const BASE_URL = 'marketo host';

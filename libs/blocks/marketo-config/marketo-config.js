@@ -1,5 +1,6 @@
 import { html, render, useContext, useState, useEffect } from '../../deps/htm-preact.js';
-import { utf8ToB64, loadBlock, createTag } from '../../utils/utils.js';
+import { loadBlock, createTag } from '../../utils/utils.js';
+import { utf8ToB64 } from '../../utils/helpers.js';
 import { setPreferences } from '../marketo/marketo.js';
 import { ConfiguratorContext, ConfiguratorProvider, saveStateToLocalStorage } from './context.js';
 import Accordion from '../../ui/controls/Accordion.js';

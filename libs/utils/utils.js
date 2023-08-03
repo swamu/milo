@@ -191,10 +191,6 @@ export const [setConfig, updateConfig, getConfig] = (() => {
   ];
 })();
 
-export function isInTextNode(node) {
-  return node.parentElement.firstChild.nodeType === Node.TEXT_NODE;
-}
-
 export function createTag(tag, attributes, html) {
   const el = document.createElement(tag);
   if (html) {
@@ -744,28 +740,6 @@ async function loadPostLCP(config) {
   loadFonts(config.locale, loadStyle);
 }
 
-export async function loadDeferred(area, blocks, config) {
-  const event = new Event('milo:deferred');
-  area.dispatchEvent(event);
-  if (config.links === 'on') {
-    const path = `${config.contentRoot || ''}${getMetadata('links-path') || '/seo/links.json'}`;
-    import('../features/links.js').then((mod) => mod.default(path, area));
-  }
-
-  if (config.locale?.ietf === 'ja-JP') {
-    // Japanese word-wrap
-    import('../features/japanese-word-wrap.js').then(({ controlLineBreaksJapanese }) => {
-      controlLineBreaksJapanese(config, area);
-    });
-  }
-
-  import('./samplerum.js').then(({ sampleRUM }) => {
-    sampleRUM('lazy');
-    sampleRUM.observe(blocks);
-    sampleRUM.observe(area.querySelectorAll('picture > img'));
-  });
-}
-
 function initSidekick() {
   const initPlugins = async () => {
     const { default: init } = await import('./sidekick.js');
@@ -873,37 +847,12 @@ export async function loadArea(area = document) {
     delayed([getConfig, getMetadata, loadScript, loadStyle]);
   }
 
-  // Load everything that can be deferred until after all blocks load.
-  await loadDeferred(area, areaBlocks, config);
+  const { default: loadDeferred } = await import('./loadDeferred.js');
+  await loadDeferred(area, areaBlocks, config, getMetadata);
 }
 
 export function loadDelayed() {
   // TODO: remove after all consumers have stopped calling this method
-}
-
-export const utf8ToB64 = (str) => window.btoa(unescape(encodeURIComponent(str)));
-export const b64ToUtf8 = (str) => decodeURIComponent(escape(window.atob(str)));
-
-export function parseEncodedConfig(encodedConfig) {
-  try {
-    return JSON.parse(b64ToUtf8(decodeURIComponent(encodedConfig)));
-  } catch (e) {
-    console.log(e);
-  }
-  return null;
-}
-
-export function createIntersectionObserver({ el, callback, once = true, options = {} }) {
-  const io = new IntersectionObserver((entries, observer) => {
-    entries.forEach(async (entry) => {
-      if (entry.isIntersecting) {
-        if (once) observer.unobserve(entry.target);
-        callback(entry.target, entry);
-      }
-    });
-  }, options);
-  io.observe(el);
-  return io;
 }
 
 export function loadLana(options = {}) {

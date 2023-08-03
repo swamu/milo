@@ -56,7 +56,8 @@
     import { expect } from '@esm-bundle/chai';
     import { stub } from 'sinon';
     import { waitForElement } from '../../helpers/waitfor.js';
-    import { loadScript, parseEncodedConfig } from '../../../libs/utils/utils.js';
+    import { loadScript } from '../../../libs/utils/utils.js';
+    import { parseEncodedConfig } from '../../../libs/utils/helpers.js';
     import init, { setPreferences, formValidate, formSuccess } from '../../../libs/blocks/marketo/marketo.js';
 
     runTests(() => {

@@ -10,10 +10,9 @@ import {
 } from '../../deps/htm-preact.js';
 import {
   getConfig,
-  parseEncodedConfig,
   loadStyle,
-  utf8ToB64,
 } from '../../utils/utils.js';
+import { parseEncodedConfig, utf8ToB64 } from '../../utils/helpers.js';
 import Accordion from '../../ui/controls/Accordion.js';
 import { defaultState, initCaas, loadCaasFiles, loadCaasTags, loadStrings } from '../caas/utils.js';
 import { Input as FormInput, Select as FormSelect } from '../../ui/controls/formControls.js';
@@ -561,7 +560,7 @@ const FilterPanel = ({ tagsData }) => {
         <${TagSelect} id="customFilterTag" options=${allTags} label="Filter Tag" singleSelect />
       <//>
       <!-- End nested multifield -->
-      
+
       <${FormInput} label="Opened on load" name="openedOnLoad" type="checkbox" />
     <//>
   `;

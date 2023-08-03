@@ -8,7 +8,8 @@ import {
   useState,
 } from '../../deps/htm-preact.js';
 import { faasHostUrl, defaultState, initFaas, loadFaasFiles } from '../faas/utils.js';
-import { loadStyle, parseEncodedConfig, utf8ToB64 } from '../../utils/utils.js';
+import { loadStyle } from '../../utils/utils.js';
+import { parseEncodedConfig, utf8ToB64 } from '../../utils/helpers.js';
 import Accordion from '../../ui/controls/Accordion.js';
 import MultiField from '../../ui/controls/MultiField.js';
 import { Input as FormInput } from '../../ui/controls/formControls.js';
