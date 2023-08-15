@@ -203,7 +203,7 @@
 }
 
 .icon-block:not(.small.fullwidth) .foreground .text-content .action-area {
-  white-space: nowrap;
+  white-space: initial;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
