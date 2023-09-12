@@ -11,10 +11,12 @@ const base = miloLibs || codeRoot;
 const SEGMENT_BLADE = 'SegmentBlade';
 const SPECIAL_OFFERS = 'SpecialOffers';
 const PLANS_CARD = 'PlansCard';
+const CATALOG_CARD = 'CatalogCard';
 const cardTypes = {
   segment: SEGMENT_BLADE,
   'special-offers': SPECIAL_OFFERS,
   plans: PLANS_CARD,
+  catalog: CATALOG_CARD,
 };
 const getPodType = (styles) => {
   const authoredType = styles?.find((style) => style in cardTypes);
