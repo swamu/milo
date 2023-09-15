@@ -68,8 +68,16 @@
 }
 
 .merch-card div[class$="-title"] {
+  width: 100%;
   font-size: var(--type-heading-xs-lh);
   font-weight: var(--type-heading-all-weight);
+  align-self: flex-start;
+  max-height: max-content;
+  flex: none;
+}
+
+.merch-card .consonant-SpecialOffers-title h4 {
+  text-transform: uppercase;
 }
 
 .merch-card .consonant-PlansCard-title h2 {
@@ -88,7 +96,8 @@
 }
 
 .merch-card .consonant-SpecialOffers-title h4,
-.merch-card .consonant-PlansCard-title h4 {
+.merch-card .consonant-PlansCard-title h4,
+.merch-card .consonant-SegmentBlade-title h4 {
   font-size: var(--type-heading-xxs-size);
 }
 
@@ -99,7 +108,7 @@
   font-weight: 500;
 }
 
-.merch-card.segment-blade {
+.merch-card.segment {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -115,6 +124,16 @@
 .merch-card.plans,
 .merch-card.catalog {
   border-radius: 16px;
+}
+
+.merch-card.special-offers.full-width {
+  min-width: 100%;
+  max-width: 100%;
+  width: 1200px;
+}
+
+.merch-card.special-offers.center {
+  text-align: center;
 }
 
 .merch-card div[class$="-inner"] {
@@ -142,9 +161,12 @@
 }
 
 .merch-card div[class$="-description"] {
+  width: 100%;
   font-size: var(--type-heading-xs-size);
   line-height: 1.5;
   margin-top: 0;
+  align-self: flex-start;
+  flex-grow: 1;
 }
 
 .merch-card .consonant-SegmentBlade-description span.placeholder-resolved,
@@ -187,11 +209,13 @@
   text-align: center;
   padding: 8px 11px;
   border-radius: 5px 0 0 5px;
+  text-transform: uppercase;
 }
 
 .merch-card .consonant-SpecialOffers-inner,
 .merch-card .consonant-PlansCard-inner {
   justify-content: center;
+  height: 100%;
 }
 
 .merch-card.special-offers .consonant-SpecialOffers-description p,
@@ -289,6 +313,8 @@
   padding-top: 0;
   justify-content: center;
   box-sizing: border-box;
+  align-self: flex-end;
+  width: 100%;
 }
 
 .merch-card .consonant-CardFooter .standard-wrapper {
@@ -306,6 +332,11 @@
   margin-left: auto;
   height: auto;
   width: auto;
+}
+
+.dark .merch-card .consonant-CardFooter .con-button.outline {
+  border-color: var(--color-black);
+  color: var(--color-black);
 }
 
 .merch-card .consonant-CardFooter-row .button--inactive {
