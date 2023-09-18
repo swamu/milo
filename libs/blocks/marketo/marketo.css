@@ -438,10 +438,39 @@
     width: 100%;
   }
 
+  .marketo .mktoFormRowTop.name,
   .marketo .adobe-privacy .mktoFormCol.mktoVisible,
   .marketo .msg-error .mktoFormCol.mktoVisible,
+  .marketo .comments .mktoFormCol.mktoVisible,
   .marketo .mktoFormCol.mktoVisible .mktoFormCol.mktoVisible {
     width: 100%;
+  }
+  
+  .marketo .mktoFormRow.mktoFormRowTop.name > .mktoFormCol {
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow {
+    display: none;
+    width: 47.7%;
+  }
+  
+  .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield] {
+    display: block;
+  }
+
+  .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="Salutation"] {
+    width: 100%;
+    padding-right: 52.3%;
+  }
+
+  .marketo .mktoFormRow.mktoFormRowTop.state .mktoFormCol {
+    display: contents;
+    margin-right: 9.2%;
   }
 
   .marketo .mktoForm.show-warnings .mktoError {
