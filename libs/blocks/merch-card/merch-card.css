@@ -54,12 +54,13 @@
   height: 40px;
 }
 
-.merch-card.catalog .consonant-CatalogCard-title {
-  align-self: flex-end;
+.merch-card.catalog hr {
+  display: none;
 }
 
 .merch-card.catalog .consonant-CardFooter {
   width: 100%;
+  padding-top:  var(--spacing-xs);
 }
 
 .merch-card.catalog .consonant-CardFooter-row {
@@ -118,12 +119,23 @@
   min-width: 378px;
   max-width: 378px;
 }
-
+.merch-card::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  right: -16px;
+  bottom: -16px;
+  background-color: var(--color-white);
+  z-index: -1;
+  border-radius: inherit;
+}
 .merch-card.special-offers,
 .merch-card.segment,
 .merch-card.plans,
 .merch-card.catalog {
   border-radius: 16px;
+  overflow: visible;
 }
 
 .merch-card.special-offers.full-width {
@@ -144,6 +156,59 @@
   border-radius: 4px;
   background-color: var(--color-white);
   text-decoration: none;
+}
+
+.consonant-CatalogCard-actionMenu {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: url('./ellipsis.svg') no-repeat center center, #f6f6f6;
+  background-size: 16px 16px;
+}
+
+.consonant-CatalogCard-actionMenuWrapper {
+  display: none;
+  background-color: var(--color-black);
+  color: var(--color-gray-100);
+  font-size: var(--type-body-xs-size);
+  width: fit-content;
+  padding: var(--spacing-xs);
+  border-radius: 4px;
+  position: absolute;
+  top: 65px;
+  right: 15px;
+}
+
+.consonant-CatalogCard-actionMenuWrapper.shown {
+  display: block;
+}
+
+.consonant-CatalogCard-actionMenuWrapper p,
+.consonant-CatalogCard-actionMenuWrapper strong {
+  color: var(--color-white);
+  margin-bottom: 0;
+}
+
+.consonant-CatalogCard-actionMenuWrapper a {
+  color: var(--color-white);
+  text-decoration: underline;
+  line-height: var(--type-body-m-lh);
+}
+
+.consonant-CatalogCard-actionMenuWrapper ul {
+  padding-left: var(--spacing-xs);
+  padding-bottom: var(--spacing-xxs);
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-position: inside;
+}
+
+.consonant-CatalogCard-actionMenuWrapper ul li {
+  padding-left: 0;
+  line-height: var(--type-body-xs-lh);
 }
 
 .merch-card.catalog .consonant-CatalogCard-inner {
@@ -198,7 +263,7 @@
   background-size: cover;
 }
 
-.merch-card div[class$="-ribbon"] {
+.merch-card div[class$="-badge"] {
   position: absolute;
   top: 16px;
   right: 0;
@@ -209,7 +274,27 @@
   text-align: center;
   padding: 8px 11px;
   border-radius: 5px 0 0 5px;
+}
+
+.merch-card.special-offers div[class$="-badge"] {
   text-transform: uppercase;
+}
+
+.merch-card.catalog div[class$="-badge"] {
+  display: flex;
+  text-transform: none;
+  position: relative;
+  border-radius: 5px;
+  height: fit-content;
+  top: 0;
+  margin-left: var(--spacing-xxs);
+}
+
+.consonant-CardsGrid--3up .merch-card.catalog .consonant-CatalogCard-iconWrapper + .consonant-CatalogCard-title,
+.consonant-CardsGrid--4up .merch-card.catalog .consonant-CatalogCard-iconWrapper + .consonant-CatalogCard-title {
+  margin-top: 8px;
+  align-self: flex-start;
+  width: fit-content;
 }
 
 .merch-card .consonant-SpecialOffers-inner,

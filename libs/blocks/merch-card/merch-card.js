@@ -25,13 +25,18 @@ const getPodType = (styles) => {
 
 const createDescription = (rows, cardType) => createTag('div', { class: `consonant-${cardType}-description` }, rows.slice(0, rows.length - 1));
 
+const cleanAttrs = (el) => {
+  const dataAttrs = Object.keys(el.dataset);
+  dataAttrs.forEach((attr) => el.removeAttribute(`data-${attr}`));
+};
+
 const createTitle = (titles, cardType) => {
   const titleWrapper = createTag('div', { class: `consonant-${cardType}-title` });
   titles?.forEach((title) => titleWrapper.appendChild(title));
   return titleWrapper;
 };
 
-const decorateFooter = (el, altCtaMetaData, styles, cardType) => {
+const decorateFooter = (el, altCtaMetaData, cardType) => {
   const cardFooter = el.querySelector('.consonant-CardFooter');
   const decorateWithSecureTransactionSign = () => {
     const secureTransactionWrapper = createTag('div', { class: 'secure-transaction-wrapper' });
@@ -85,12 +90,19 @@ const decorateFooter = (el, altCtaMetaData, styles, cardType) => {
 };
 
 const addInner = (el, altCta, cardType, merchCard) => {
-  const titles = [...el.querySelectorAll('h1, h2, h3, h4, h5, h6')];
-  const rows = [...el.querySelectorAll('p')];
+  const titles = el.querySelectorAll(`
+    h1:not(:scope .consonant-${cardType}-actionMenuWrapper h1),
+    h2:not(:scope .consonant-${cardType}-actionMenuWrapper h2),
+    h3:not(:scope .consonant-${cardType}-actionMenuWrapper h3),
+    h4:not(:scope .consonant-${cardType}-actionMenuWrapper h4),
+    h5:not(:scope .consonant-${cardType}-actionMenuWrapper h5),
+    h6:not(:scope .consonant-${cardType}-actionMenuWrapper h6)
+  `);
+  const rows = [...el.querySelectorAll(`p:not(:scope .consonant-${cardType}-actionMenuWrapper p)`)];
   const styles = [...el.classList];
   const merch = styles.includes('merch-card');
   const pElement = merch && el.querySelector(':scope > div > div > p:last-of-type');
-  const links = pElement ? pElement.querySelectorAll('a') : el.querySelectorAll('a');
+  const links = pElement ? pElement.querySelectorAll(`a:not(:scope .consonant-${cardType}-actionMenuWrapper a`) : el.querySelectorAll('a');
 
   const inner = el.querySelector(':scope > div:not([class])');
   inner.classList.add(`consonant-${cardType}-inner`);
@@ -98,30 +110,55 @@ const addInner = (el, altCta, cardType, merchCard) => {
   const description = createDescription(rows, cardType, inner);
 
   inner.prepend(title);
+  if (cardType === CATALOG_CARD) {
+    const badge = el.querySelector(`.consonant-${cardType}-badge`);
+    const actionMenu = el.querySelector(`.consonant-${cardType}-actionMenu`);
+    if (badge) inner.insertBefore(badge, title);
+    if (actionMenu) {
+      inner.insertBefore(actionMenu, title);
+      const actionMenuWrapper = el.querySelector(`.consonant-${cardType}-actionMenuWrapper`);
+      actionMenu.addEventListener('click', () => {
+        actionMenuWrapper.classList.toggle('shown');
+      });
+    }
+  }
   inner.append(description);
   addFooter(links, inner, merchCard);
   decorateFooter(el, altCta, cardType);
   merchCard.append(inner);
 };
 
-const decorateRibbon = (el, ribbonMetadata, cardType) => {
-  const ribbonStyleRegex = /^#[0-9a-fA-F]+, #[0-9a-fA-F]+$/;
-  if (!ribbonStyleRegex.test(ribbonMetadata[0]?.innerText)) return;
-  const ribbonStyle = ribbonMetadata[0].innerText;
-  const [ribbonBgColor, ribbonTextColor] = ribbonStyle.split(', ');
-  const ribbonWrapper = ribbonMetadata[0].parentNode;
-  const ribbon = ribbonMetadata[1];
-  ribbon.classList.add(`consonant-${cardType}-ribbon`);
-  ribbon.style.backgroundColor = ribbonBgColor;
-  ribbon.style.color = ribbonTextColor;
-  el.style.border = `1px solid ${ribbonBgColor}`;
+const decorateActionMenu = (el, actionMenuEl, cardType) => {
+  if (cardType !== CATALOG_CARD) return;
+  actionMenuEl.classList.add(`consonant-${cardType}-actionMenuWrapper`);
+  cleanAttrs(actionMenuEl);
+  el.append(actionMenuEl);
+};
+
+const decorateBadge = (el, badgeMetadata, cardType, actionMenuEl) => {
+  const badgeStyleRegex = /^#[0-9a-fA-F]+, #[0-9a-fA-F]+$/;
+  if (!badgeStyleRegex.test(badgeMetadata[0]?.innerText)) return;
+  const badgeStyle = badgeMetadata[0].innerText;
+  const [badgeBgColor, badgeTextColor] = badgeStyle.split(', ');
+  const badgeWrapper = badgeMetadata[0].parentNode;
+  const badge = badgeMetadata[1];
+  badge.classList.add(`consonant-${cardType}-badge`);
+  badge.style.backgroundColor = badgeBgColor;
+  badge.style.color = badgeTextColor;
+  el.style.border = `1px solid ${badgeBgColor}`;
   const picture = el.querySelector(`.consonant-${cardType}-img`);
   if (picture) {
-    picture.insertAdjacentElement('afterend', ribbon);
+    picture.insertAdjacentElement('afterend', badge);
   } else {
-    el.insertAdjacentElement('beforeend', ribbon);
+    el.insertAdjacentElement('beforeend', badge);
   }
-  ribbonWrapper.remove();
+  if (actionMenuEl) {
+    decorateActionMenu(el, actionMenuEl[0], cardType);
+    const actionMenu = createTag('div', { class: `consonant-${cardType}-actionMenu` });
+    badge.insertAdjacentElement('afterend', actionMenu);
+  }
+  cleanAttrs(badge);
+  badgeWrapper.remove();
 };
 
 const decorateIcon = (el, icons, cardType) => {
@@ -147,14 +184,20 @@ const init = (el) => {
   let image;
   const icons = [];
   const rows = el.querySelectorAll(':scope > *');
-  const ribbonMetadata = rows[0].children?.length === 2 ? rows[0].children : null;
-  const row = rows[ribbonMetadata === null ? 0 : 1];
-  const altCta = rows[rows.length - 1].children?.length === 2
-    ? rows[rows.length - 1].children : null;
-  const allPElems = row.querySelectorAll('p');
-  const ctas = allPElems[allPElems.length - 1];
   const styles = [...el.classList];
   const cardType = getPodType(styles);
+  const actionMenuEl = rows.length === 3 ? rows[1].children : null;
+  const badgeMetadata = rows[0].children?.length === 2 ? rows[0].children : null;
+  let row;
+  if (cardType === CATALOG_CARD) {
+    row = rows[rows.length - 1];
+  } else {
+    row = rows[badgeMetadata === null ? 0 : 1];
+  }
+  const altCta = rows[rows.length - 1].children?.length === 2
+    ? rows[rows.length - 1].children : null;
+  const allPElems = row.querySelectorAll(`p:not(:scope .consonant-${cardType}-actionMenuWrapper p)`);
+  const ctas = allPElems[allPElems.length - 1];
   const merchCard = el;
   decorateBlockHrs(el);
   images.forEach((img) => {
@@ -172,14 +215,13 @@ const init = (el) => {
   addWrapper(el, section, cardType);
   merchCard.classList.add('consonant-Card', 'consonant-ProductCard', `consonant-${cardType}`);
   if (image) addBackgroundImg(image, cardType, merchCard);
-  if (ribbonMetadata !== null) decorateRibbon(el, ribbonMetadata, cardType);
+  if (badgeMetadata !== null) decorateBadge(el, badgeMetadata, cardType, actionMenuEl);
   image?.parentElement.remove();
   if (ctas) decorateButtons(ctas);
-  addInner(el, altCta, cardType, merchCard);
+  addInner(el, altCta, cardType, merchCard, actionMenuEl);
   decorateIcon(el, icons, cardType);
-  const inner = el.querySelector(`.consonant-${cardType}-inner`);
-  const innerCleanup = inner.querySelectorAll(':scope > div')[1];
-  if (innerCleanup.classList.length === 0) innerCleanup.remove();
+  const innerCleanup = el.querySelectorAll(':scope > div:not([class])');
+  innerCleanup.forEach((div) => div.remove());
 };
 
 export default init;
