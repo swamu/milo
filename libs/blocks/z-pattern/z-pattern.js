@@ -46,6 +46,18 @@ function getChildSingleRowCount(children) {
   }, 0);
 }
 
+function getClassesEndingWith(element, suffixes) {
+  const matchingClasses = [];
+  for (const suffix of suffixes) {
+    for (const className of element.classList) {
+      if (className.endsWith(suffix)) {
+        matchingClasses.push(className);
+      }
+    }
+  }
+  return matchingClasses;
+}
+
 export default function init(el) {
   const children = el.querySelectorAll(':scope > div');
   const size = getBlockSize(el);
@@ -87,15 +99,19 @@ export default function init(el) {
     });
   }
   const mediaItems = el.querySelectorAll(':scope > .media');
-  const textOverrides = ['-detail', '-heading', '-body'];
-  const variants = ['checklist', 'qr-code', 'bio', 'merch', 'xxl-heading'];
+  const variants = ['checklist', 'qr-code', 'bio', 'merch'];
+  const suffixes = ['-detail', '-heading', '-body'];
+  const matchingClasses = getClassesEndingWith(el, suffixes);
+
   mediaItems.forEach((i) => {
     variants.forEach((v) => {
       if (el.classList.contains(v)) i.classList.add(v);
     });
-    textOverrides.forEach((t) => {
-      if ([...el.classList].some((c) => c.startsWith(t))) i.classList.add(t);
-    });
+    if (matchingClasses) {
+      matchingClasses.forEach((c) => {
+        i.classList.add(c);
+      });
+    }
     initMedia(i, false);
   });
 }
