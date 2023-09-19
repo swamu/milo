@@ -87,10 +87,14 @@ export default function init(el) {
     });
   }
   const mediaItems = el.querySelectorAll(':scope > .media');
-  const variants = ['checklist', 'qr-code'];
+  const textOverrides = ['-detail', '-heading', '-body'];
+  const variants = ['checklist', 'qr-code', 'bio', 'merch', 'xxl-heading'];
   mediaItems.forEach((i) => {
     variants.forEach((v) => {
       if (el.classList.contains(v)) i.classList.add(v);
+    });
+    textOverrides.forEach((t) => {
+      if ([...el.classList].some((c) => c.startsWith(t))) i.classList.add(t);
     });
     initMedia(i, false);
   });
