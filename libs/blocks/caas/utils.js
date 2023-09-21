@@ -339,6 +339,7 @@ export const getConfig = async (originalState, strs = {}) => {
   const flatFile = targetActivity ? '&flatFile=false' : '';
   const collectionTags = state.includeTags ? state.includeTags.join(',') : '';
   const excludeContentWithTags = state.excludeTags ? state.excludeTags.join(',') : '';
+  const isToolsPage = window.location.href.startsWith('https://milo.adobe.com/tools/caas');
 
   const complexQuery = buildComplexQuery(state.andLogicTags, state.orLogicTags);
 
@@ -360,7 +361,7 @@ export const getConfig = async (originalState, strs = {}) => {
         ',',
       )}&collectionTags=${collectionTags}&excludeContentWithTags=${excludeContentWithTags}&language=${language}&country=${country}&complexQuery=${complexQuery}&excludeIds=${excludedCards}&currentEntityId=&featuredCards=${featuredCards}&environment=&draft=${
         state.draftDb
-      }&size=${state.collectionSize || state.totalCardsToShow}${flatFile}`,
+      }&size=${state.collectionSize || state.totalCardsToShow}${flatFile}${isToolsPage && '&debug=true'}`,
       fallbackEndpoint: state.fallbackEndpoint,
       totalCardsToShow: state.totalCardsToShow,
       cardStyle: state.cardStyle,
