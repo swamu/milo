@@ -96,7 +96,6 @@ const DO_NOT_INLINE = [
   'accordion',
   'columns',
   'z-pattern',
-  'quiz-marquee',
 ];
 
 const ENVS = {

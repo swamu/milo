@@ -14,28 +14,26 @@ export default async function init(el) {
     const fRows = foreground.querySelectorAll(':scope > div');
     let copy = fRows[0];
     if (fRows.length === 2) {
-      const asset = foreground.querySelector('picture', 'video');
+      const anyTag = foreground.querySelector('p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6');
+      copy = anyTag.closest('div');
+      const asset = foreground.querySelector('div > picture', 'div > video');
       if (asset) {
         asset.parentElement.classList.add('asset');
         foreground.classList.add('has-asset');
         if (el.classList.contains('split')) {
           const bgSplit = createTag('div', { class: 'background-split' }, asset);
           el.append(bgSplit);
-          // asset.remove();
         }
-      }
-      const textRow = foreground.querySelector(':scope >  div:not([class])');
-      if (textRow) {
-        copy = textRow;
       }
     }
     copy.classList.add('copy');
+    const assetRow = foreground.querySelector(':scope > div').classList.contains('asset');
+    if (assetRow) el.classList.add('asset-left');
     const staticCopy = createTag('div', { class: 'static' }, copy.innerHTML);
     copy.innerHTML = '';
     copy.append(staticCopy);
     foreground.classList.add('foreground');
     rows.shift();
-
     copy.append(...rows);
 
     [...rows].forEach(async (row) => {
