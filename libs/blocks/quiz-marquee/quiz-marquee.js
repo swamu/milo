@@ -2,7 +2,10 @@ import { decorateBlockBg, decorateBlockHrs } from '../../utils/decorate.js';
 import { createTag } from '../../utils/utils.js';
 
 export default async function init(el) {
-  el.classList.add('con-block', 'dark'); // dark by default
+  const initClasses = ['con-block'];
+  const isLight = el.classList.contains('light');
+  if (!isLight) initClasses.push('dark'); // dark by default
+  el.classList.add(...initClasses);
   let rows = el.querySelectorAll(':scope > div');
   const { default: quizResults } = await import('../quiz-results/quiz-results.js');
   if (rows.length > 1) {
