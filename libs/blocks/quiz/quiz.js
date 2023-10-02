@@ -264,7 +264,7 @@ const App = ({
   }, [selectedQuestion, stringQList]);
 
   if (!isDataLoaded || !selectedQuestion) {
-    return html`<div class="quiz-load">Loading</div>`;
+    return null;
   }
 
   const getStringValue = (propName) => {

@@ -683,6 +683,10 @@ h6 {
 }
 
 /* Links */
+button {
+  font-family: var(--body-font-family);
+}
+
 a.auto-block,
 a.fragment {
   display: none;
