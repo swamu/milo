@@ -279,15 +279,16 @@ const App = ({
   };
 
   return html`<div class="quiz-container">
-                  <${StepIndicator} 
+                  ${isDataLoaded && html`<${StepIndicator}
                     currentStep=${currentStep} 
                     totalSteps=${totalSteps} 
                     prevStepIndicator=${prevStepIndicator}
                     top="${true}" />
+                  `}
 
-                  <div class="quiz-background">
+                  ${isDataLoaded && html`<div class="quiz-background">
                       ${DecorateBlockBackground(getStringValue)}
-                  </div>
+                  </div>`}
 
                   <${DecorateBlockForeground} 
                       heading=${getStringValue('heading')} 
@@ -295,23 +296,24 @@ const App = ({
                       btnText=${getStringValue('btn')} />
                       
                   <${GetQuizOption} 
-                      btnText=${getStringValue('btn')} 
-                      minSelections=${minSelections} 
-                      maxSelections=${maxSelections} 
-                      options=${stringData[selectedQuestion.questions]} 
-                      countSelectedCards=${countSelectedCards}
-                      selectedCards=${selectedCards}
-                      onOptionClick=${onOptionClick}
-                      getOptionsIcons=${getOptionsIcons}
-                      handleOnNextClick=${handleOnNextClick}
-                      btnAnalyticsData=${btnAnalytics}/>
+                    btnText=${getStringValue('btn')} 
+                    minSelections=${minSelections} 
+                    maxSelections=${maxSelections} 
+                    options=${stringData[selectedQuestion.questions]} 
+                    countSelectedCards=${countSelectedCards}
+                    selectedCards=${selectedCards}
+                    onOptionClick=${onOptionClick}
+                    getOptionsIcons=${getOptionsIcons}
+                    handleOnNextClick=${handleOnNextClick}
+                    btnAnalyticsData=${btnAnalytics}/>
 
-                  <${StepIndicator} 
-                  currentStep=${currentStep} 
-                  totalSteps=${totalSteps} 
-                  prevStepIndicator=${prevStepIndicator}
-                  bottom="${true}" />
-
+                  ${isDataLoaded && html`
+                    <${StepIndicator} 
+                      currentStep=${currentStep} 
+                      totalSteps=${totalSteps} 
+                      prevStepIndicator=${prevStepIndicator}
+                      bottom="${true}" />
+                  `}
                   <div class="quiz-footer">
                   </div>
               </div>`;
