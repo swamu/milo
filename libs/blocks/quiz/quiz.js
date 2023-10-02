@@ -290,12 +290,12 @@ const App = ({
                       ${DecorateBlockBackground(getStringValue)}
                   </div>`}
 
-                  <${DecorateBlockForeground} 
+                  ${isDataLoaded && html`<${DecorateBlockForeground} 
                       heading=${getStringValue('heading')} 
                       subhead=${getStringValue('sub-head')} 
-                      btnText=${getStringValue('btn')} />
+                      btnText=${getStringValue('btn')} />`}
                       
-                  <${GetQuizOption} 
+                  ${isDataLoaded && html`<${GetQuizOption} 
                     btnText=${getStringValue('btn')} 
                     minSelections=${minSelections} 
                     maxSelections=${maxSelections} 
@@ -305,7 +305,7 @@ const App = ({
                     onOptionClick=${onOptionClick}
                     getOptionsIcons=${getOptionsIcons}
                     handleOnNextClick=${handleOnNextClick}
-                    btnAnalyticsData=${btnAnalytics}/>
+                    btnAnalyticsData=${btnAnalytics}/>`}
 
                   ${isDataLoaded && html`
                     <${StepIndicator} 
@@ -314,8 +314,7 @@ const App = ({
                       prevStepIndicator=${prevStepIndicator}
                       bottom="${true}" />
                   `}
-                  <div class="quiz-footer">
-                  </div>
+                  <div class=quiz-footer />
               </div>`;
 };
 
