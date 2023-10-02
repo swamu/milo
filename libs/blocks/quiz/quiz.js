@@ -278,24 +278,27 @@ const App = ({
     return optionItem && optionItem[prop] ? optionItem[prop] : '';
   };
 
+  console.log(isDataLoaded);
+  console.log(selectedQuestion.questions);
+
   return html`<div class="quiz-container">
-                  ${isDataLoaded && html`<${StepIndicator}
+                  ${selectedQuestion.questions && html`<${StepIndicator}
                     currentStep=${currentStep} 
                     totalSteps=${totalSteps} 
                     prevStepIndicator=${prevStepIndicator}
                     top="${true}" />
                   `}
 
-                  ${isDataLoaded && html`<div class="quiz-background">
+                  ${selectedQuestion.questions && html`<div class="quiz-background">
                       ${DecorateBlockBackground(getStringValue)}
                   </div>`}
 
-                  ${isDataLoaded && html`<${DecorateBlockForeground} 
+                  ${selectedQuestion.questions && html`<${DecorateBlockForeground} 
                       heading=${getStringValue('heading')} 
                       subhead=${getStringValue('sub-head')} 
                       btnText=${getStringValue('btn')} />`}
                       
-                  ${isDataLoaded && html`<${GetQuizOption} 
+                  ${selectedQuestion.questions && html`<${GetQuizOption} 
                     btnText=${getStringValue('btn')} 
                     minSelections=${minSelections} 
                     maxSelections=${maxSelections} 
@@ -307,7 +310,7 @@ const App = ({
                     handleOnNextClick=${handleOnNextClick}
                     btnAnalyticsData=${btnAnalytics}/>`}
 
-                  ${isDataLoaded && html`
+                  ${selectedQuestion.questions && html`
                     <${StepIndicator} 
                       currentStep=${currentStep} 
                       totalSteps=${totalSteps} 
