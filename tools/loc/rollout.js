@@ -142,8 +142,8 @@ function getMergedMdast(langstoreNowProcessedMdast, livecopyProcessedMdast) {
               return mergedArr;
           } else {
               resolvedBocks[content] = {status: false, type: 'added'};
-              mergedArr.push({hashcode: content, classType:type});
-              return mergedArr;
+              mergedMdast.push({hashcode: content, classType:type});
+              return mergedMdast;
           }
         } else if (mergedArr[i].classType === 'deleted' ) {
           if(type === 'added') {
@@ -158,8 +158,8 @@ function getMergedMdast(langstoreNowProcessedMdast, livecopyProcessedMdast) {
               return newArray;
           } else if(type==='deleted') {
               resolvedBocks[content] = {status: false, type: 'deleted'};
-              mergedArr.push({hashcode: content, classType:type});
-              return mergedArr;
+              mergedMdast.push({hashcode: content, classType:type});
+              return mergedMdast;
           }
         }
       }
