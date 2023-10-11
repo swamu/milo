@@ -158,6 +158,7 @@ function getMergedMdast(langstoreNowProcessedMdast, livecopyProcessedMdast) {
   if (index < livecopyProcessedMdast.length) {
     for (; index < livecopyProcessedMdast.length; index += 1) {
       const livecopyContent = hashToContentMap.get(livecopyProcessedMdast[index]);
+      addTrackChangesInfo('Regional Version', 'added', livecopyContent);
       mergedMdast.children.push(livecopyContent);
     }
   }
