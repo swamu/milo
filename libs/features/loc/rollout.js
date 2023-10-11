@@ -7,13 +7,7 @@ import {
   getFileMetadata,
   saveFileAndUpdateMetadata,
 } from './sharepoint.js';
-import {
-  getUrlInfo,
-  isExcel,
-  loadingON,
-  simulatePreview,
-  stripExtension,
-} from './utils.js';
+import { getUrlInfo, isExcel, loadingON, simulatePreview, stripExtension } from './utils.js';
 
 async function persistDoc(srcPath, docx, dstPath) {
   try {
@@ -35,8 +29,8 @@ async function persist(srcPath, mdast, dstPath) {
 }
 
 // MWPW-135315: remove after franklin fix for bold issue
-const getLeaf = (node, type, parent = null) => {
-  if (node?.type === type || !node.children) return { parent, node };
+ const getLeaf = (node, type, parent=null) => {
+  if (node?.type === type || !node.children) return {parent, node};
 
   if (node.children) {
     for (let i = 0; i < node.children.length; i++) {
@@ -51,10 +45,10 @@ const getLeaf = (node, type, parent = null) => {
 const addBoldHeaders = (mdast) => {
   const tables = mdast.children.filter((child) => child.type === 'gridTable'); // gets all block
   const tableMap = tables.forEach((table) => {
-    var { node, parent } = getLeaf(table, 'text'); // gets first text node i.e. header
-    if (parent.type !== 'strong') {
+    var {node, parent} = getLeaf(table, 'text'); // gets first text node i.e. header
+    if(parent.type !== 'strong') {
       let idx = parent.children.indexOf(node);
-      parent.children[idx] = { type: 'strong', children: [node] };
+      parent.children[idx] = { type: 'strong', children:[node]}
     }
   });
   return tableMap;
@@ -75,14 +69,14 @@ function removeLabelForType(node, type) {
   if (node.children) {
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i];
-      if (child.type === type && child.label) child.label = '';
+      if (child.type === type && child.label) child.label = "";
       removeLabelForType(child, type);
     }
   }
-}
+};
 
 async function getProcessedMdast(mdast) {
-  removeLabelForType(mdast, 'image');
+  removeLabelForType(mdast, 'image')
   const nodes = mdast.children || [];
   return processMdast(nodes);
 }
@@ -107,7 +101,6 @@ async function getMdast(path) {
 
 function getMergedMdast(langstoreNowProcessedMdast, livecopyProcessedMdast) {
   const mergedMdast = { type: 'root', children: [] };
-  let mergedProcessedMdast = [];
 
   function addTrackChangesInfo(author, action, root) {
     root.author = author;
@@ -131,76 +124,45 @@ function getMergedMdast(langstoreNowProcessedMdast, livecopyProcessedMdast) {
     addTrackChangesInfoToChildren(root);
   }
 
-  function checkAndPush(mergedArr, content, type) {
-    for (let i = 0; i < mergedArr.length; i++) {
-      if (mergedArr[i].hashcode === content) {
-        if (mergedArr[i].classType === '') {
-          continue;
-        }
-        if (mergedArr[i].classType === 'deleted') {
-          if (type === 'added') {
-            const newArr = [...mergedArr.slice(0, i), ...mergedArr.slice(i + 1)];
-            newArr.push({ hashcode: content, classType: '' });
-            return newArr;
-          }
-          if (type === 'deleted') {
-            mergedArr.push({ hashcode: content, classType: type });
-            return mergedArr;
-          }
-        }
-        if (mergedArr[i].classType === 'added') {
-          if (type === 'added') {
-            mergedArr.push({ hashcode: content, classType: type });
-            return mergedArr;
-          }
-          if (type === 'deleted') {
-            mergedArr[i].classType = '';
-            return mergedArr;
-          }
-        }
-      }
-    }
-    mergedArr.push({ hashcode: content, classType: type });
-    return mergedArr;
-  }
-
   // Iterate and insert content in mergedMdast as long as both arrays have content
   const length = Math.min(langstoreNowProcessedMdast.length, livecopyProcessedMdast.length);
   let index;
   for (index = 0; index < length; index += 1) {
     if (langstoreNowProcessedMdast[index] === livecopyProcessedMdast[index]) {
-      mergedProcessedMdast = checkAndPush(mergedProcessedMdast, langstoreNowProcessedMdast[index], '');
+      const content = hashToContentMap.get(langstoreNowProcessedMdast[index]);
+      mergedMdast.children.push(content);
     } else {
-      mergedProcessedMdast = checkAndPush(mergedProcessedMdast, langstoreNowProcessedMdast[index], 'deleted');
-      mergedProcessedMdast = checkAndPush(mergedProcessedMdast, livecopyProcessedMdast[index], 'added');
+      const langstoreContent = hashToContentMap.get(langstoreNowProcessedMdast[index]);
+      // Creating new object of langstoreContent to avoid mutation of original object
+      const newLangstoreContent = JSON.parse(JSON.stringify(langstoreContent));
+      addTrackChangesInfo('Langstore Version', 'deleted', newLangstoreContent);
+      mergedMdast.children.push(newLangstoreContent);
+      const livecopyContent = hashToContentMap.get(livecopyProcessedMdast[index]); 
+      // Creating new object of livecopyContent to avoid mutation of original object
+      const newLivecopyContent = JSON.parse(JSON.stringify(livecopyContent));
+      addTrackChangesInfo('Regional Version', 'added', newLivecopyContent);
+      mergedMdast.children.push(newLivecopyContent);
     }
   }
 
   // Insert the leftover content in langstore if any
   if (index < langstoreNowProcessedMdast.length) {
     for (; index < langstoreNowProcessedMdast.length; index += 1) {
-      mergedProcessedMdast = checkAndPush(mergedProcessedMdast, langstoreNowProcessedMdast[index], 'deleted');
+      const langstoreContent = hashToContentMap.get(langstoreNowProcessedMdast[index]);
+      addTrackChangesInfo('Langstore Version', 'deleted', langstoreContent);
+      mergedMdast.children.push(langstoreContent);
     }
   }
 
   // Insert the leftover content in livecopy if any
   if (index < livecopyProcessedMdast.length) {
     for (; index < livecopyProcessedMdast.length; index += 1) {
-      mergedProcessedMdast = checkAndPush(mergedProcessedMdast, livecopyProcessedMdast[index], 'added');
+      const livecopyContent = hashToContentMap.get(livecopyProcessedMdast[index]);
+      addTrackChangesInfo('Regional Version', 'added', livecopyContent);
+      mergedMdast.children.push(livecopyContent);
     }
   }
 
-  mergedProcessedMdast.map((elem) => {
-    const content = hashToContentMap.get(elem.hashcode);
-    // Creating new object of langstoreContent to avoid mutation of original object
-    const newContent = JSON.parse(JSON.stringify(content));
-    if (elem.classType === 'deleted') {
-      addTrackChangesInfo('Langstore Version', elem.classType, newContent);
-    } else if (elem.classType === 'added') {
-      addTrackChangesInfo('Regional Version', elem.classType, newContent);
-    }
-    mergedMdast.children.push(newContent);
-  });
   return mergedMdast;
 }
 
@@ -252,7 +214,7 @@ async function rollout(file, targetFolders, skipDocMerge = true) {
       }
 
       // copy/overwrite the langstore file to the region:
-      // 1. if regional file exists but there are no changes in regional doc
+      // 1. if regional file exists but there are no changes in regional doc 
       // AND
       // 2. if the doc at the regional was not previously merged
       if (isExcel(filePath) || skipDocMerge) {
