@@ -10,12 +10,12 @@ const BASE_CONFIG = {
   },
 };
 
-export async function getMSALConfig(telemetry) {
+export async function getMSALConfig(telemetry, origin) {
   try {
     const { base } = getConfig();
     await loadScript(`${base}/deps/msal-browser-2.34.0.js`);
 
-    const { sharepoint } = await getServiceConfig(window.location.origin);
+    const { sharepoint } = await getServiceConfig(origin);
 
     const auth = {
       clientId: sharepoint.clientId,

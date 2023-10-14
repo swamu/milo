@@ -1,0 +1,10 @@
+.traverse-folder.contained {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.traverse-folder input,
+.traverse-folder button {
+  display: block;
+  width: 100%;
+}
