@@ -1,10 +1,22 @@
 import { createTag } from '../../utils/utils.js';
 import login from '../../tools/sharepoint/login.js';
-import getChildren from '../../tools/sharepoint/folder.js';
+import { docs, getChildren } from '../../tools/sharepoint/folder.js';
+import { html, render } from '../../deps/htm-preact.js';
+
+function DocList({ origin, path }) {
+  getChildren(origin, path);
+  return html`
+    <ul>
+      ${docs.value.map((doc, idx) => html`
+        <li key=${idx}>${doc.path}</li>
+      `)}
+    </ul>
+  `;
+}
 
 const TELEMETRY = { application: { appName: 'Adobe SharePoint Traversal' } };
 
-async function beginTraverse(parent, inputUrl) {
+async function beginTraverse(el, inputUrl) {
   let path;
   let origin;
   try {
@@ -12,26 +24,18 @@ async function beginTraverse(parent, inputUrl) {
     path = url.pathname;
     origin = url.origin;
   } catch {
-    parent.append(createTag('p', null, 'Could not get path from URL'));
+    el.append(createTag('p', null, 'Could not get path from URL'));
     return;
   }
   await login({ origin, telemetry: TELEMETRY });
-  const children = await getChildren(origin, path);
-  if (children.length) {
-    parent.innerHTML = '';
-    children.forEach((child) => {
-      const anchor = createTag('a', { href: child.editUrl }, child.path);
-      const childEl = createTag('li', { class: 'traversed-item' }, anchor);
-      parent.append(childEl);
-    });
-  }
+  render(html`<${DocList} path=${path} origin=${origin} />`, el);
 }
 
-export default function init(el) {
+export default async function init(el) {
   el.classList.add('contained');
   const input = createTag('input', { type: 'text', placeholder: 'URL', value: 'https://main--bacom--adobecom.hlx.page/products/experience-manager' });
   const button = createTag('button', null, 'Traverse');
-  const list = createTag('ul');
-  button.addEventListener('click', () => { beginTraverse(list, input.value); });
-  el.append(input, button, list);
+  const div = createTag('div', { class: 'doc-wrapper' });
+  button.addEventListener('click', () => { beginTraverse(div, input.value); });
+  el.append(input, button, div);
 }

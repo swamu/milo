@@ -1,5 +1,8 @@
+import { signal } from '../../deps/htm-preact.js';
 import { getReqOptions } from './msal.js';
 import getSharePointDetails from './shared.js';
+
+export const docs = signal([]);
 
 async function getItem(site, driveId, rootMapping, path) {
   const opts = getReqOptions();
@@ -11,7 +14,6 @@ async function getItem(site, driveId, rootMapping, path) {
 
 async function listChildren(startUrl, options) {
   let path = startUrl;
-  const items = [];
   const folders = [];
   while (path) {
     const resp = await fetch(path, options);
@@ -20,18 +22,18 @@ async function listChildren(startUrl, options) {
       if (!child.folder) {
         const parentPath = child.parentReference.path.split('root:').pop();
         const filePath = `${parentPath}/${child.name}`;
-        console.log(filePath);
-        items.push({ path: filePath, editUrl: child.webUrl });
+        docs.value.push({ path: filePath, editUrl: child.webUrl });
+        docs.value = [...docs.value];
       } else {
         folders.push(child.id);
       }
     });
     path = json['@odata.nextLink'];
   }
-  return { items, folders };
+  return { items: docs.value, folders };
 }
 
-export default async function getChildren(origin, path) {
+export async function getChildren(origin, path) {
   const { site, driveId, rootMapping } = await getSharePointDetails(origin);
 
   const json = await getItem(site, driveId, rootMapping, path);
@@ -52,5 +54,5 @@ export default async function getChildren(origin, path) {
     items.push(...subItems);
     folders.push(...subFolders);
   }
-  return items;
+  return docs.value;
 }
