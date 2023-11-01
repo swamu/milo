@@ -1,4 +1,16 @@
-.interactive-marquee > div > div:nth-child(2),
-.interactive-marquee > div > div:nth-child(3) {
-  display: none;
+.interactive-marquee img {
+  display: block;
+}
+
+.interactive-marquee-container {
+  display: block;
+}
+
+.interactive-marquee .bg-container {
+  position: relative;
+}
+
+.interactive-marquee .imarquee-foreground {
+  top: 0;
+  position: absolute;
 }
