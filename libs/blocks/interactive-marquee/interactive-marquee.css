@@ -1,0 +1,4 @@
+.interactive-marquee > div > div:nth-child(2),
+.interactive-marquee > div > div:nth-child(3) {
+  display: none;
+}
