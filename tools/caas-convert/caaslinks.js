@@ -234,33 +234,32 @@ async function replaceAsync(string, regexp, replacerFunction) {
 
 async function replacer(match, linkText, link) {
   const v2Link = await convertLink(link);
-  const v2Text = linkText.replace('Content as a Service', 'Content as a Service v2');
+  const linkParts = linkText.split('-');
+  const collectionName = linkParts.length >= 3 ? linkParts[1] : '';
+  const noLazy = linkText.endsWith('(no-lazy)') ? ' (no-lazy)' : '';
+  const dateStr = new Date().toLocaleString('us-EN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  });
+
+  const v2Text = `Content as a Service v2 ${collectionName}- ${dateStr}${noLazy}`;
   return `[${v2Text}](${v2Link})`;
 }
 
-export const main = async () => {
-  const urls = [
-    // 'https://main--bacom--adobecom.hlx.page/drafts/cpeyer/caas-mwpw-137829/uk/adobe-customer-journey-analytics',
-    'https://main--bacom--adobecom.hlx.page/drafts/cpeyer/caas-mwpw-137829/uk/ai-driven-insights',
-    // 'https://main--bacom--adobecom.hlx.page/drafts/cpeyer/caas-mwpw-137829/uk/end-to-end-visualization',
-  ];
+const caasLinkRe = /\[(Content.*)\]\((.*)\)/gm;
 
-  for (const url of urls) {
-    const res = await fetch(`${url}.md`);
-    if (!res.ok) {
-      console.log('Invalid response: ', res);
-      return;
-    }
-    const md = await res.text();
-
-    const caasLinkRe = /\[(Content.*)\]\((.*)\)/gm;
-    try {
-      const newMd = await replaceAsync(md, caasLinkRe, replacer);
-      console.log('Processed: ', url);
-    } catch (e) {
-      console.log('Unable to process: ', url, e.message);
-    }
+export const convertCaasMd = async (md, url) => {
+  let newMd = null;
+  try {
+    newMd = await replaceAsync(md, caasLinkRe, replacer);
+    console.log('Processed: ', url);
+  } catch (e) {
+    console.log('Unable to process: ', url, e.message);
   }
-
-  // console.log(newMd);
+  return newMd;
 };
