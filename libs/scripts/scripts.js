@@ -135,15 +135,17 @@ const eagerLoad = (img) => {
 
 (async function loadLCPImage() {
   const lcpBlock = document.body.querySelector('div[class]');
-  const lcpImgs = lcpBlock.querySelectorAll(':scope > div > div:first-child img');
-  lcpImgs.forEach((img) => { eagerLoad(img); });
 
-  // const firstDiv = document.querySelector('body > main > div:nth-child(1) > div');
-  // if (firstDiv?.classList.contains('marquee')) {
-  //   firstDiv.querySelectorAll('img').forEach(eagerLoad);
-  // } else {
-  //   eagerLoad(document.querySelector('img'));
-  // }
+  if (lcpBlock?.classList[0] === 'interactive-marquee') {
+    const lcpImgs = lcpBlock.querySelectorAll(':scope > div > div:first-child img');
+    lcpImgs.forEach((img) => { eagerLoad(img); });
+  }
+
+  if (lcpBlock?.classList[0] === 'marquee') {
+    lcpBlock.querySelectorAll('img').forEach(eagerLoad);
+  } else {
+    eagerLoad(document.querySelector('img'));
+  }
 }());
 
 (async function loadPage() {

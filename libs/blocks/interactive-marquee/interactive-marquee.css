@@ -2,15 +2,50 @@
   display: block;
 }
 
-.interactive-marquee-container {
+.imarquee-mobile {
   display: block;
 }
 
-.interactive-marquee .bg-container {
+.imarquee-tablet {
+  display: none;
+}
+
+.imarquee-desktop {
+  display: none;
+}
+
+.interactive-marquee .imarquee-composite {
   position: relative;
 }
 
-.interactive-marquee .imarquee-foreground {
+.interactive-marquee .imarquee-composite picture {
   top: 0;
   position: absolute;
+}
+
+.interactive-marquee .imarquee-composite picture:first-child {
+  top: unset;
+  position: unset;
+}
+
+/* Tablet */
+@media (min-width: 600px) {
+  .imarquee-mobile {
+    display: none;
+  }
+
+  .imarquee-tablet {
+    display: unset;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1200px) {
+  .imarquee-tablet {
+    display: none;
+  }
+  
+  .imarquee-desktop {
+    display: block;
+  }
 }

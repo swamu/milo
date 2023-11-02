@@ -1,20 +1,46 @@
 import { createTag } from '../../utils/utils.js';
 
-export default function init(el) {
+function getPicture(row, idx) {
+  return row.nextElementSibling.children[idx].querySelector('picture');
+}
+
+export default async function init(el) {
   const rows = el.querySelectorAll(':scope > div');
-  rows.forEach((row) => { row.className = 'hide-block'; });
+  const imgs = [...rows].reduce((acc, row) => {
+    const trimmed = row.innerText.trim();
+    if (trimmed === 'background') {
+      acc.background = {
+        mobile: getPicture(row, 0),
+        tablet: getPicture(row, 1),
+        desktop: getPicture(row, 2),
+      };
+    }
+    if (trimmed === 'foreground') {
+      acc.foreground = {
+        mobile: getPicture(row, 0),
+        tablet: getPicture(row, 1),
+        desktop: getPicture(row, 2),
+      };
+    }
+    if (trimmed === 'text') {
+      acc.text = {
+        mobile: getPicture(row, 0),
+        tablet: getPicture(row, 1),
+        desktop: getPicture(row, 2),
+      };
+    }
+    row.className = 'hide-block';
+    return acc;
+  }, {});
 
-  // Move text overlay to top of stack (todo: this only works for mobile for now)
-  const textDiv = el.querySelector(':scope > div:last-child > div:first-child');
+  const mobileComposite = createTag('div', { class: 'imarquee-composite' }, [imgs.background.mobile, imgs.foreground.mobile]);
+  const mobileContainer = createTag('div', { class: 'imarquee-mobile' }, [imgs.text.mobile, mobileComposite]);
 
-  const bgPic = el.querySelector(':scope > div:nth-child(2) > div:first-child picture');
-  bgPic.className = 'imarquee-background';
+  const tabletComposite = createTag('div', { class: 'imarquee-composite' }, [imgs.background.tablet, imgs.foreground.tablet, imgs.text.tablet]);
+  const tabletContainer = createTag('div', { class: 'imarquee-tablet' }, tabletComposite);
 
-  const fgPic = el.querySelector(':scope > div:nth-child(4) > div:first-child picture');
-  fgPic.className = 'imarquee-foreground';
+  const desktopComposite = createTag('div', { class: 'imarquee-composite' }, [imgs.background.desktop, imgs.foreground.desktop, imgs.text.desktop]);
+  const desktopContainer = createTag('div', { class: 'imarquee-desktop' }, desktopComposite);
 
-  const bgContainer = createTag('div', { class: 'bg-container' }, [bgPic, fgPic]);
-
-  const container = createTag('div', { class: 'interactive-marquee-container' }, [textDiv, bgContainer]);
-  el.append(container);
+  el.append(mobileContainer, tabletContainer, desktopContainer);
 }
