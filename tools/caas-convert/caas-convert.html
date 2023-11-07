@@ -1,9 +1,9 @@
 <html lang="en">
 
 <head>
-  <title>CaaS Link Converter</title>
+  <title>CaaS Updater</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script type="module" src="./caas-convert.js"></script>
+  <!-- <script type="module" src="./caas-convert.js"></script> -->
 </head>
 
 <body>
@@ -11,32 +11,19 @@
     <div class="main">
       <div class="options-panel">
         <dt class="title is-expanded">
-          <span>CaaS Bulk Publisher</span>
+          <span>CaaS Updater</span>
         </dt>
-        <dd class="content is-expanded">
-          <div class="field">
-            <label for="host">Host:</label>
-            <input id="host" name="host" type="text" />
+        <dd class="countries">
+          <div class="countries-label">
+            <label for="countries">Countries (comma sep):</label>
           </div>
-          <div class="field">
-            <label for="repo">Repo:</label>
-            <input id="repo" name="repo" type="text" />
-          </div>
-          <div class="field">
-            <label for="owner">Repo Owner:</label>
-            <input id="owner" name="owner" type="text" />
-          </div>
-          <button id="bulkpublish" href="#">Update</button>
+          <textarea id="countries" name="countries" rows="10" cols="50"></textarea>
+          <button id="getfiles" href="#">Get Files</button>
+          <button id="updatefiles" href="#">Update Files</button>
         </dd>
       </div>
-      <dd class="urls">
-        <div class="urls-label">
-          <label for="urls">URLs:</label>
-        </div>
-        <textarea id="urls" name="urls" rows="10" cols="50"></textarea>
-      </dd>
     </div>
-    <dd class="results">
+    <!-- <dd class="results">
       <div>
         <label for="errors">Errors:</label>
         <textarea id="errors" name="errors" rows="10" cols="50"></textarea>
@@ -45,10 +32,20 @@
         <label for="success">Success:</label>
         <textarea id="success" name="success" rows="10" cols="50"></textarea>
       </div>
-    </dd>
+    </dd> -->
   </div>
-  <!-- <script type="module">
-    import init from './bulk-publish-to-caas.js';
-    init();
-  </script> -->
+  <script type="module">
+    import { fetchCaasFiles, updateCaasFiles } from './caas-convert.js';
+
+    document.getElementById('getfiles').addEventListener('click', async () => {
+      const countries = document.getElementById('countries').value;
+      await fetchCaasFiles(countries);
+    });
+
+    document.getElementById('updatefiles').addEventListener('click', async () => {
+      const countries = document.getElementById('countries').value;
+      await updateCaasFiles(countries);
+    });
+
+  </script>
 </body>
