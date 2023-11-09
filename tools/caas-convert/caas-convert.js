@@ -148,7 +148,7 @@ export async function getFilenames(site, driveId, rootMapping, path) {
   const opts = getReqOptions();
   const root = rootMapping ? `/${rootMapping}` : '';
 
-  const resp = await fetch(`${site}/${driveId}/root:${root}${path}:/children`, opts);
+  const resp = await fetch(`${site}/${driveId}/root:${root}${path}:/children?$top=1500`, opts);
 
   const json = await resp.json();
   return json.value;
@@ -158,9 +158,15 @@ export async function getItem(site, driveId, rootMapping, path) {
   const opts = getReqOptions();
   const root = rootMapping ? `/${rootMapping}` : '';
 
-  const resp = await fetch(`${site}/${driveId}/root:${root}${path}`, opts);
-
-  const json = await resp.json();
+  let resp;
+  let json;
+  try {
+    resp = await fetch(`${site}/${driveId}/root:${root}${path}`, opts);
+    json = await resp.json();
+  } catch (e) {
+    console.log('getItem error:', e);
+    return null;
+  }
   return json;
 }
 
@@ -189,7 +195,6 @@ export async function copyItem(site, driveId, id, parentReference, name, replace
   const resp = await fetch(`${site}/${driveId}/items/${id}/copy${qp}`, opts);
   if (resp.status !== 202) return { error: resp };
   return { resp };
-  // return getItem(`${folder}/${name}`);
 }
 
 export async function moveItem(site, driveId, id, parentId, name, replace = true) {
@@ -204,7 +209,6 @@ export async function moveItem(site, driveId, id, parentId, name, replace = true
   const resp = await fetch(`${site}/${driveId}/items/${id}`, opts);
   if (resp.status !== 202) return { error: resp };
   return { resp };
-  // return getItem(`${folder}/${name}`);
 }
 
 const TELEMETRY = { application: { appName: 'Adobe CaaS Updater' } };
@@ -251,6 +255,8 @@ export const fetchCaasFiles = async (countriesStr = '') => {
   }
 };
 
+const skipIdx = [28, 37, 38, 54, 4, 55, 0, 3, 56, 57, 58, 59, 60];
+
 export const updateCaasFiles = async (countriesStr = '') => {
   const { site, driveId, rootMapping } = await loginToSharePoint();
   const countries = countriesStr.split(',').map((c) => c.trim()).filter(Boolean);
@@ -264,6 +270,8 @@ export const updateCaasFiles = async (countriesStr = '') => {
       // account-based-marketing--uk--28--v2.docx
       // ['account-based-marketing', 'uk', '28', 'v2.docx']
       const [filename, cntry, idx] = file.name.split('--');
+
+      if (skipIdx.includes(parseInt(idx, 10))) continue;
 
       if (cntry !== country) continue;
 
@@ -280,19 +288,26 @@ export const updateCaasFiles = async (countriesStr = '') => {
 
       // make backup of original
       const origItem = await getItem(site, driveId, rootMapping, `${origPath}.docx`);
+      if (!origItem) continue;
 
-      // create folder structure for backup
+      // // create folder structure for backup
       let currentFolderPath = '/drafts/MWPW-137829-caas-backup/';
       let folder = backupRootDir;
       let parentFolder;
+      let folderError = false;
       for (const pathPart of pathSplit) {
         currentFolderPath += pathPart ? `${pathPart}/` : '';
         folder = await getItem(site, driveId, rootMapping, currentFolderPath);
-        if (folder.error) {
+        if (folder?.error) {
           folder = await createFolder(site, driveId, parentFolder.id, pathPart);
+        }
+        if (!folder) {
+          console.log('Error creating folder: ', currentFolderPath);
+          folderError = true;
         }
         parentFolder = folder;
       }
+      if (folderError) continue;
 
       const copyRes = await copyItem(site, driveId, origItem.id, { driveId: driveId.replace('drives/', ''), id: folder.id }, `${origFilename}.docx`);
       if (copyRes.error) {
