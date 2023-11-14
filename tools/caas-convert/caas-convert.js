@@ -132,6 +132,10 @@ const config = {
 
 const BODY_BASE = { '@microsoft.graph.conflictBehavior': 'replace' };
 
+// Log to the console without having source line numbers also printer
+console.print = (...args) => queueMicrotask(console.log.bind(console, ...args));
+
+
 const spLogin = async ({ origin, telemetry }) => {
   setConfig(config);
 
@@ -164,7 +168,7 @@ export async function getItem(site, driveId, rootMapping, path) {
     resp = await fetch(`${site}/${driveId}/root:${root}${path}`, opts);
     json = await resp.json();
   } catch (e) {
-    console.log('getItem error:', e);
+    console.print('getItem error:', e);
     return null;
   }
   return json;
@@ -181,6 +185,12 @@ export async function createFolder(site, driveId, parentId, folderName) {
 
   const json = await resp.json();
   return json;
+}
+
+export async function deleteItem(site, driveId, id) {
+  const opts = getReqOptions({ method: 'DELETE' });
+  const resp = await fetch(`${site}/${driveId}/items/${id}`, opts);
+  return resp;
 }
 
 export async function copyItem(site, driveId, id, parentReference, name, replace = true) {
@@ -255,15 +265,17 @@ export const fetchCaasFiles = async (countriesStr = '') => {
   }
 };
 
-const skipIdx = [28, 37, 38, 54, 4, 55, 0, 3, 56, 57, 58, 59, 60];
+const getCountriesArr = (countriesStr) => countriesStr.split(',')
+  .map((c) => c.trim()).filter(Boolean);
+
+// const skipIdx = [28, 37, 38, 54, 4, 55, 3, 56, 57, 58, 59, 60];
 
 export const updateCaasFiles = async (countriesStr = '') => {
   const { site, driveId, rootMapping } = await loginToSharePoint();
-  const countries = countriesStr.split(',').map((c) => c.trim()).filter(Boolean);
+  const countries = getCountriesArr(countriesStr);
   for (const country of countries) {
     const urls = getUrls(country);
     const files = await getFilenames(site, driveId, rootMapping, '/drafts/cpeyer/caas-updates');
-    const backupRootDir = await getItem(site, driveId, rootMapping, '/drafts/MWPW-137829-caas-backup/');
 
     // eslint-disable-next-line no-unreachable-loop
     for (const file of files) {
@@ -271,24 +283,85 @@ export const updateCaasFiles = async (countriesStr = '') => {
       // ['account-based-marketing', 'uk', '28', 'v2.docx']
       const [filename, cntry, idx] = file.name.split('--');
 
-      if (skipIdx.includes(parseInt(idx, 10))) continue;
+      // if (!skipIdx.includes(parseInt(idx, 10))) continue;
 
       if (cntry !== country) continue;
 
       // 'https://main--bacom--adobecom.hlx.page/uk/products/marketo/account-based-marketing'
       const origPath = getPath(urls[idx]);
-      console.log(origPath);
+      console.print(`"${origPath}",`);
       const pathSplit = origPath.split('/');
       const origFilename = pathSplit.pop();
 
       if (filename !== origFilename) {
-        console.log(`Filenames do not match - server filename: ${filename}, filename from list: ${origFilename}`);
+        console.print(`Filenames do not match - server filename: ${filename}, filename from list: ${origFilename}`);
         continue;
       }
 
-      // make backup of original
+      // overwrite old file with new
       const origItem = await getItem(site, driveId, rootMapping, `${origPath}.docx`);
-      if (!origItem) continue;
+
+      const newCopyRes = await copyItem(site, driveId, file.id, { driveId: driveId.replace('drives/', ''), id: origItem.parentReference.id }, `${origFilename}.docx`);
+      // const moveRes = await moveItem(site, driveId, file.id, origItem.parentReference.id, `${origFilename}.docx`);
+      if (newCopyRes.error) {
+        console.print(`Error copying ${origFilename}.docx: ${newCopyRes.error.statusText}`);
+        continue;
+      }
+
+      deleteItem(site, driveId, file.id);
+      // DEBUG
+      // if (i++ > 2) break;
+    }
+
+    // const fileId = files[0].id;
+    // await copyItem(site, driveId, fileId, { driveId: driveId.replace('drives/', ''), id: dest.id });
+  }
+  console.print('done');
+};
+
+const specialUrls = [
+  'https://main--bacom--adobecom.hlx.page/be_en/products/real-time-customer-data-platform/resources',
+  'https://main--bacom--adobecom.hlx.page/be_en/products/workfront/resource-management',
+  'https://main--bacom--adobecom.hlx.page/be_en/fragments/resources/cards/thank-you-collections/generic',
+  'https://main--bacom--adobecom.hlx.page/be_en/fragments/resources/recommended/template-a-recommended',
+];
+
+export const backupFiles = async (countriesStr = '', directUrl) => {
+  const { site, driveId, rootMapping } = await loginToSharePoint();
+  const backupRootDir = await getItem(site, driveId, rootMapping, '/drafts/MWPW-137829-caas-backup/');
+
+  const countries = getCountriesArr(countriesStr);
+  for (const country of countries) {
+    const urls = directUrl
+      ? [directUrl]
+      : getUrls(country);
+
+    for (const url of urls) {
+      const origPath = getPath(url);
+      // if (africaMissing.some((path) => path === origPath)) continue;
+      // if (!missing.includes(origPath)) continue;
+
+      console.print(origPath);
+      const pathSplit = origPath.split('/');
+      const origFilename = pathSplit.pop();
+
+      // make backup of original
+      let origItem = await getItem(site, driveId, rootMapping, `${origPath}.docx`);
+      if (origItem.error.code === 'itemNotFound') {
+        console.print('Original file not found: ', origPath);
+        const origItemWithSpaces = await getItem(site, driveId, rootMapping, `${origPath.replaceAll('-', ' ')}.docx`);
+        if (origItemWithSpaces) {
+          console.log('Found file with spaces - renaming...');
+          await moveItem(site, driveId, origItemWithSpaces.id, origItemWithSpaces.parentReference.id, `${origFilename}.docx`);
+          origItem = await getItem(site, driveId, rootMapping, `${origPath}.docx`);
+        }
+        if (!origItem || origItem.error) {
+          console.log('File not found with spaces - skipping...');
+          continue;
+        }
+      } else if (origItem.error) {
+        console.print('Unkown Error: ', origItem.error, origPath);
+      }
 
       // // create folder structure for backup
       let currentFolderPath = '/drafts/MWPW-137829-caas-backup/';
@@ -302,32 +375,104 @@ export const updateCaasFiles = async (countriesStr = '') => {
           folder = await createFolder(site, driveId, parentFolder.id, pathPart);
         }
         if (!folder) {
-          console.log('Error creating folder: ', currentFolderPath);
+          console.print('Error creating folder: ', currentFolderPath);
           folderError = true;
         }
         parentFolder = folder;
       }
-      if (folderError) continue;
+
+      if (folderError) {
+        console.print('Error creating folder: ', currentFolderPath);
+        continue;
+      }
 
       const copyRes = await copyItem(site, driveId, origItem.id, { driveId: driveId.replace('drives/', ''), id: folder.id }, `${origFilename}.docx`);
       if (copyRes.error) {
-        console.log(`Error copying ${origFilename}.docx: ${copyRes.error.statusText}`);
+        console.print(`Error copying ${origFilename}.docx: ${copyRes.error.statusText}`);
         continue;
       }
+    }
+  }
+  console.print('backup done');
+};
 
-      // overwrite old file with new
-      const newCopyRes = await copyItem(site, driveId, file.id, { driveId: driveId.replace('drives/', ''), id: origItem.parentReference.id }, `${origFilename}.docx`);
-      // const moveRes = await moveItem(site, driveId, file.id, origItem.parentReference.id, `${origFilename}.docx`);
-      if (newCopyRes.error) {
-        console.log(`Error copying ${origFilename}.docx: ${newCopyRes.error.statusText}`);
-        continue;
+export const findMissingBackups = async (countriesStr = '') => {
+  const { site, driveId, rootMapping } = await loginToSharePoint();
+  // const backupRootDir = await getItem(site, driveId, rootMapping, '/drafts/MWPW-137829-caas-backup/');
+  const countries = getCountriesArr(countriesStr);
+  for (const country of countries) {
+    console.print('Processing ', country);
+    const urls = getUrls(country);
+
+    for (const url of urls) {
+      const origPath = getPath(url);
+      // if (!origPath.endsWith('resource-management')) continue;
+      // console.print(origPath);
+
+      const backupFile = await getItem(site, driveId, rootMapping, `/drafts/MWPW-137829-caas-backup${origPath}.docx`);
+      if (backupFile.error) {
+        if (backupFile.error.code === 'itemNotFound') {
+          console.print('Backup file not found: ', origPath);
+          await backupFiles(country, `https://main--bacom--adobecom.hlx.page${origPath}`);
+        } else {
+          console.print('Unkown Error: ', backupFile.error, origPath);
+        }
       }
-      // DEBUG
-      // if (i++ > 2) break;
+    }
+  }
+  console.print('Done Finding Missing Backups');
+};
+
+export const fixCsAdobeTarget = async (countriesStr = '') => {
+  const { site, driveId, rootMapping } = await loginToSharePoint();
+  // const backupRootDir = await getItem(site, driveId, rootMapping, '/drafts/MWPW-137829-caas-backup/');
+  const countries = getCountriesArr(countriesStr);
+  for (const country of countries) {
+    const url = `/${country}/fragments/products/cards/customer stories adobe target`;
+
+    const badFileName = await getItem(site, driveId, rootMapping, `${url}.docx`);
+    if (!badFileName.id) {
+      console.print('csat not found: ', country);
+      continue;
     }
 
-    // const fileId = files[0].id;
-    // await copyItem(site, driveId, fileId, { driveId: driveId.replace('drives/', ''), id: dest.id });
+    // rename
+    await moveItem(site, driveId, badFileName.id, badFileName.parentReference.id, 'customer-stories-adobe-target.docx', false);
+
+    const origPath = `/${country}/fragments/products/cards/customer-stories-adobe-target`;
+    const pathSplit = origPath.split('/');
+    const origFilename = pathSplit.pop();
+
+    // // create folder structure for backup
+    const backupRootDir = await getItem(site, driveId, rootMapping, '/drafts/MWPW-137829-caas-backup/');
+    let currentFolderPath = '/drafts/MWPW-137829-caas-backup/';
+    let folder = backupRootDir;
+    let parentFolder;
+    let folderError = false;
+    for (const pathPart of pathSplit) {
+      currentFolderPath += pathPart ? `${pathPart}/` : '';
+      folder = await getItem(site, driveId, rootMapping, currentFolderPath);
+      if (folder?.error) {
+        folder = await createFolder(site, driveId, parentFolder.id, pathPart);
+      }
+      if (!folder) {
+        console.print('Error creating folder: ', currentFolderPath);
+        folderError = true;
+      }
+      parentFolder = folder;
+    }
+
+    if (folderError) {
+      console.print('Error creating folder: ', currentFolderPath);
+      continue;
+    }
+
+    const copyRes = await copyItem(site, driveId, badFileName.id, { driveId: driveId.replace('drives/', ''), id: folder.id }, `${origFilename}.docx`);
+    if (copyRes.error) {
+      console.print(`Error copying ${origFilename}.docx: ${copyRes.error.statusText}`);
+      continue;
+    }
+    console.print('Fixed ', country);
   }
-  console.log('done');
+  console.print('Done')
 };

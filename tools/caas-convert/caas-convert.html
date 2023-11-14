@@ -20,6 +20,9 @@
           <textarea id="countries" name="countries" rows="10" cols="50"></textarea>
           <button id="getfiles" href="#">Get Files</button>
           <button id="updatefiles" href="#">Update Files</button>
+          <button id="backupfiles" href="#">Backup Files</button>
+          <button id="findmissing" href="#">Find Missing Backup Files</button>
+          <button id="fixcs" href="#">Fix customer story file</button>
         </dd>
       </div>
     </div>
@@ -35,7 +38,7 @@
     </dd> -->
   </div>
   <script type="module">
-    import { fetchCaasFiles, updateCaasFiles } from './caas-convert.js';
+    import { backupFiles, fetchCaasFiles, findMissingBackups, fixCsAdobeTarget, updateCaasFiles } from './caas-convert.js';
 
     document.getElementById('getfiles').addEventListener('click', async () => {
       const countries = document.getElementById('countries').value;
@@ -45,6 +48,21 @@
     document.getElementById('updatefiles').addEventListener('click', async () => {
       const countries = document.getElementById('countries').value;
       await updateCaasFiles(countries);
+    });
+
+    document.getElementById('backupfiles').addEventListener('click', async () => {
+      const countries = document.getElementById('countries').value;
+      await backupFiles(countries);
+    });
+
+    document.getElementById('findmissing').addEventListener('click', async () => {
+      const countries = document.getElementById('countries').value;
+      await findMissingBackups(countries);
+    });
+
+    document.getElementById('fixcs').addEventListener('click', async () => {
+      const countries = document.getElementById('countries').value;
+      await fixCsAdobeTarget(countries);
     });
 
   </script>
