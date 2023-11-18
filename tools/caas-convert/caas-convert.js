@@ -152,7 +152,7 @@ export async function getFilenames(site, driveId, rootMapping, path) {
   const opts = getReqOptions();
   const root = rootMapping ? `/${rootMapping}` : '';
 
-  const resp = await fetch(`${site}/${driveId}/root:${root}${path}:/children?$top=1500`, opts);
+  const resp = await fetch(`${site}/${driveId}/root:${root}${path}:/children?$top=4000`, opts);
 
   const json = await resp.json();
   return json.value;
@@ -273,9 +273,12 @@ const getCountriesArr = (countriesStr) => countriesStr.split(',')
 export const updateCaasFiles = async (countriesStr = '') => {
   const { site, driveId, rootMapping } = await loginToSharePoint();
   const countries = getCountriesArr(countriesStr);
+  const files = await getFilenames(site, driveId, rootMapping, '/drafts/cpeyer/caas-updates');
+
   for (const country of countries) {
     const urls = getUrls(country);
-    const files = await getFilenames(site, driveId, rootMapping, '/drafts/cpeyer/caas-updates');
+    let countryFileCount = 0;
+    const countryIndexes = [];
 
     // eslint-disable-next-line no-unreachable-loop
     for (const file of files) {
@@ -285,7 +288,12 @@ export const updateCaasFiles = async (countriesStr = '') => {
 
       // if (!skipIdx.includes(parseInt(idx, 10))) continue;
 
-      if (cntry !== country) continue;
+      if (cntry !== country) {
+        continue;
+      }
+
+      countryFileCount++;
+      countryIndexes.push(parseInt(idx, 10));
 
       // 'https://main--bacom--adobecom.hlx.page/uk/products/marketo/account-based-marketing'
       const origPath = getPath(urls[idx]);
@@ -312,7 +320,16 @@ export const updateCaasFiles = async (countriesStr = '') => {
       // DEBUG
       // if (i++ > 2) break;
     }
-
+    if (countryFileCount !== 99) {
+      console.warn(`Country ${country} has ${countryFileCount} files`);
+      const missing = [];
+      for (let i = 0; i < 100; i++) {
+        if (!countryIndexes.includes(i)) {
+          missing.push(i);
+        }
+      }
+      console.warn('Missing: ', missing);
+    }
     // const fileId = files[0].id;
     // await copyItem(site, driveId, fileId, { driveId: driveId.replace('drives/', ''), id: dest.id });
   }
@@ -347,7 +364,7 @@ export const backupFiles = async (countriesStr = '', directUrl) => {
 
       // make backup of original
       let origItem = await getItem(site, driveId, rootMapping, `${origPath}.docx`);
-      if (origItem.error.code === 'itemNotFound') {
+      if (origItem.error?.code === 'itemNotFound') {
         console.print('Original file not found: ', origPath);
         const origItemWithSpaces = await getItem(site, driveId, rootMapping, `${origPath.replaceAll('-', ' ')}.docx`);
         if (origItemWithSpaces) {
