@@ -43,7 +43,7 @@ export const createLinkMarkup = (defaults) => (
       ['osi', offerSelectorId],
       ['type', type],
     ]);
-    if (promo) params.set('promo', promo);
+    if (promo) params.set('promotionCode', promo);
     if (offer.commitment === 'PERPETUAL') params.set('perp', true);
 
     if (isCta) {
@@ -63,7 +63,7 @@ export const createLinkMarkup = (defaults) => (
       params.set('exclusive', forceTaxExclusive);
     }
     const { location } = window;
-    return `${location.protocol + location.host}/tools/ost?${params.toString()}`;
+    return `${location.origin}/tools/ost?${params.toString()}`;
   };
 
   const link = document.createElement('a');
