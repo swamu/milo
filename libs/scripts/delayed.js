@@ -69,7 +69,7 @@ const loadDelayed = ([
   loadScript,
   loadStyle,
   loadIms,
-], DELAY = 3000) => new Promise((resolve) => {
+], DELAY = 0) => new Promise((resolve) => {
   setTimeout(() => {
     loadPrivacy(getConfig, loadScript);
     loadJarvisChat(getConfig, getMetadata, loadScript, loadStyle);
