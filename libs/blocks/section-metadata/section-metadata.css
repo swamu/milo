@@ -271,56 +271,52 @@ main > .section[class*='-up'] > .content {
   }
 }
 
-.section.advanced-grid {
+.section.custom-up {
   --up: auto-fit;
   --ite: minmax(276px, 1fr);
-  --gap: var(--spacing-m);
   --ali: 'start';
   --jus: 'stretch';
   --m-up: var(--up-m, var(--up));
   --m-ite: var(--ite-m, var(--ite));
-  --m-gap: var(--gap-m, var(--gap));
   --m-ali: var(--ali-m, var(--ali));
   --m-jus: var(--jus-m, var(--jus));
   --t-up: var(--up-t, var(--up-m, var(--up)));
   --t-ite: var(--ite-t, var(--ite-m, var(--ite)));
-  --t-gap: var(--gap-t, var(--gap-m, var(--gap)));
   --t-ali: var(--ali-t, var(--ali-m, var(--ali)));
   --t-jus: var(--jus-t, var(--jus-m, var(--jus)));
   --d-up: var(--up-d, var(--up-t, var(--up-m, var(--up))));
   --d-ite: var(--ite-d, var(--ite-t, var(--ite-m, var(--ite))));
-  --d-gap: var(--gap-d, var(--gap-t, var(--gap-m, var(--gap))));
   --d-ali: var(--ali-d, var(--ali-t, var(--ali-m, var(--ali))));
   --d-jus: var(--jus-d, var(--jus-t, var(--jus-m, var(--jus))));
 
   display: grid;
   grid-template-columns: repeat(var(--m-up), var(--m-ite));
-  gap: var(--m-gap);
   align-items: var(--m-ali);
   justify-content: var(--m-jus);
+}
+
+.section.section.custom-up:not([class*='grid-width-']) {
   padding-left: var(--grid-margins-width);
   padding-right: var(--grid-margins-width);
 }
 
 @media screen and (max-width: 600px) {
-  .section.advanced-grid.mobile-min-max {
+  .section.custom-up.mobile-min-max {
     grid-template-columns: repeat(auto-fit, minmax(276px, 1fr));
   }
 }
 
 @media screen and (min-width: 600px) and (max-width: 1200px) {
-  .section.advanced-grid {
+  .section.custom-up {
     grid-template-columns: repeat(var(--t-up), var(--t-ite));
-    gap: var(--t-gap);
     align-items: var(--t-ali);
     justify-content: var(--t-jus);
   }
 }
 
 @media screen and (min-width: 1200px) {
-  .section.advanced-grid {
+  .section.custom-up {
     grid-template-columns: repeat(var(--d-up), var(--d-ite));
-    gap: var(--d-gap);
     align-items: var(--d-ali);
     justify-content: var(--d-jus);
   }

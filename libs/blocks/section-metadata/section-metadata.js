@@ -41,20 +41,20 @@ const formatAttr = (val, aprev = false) => {
   return value;
 };
 
-function handleAdvancedGrid(metadata, section) {
-  section.classList.add('advanced-grid');
-  const attrs = ['up', 'align', 'justify', 'gap', 'item width'];
-  attrs.forEach((attr) => {
+function handleCustomGrid(metadata, section) {
+  section.classList.add('custom-up');
+  ['up', 'align', 'justify', 'gap', 'item width'].forEach((attr) => {
     const props = metadata[attr];
     if (props) {
       if (Array.isArray(props)) {
         props.forEach((value, index) => {
-          section.style.setProperty(`--${formatAttr(attr, true)}-${['m', 't', 'd'][index]}`, formatAttr(value.text));
+          const prop = `--${formatAttr(attr, true)}-${['m', 't', 'd'][index]}`;
+          section.style.setProperty(prop, formatAttr(value.text));
         });
       } else {
         section.style.setProperty(`--${formatAttr(attr, true)}`, formatAttr(props.text));
       }
-      if (attr === attrs[0] && !Array.isArray(props)) section.classList.add('mobile-min-max');
+      if (attr === 'up' && !Array.isArray(props)) section.classList.add('mobile-min-max');
     }
   });
 }
@@ -65,7 +65,7 @@ export const getMetadata = (el) => [...el.childNodes].reduce((rdx, row) => {
     const props = [...row.children];
     const key = format(props.shift());
     let metadata;
-    if (props.length === 3) {
+    if (props.length === 3) { // props include breakpoints
       metadata = props.map((content) => ({ content, text: format(content) }));
     } else {
       metadata = { content: props[0], text: format(props[0]) };
@@ -81,5 +81,5 @@ export default async function init(el) {
   if (metadata.style) await handleStyle(metadata.style.text, section);
   if (metadata.background) handleBackground(metadata, section);
   if (metadata.layout) handleLayout(metadata.layout.text, section);
-  if (metadata.up) handleAdvancedGrid(metadata, section);
+  if (metadata.up) handleCustomGrid(metadata, section);
 }
