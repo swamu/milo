@@ -33,12 +33,44 @@ function handleLayout(text, section) {
   section.classList.add(layoutClass);
 }
 
+const formatAttr = (val, aprev = false) => {
+  let value = val?.trim().replaceAll(' ', '-') ?? val;
+  const sizes = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
+  if (sizes.includes(val)) value = `var(--spacing-${val})`;
+  if (aprev) value = value.substring(0, 3);
+  return value;
+};
+
+function handleAdvancedGrid(metadata, section) {
+  section.classList.add('advanced-grid');
+  const attrs = ['up', 'align', 'justify', 'gap', 'item width'];
+  attrs.forEach((attr) => {
+    const props = metadata[attr];
+    if (props) {
+      if (Array.isArray(props)) {
+        props.forEach((value, index) => {
+          section.style.setProperty(`--${formatAttr(attr, true)}-${['m', 't', 'd'][index]}`, formatAttr(value.text));
+        });
+      } else {
+        section.style.setProperty(`--${formatAttr(attr, true)}`, formatAttr(props.text));
+      }
+      if (attr === attrs[0] && !Array.isArray(props)) section.classList.add('mobile-min-max');
+    }
+  });
+}
+
 export const getMetadata = (el) => [...el.childNodes].reduce((rdx, row) => {
   if (row.children) {
-    const key = row.children[0].textContent.trim().toLowerCase();
-    const content = row.children[1];
-    const text = content.textContent.trim().toLowerCase();
-    if (key && content) rdx[key] = { content, text };
+    const format = (val) => val.textContent.trim().toLowerCase();
+    const props = [...row.children];
+    const key = format(props.shift());
+    let metadata;
+    if (props.length === 3) {
+      metadata = props.map((content) => ({ content, text: format(content) }));
+    } else {
+      metadata = { content: props[0], text: format(props[0]) };
+    }
+    if (key && metadata) rdx[key] = metadata;
   }
   return rdx;
 }, {});
@@ -49,4 +81,5 @@ export default async function init(el) {
   if (metadata.style) await handleStyle(metadata.style.text, section);
   if (metadata.background) handleBackground(metadata, section);
   if (metadata.layout) handleLayout(metadata.layout.text, section);
+  if (metadata.up) handleAdvancedGrid(metadata, section);
 }
