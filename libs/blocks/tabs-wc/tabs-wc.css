@@ -1,0 +1,24 @@
+tabs-block {
+  display: block;
+}
+
+tabs-block .container {
+  margin: 16px auto 8px;
+}
+
+.center tabs-block .container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+tabs-block .tab {
+  display: inline-block;
+  cursor: pointer;
+}
+
+tabs-block .tab[selected='true'],
+tabs-block .tab:hover {
+  font-weight: bold;
+}
