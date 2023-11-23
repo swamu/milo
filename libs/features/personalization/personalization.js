@@ -480,11 +480,13 @@ export async function runPersonalization(info, config) {
     manifestData,
     manifestPath,
     variantLabel,
+    event,
   } = info;
 
   const experiment = await getPersConfig(name, variantLabel, manifestData, manifestPath);
 
   if (!experiment) return null;
+  experiment.event = event;
 
   const { selectedVariant } = experiment;
   if (!selectedVariant) return {};
@@ -559,13 +561,28 @@ export async function applyPers(manifests) {
   const cleanedManifests = cleanManifestList(manifests);
 
   let results = [];
+  const experiments = [];
   for (const manifest of cleanedManifests) {
-    results.push(await runPersonalization(manifest, config));
+    const noOverride = !config.mep?.override;
+    if (manifest.disabled && noOverride) {
+      const experiment = {
+        disabled: manifest.disabled,
+        event: manifest.event,
+        manifest: manifest.manifestPath,
+        variantNames: ['all'],
+        selectedVariantName: 'default',
+        selectedVariant: { commands: [] },
+      };
+      experiments.push(experiment);
+    } else {
+      const result = await runPersonalization(manifest, config);
+      results.push(result);
+      experiments.push(result.experiment);
+    }
   }
   results = results.filter(Boolean);
   deleteMarkedEls();
 
-  const experiments = results.map((r) => r.experiment);
   updateConfig({
     ...config,
     experiments,
