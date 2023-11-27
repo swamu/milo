@@ -1,24 +1,31 @@
-tabs-block {
+tabs-component {
   display: block;
 }
 
-tabs-block .container {
+tabs-component .container {
   margin: 16px auto 8px;
-}
-
-.center tabs-block .container {
+  gap: 16px;
   position: relative;
   display: flex;
-  justify-content: center;
-  gap: 16px;
 }
 
-tabs-block .tab {
+tabs-component .container.center {
+  justify-content: center;
+  text-align: center;
+}
+
+tabs-component button.tab {
   display: inline-block;
   cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  appearance: none;
 }
 
-tabs-block .tab[selected='true'],
-tabs-block .tab:hover {
+tabs-component button.tab[selected='true'],
+tabs-component button.tab:hover {
   font-weight: bold;
 }

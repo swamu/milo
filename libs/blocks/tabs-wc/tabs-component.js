@@ -1,8 +1,18 @@
 import { createTag } from '../../utils/utils.js';
 
-class TabsBlock extends HTMLElement {
+class TabsComponent extends HTMLElement {
   static get observedAttributes() {
     return ['selected'];
+  }
+
+  handleTabContent() {
+    const sections = Array.from(document.querySelectorAll(`[tab-id='${this.getAttribute('id')}']`));
+    sections.forEach((section) => {
+      section.setAttribute(
+        'hidden',
+        parseInt(section.getAttribute('tab-content'), 10) !== parseInt(this.getAttribute('selected'), 10),
+      );
+    });
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -11,26 +21,27 @@ class TabsBlock extends HTMLElement {
       tabs?.forEach((tab, index) => {
         tab.setAttribute('selected', parseInt(newValue, 10) === (index + 1));
       });
+      this.handleTabContent();
     }
-  }
-
-  tabAttrs(tabIndex) {
-    const selectedTab = this.getAttribute('selected');
-    return { class: 'tab', selected: tabIndex === parseInt(selectedTab, 10) };
   }
 
   connectedCallback() {
     const tabContainer = this.children[0];
-    tabContainer.classList.add('container');
+    tabContainer.classList.add('container', ...this.getAttribute('style').split(' '));
     const config = this.querySelector('ol');
     config.style.display = 'none';
     const tabs = Array.from(this.querySelectorAll('li'));
     tabs.forEach((tab, index) => {
-      const tabButton = createTag('div', this.tabAttrs(index + 1), tab.textContent);
+      const tabButton = createTag(
+        'button',
+        { class: 'tab', selected: (index + 1) === parseInt(this.getAttribute('selected'), 10) },
+        tab.textContent,
+      );
       tabButton.onclick = () => this.setAttribute('selected', index + 1);
       tabContainer.appendChild(tabButton);
     });
+    this.handleTabContent();
   }
 }
 
-window.customElements.define('tabs-block', TabsBlock);
+window.customElements.define('tabs-component', TabsComponent);
