@@ -11,7 +11,7 @@ const defaults = {
   checkoutWorkflowStep: 'email',
 };
 const osi = 'cea462e983f649bca2293325c9894bdd';
-const promo = 'test-promo';
+const promotionCode = 'test-promo';
 const texts = {
   buy: DEFAULT_CTA_TEXT,
   try: 'free-trial',
@@ -41,7 +41,7 @@ function createLink(params = {}) {
     params.type,
     perpM2M,
     params,
-    params.promo,
+    params.promotionCode,
   );
 }
 
@@ -56,8 +56,8 @@ describe('function "createLinkMarkup"', () => {
 
     it('with promo and custom text', async () => {
       const ctaText = texts.try;
-      const link = createLink({ ctaText, promo, type });
-      assertLink(link, perpM2M, { osi, promo, type }, ctaText);
+      const link = createLink({ ctaText, promotionCode, type });
+      assertLink(link, perpM2M, { osi, promotionCode, type }, ctaText);
     });
 
     it('to UCv2 workflow', async () => {
