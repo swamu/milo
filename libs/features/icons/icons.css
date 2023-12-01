@@ -87,3 +87,14 @@
 .milo-tooltip:hover::after {
   display: block;
 }
+
+.icon-type-app {
+  max-width: 56px;
+  min-height: 54px;
+  margin-inline-end: var(--spacing-xxs);
+}
+
+.icon-type-ui {
+  max-width: 18px;
+  margin-inline-end: var(--spacing-xxs);
+}

@@ -22,6 +22,22 @@ async function getSVGsfromFile(path) {
   return miloIcons;
 }
 
+async function getSvgFromPath(path, type) {
+  /* c8 ignore next */
+  if (!path) return null;
+  const resp = await fetch(path);
+  /* c8 ignore next */
+  if (!resp.ok) return null;
+  const text = await resp.text();
+  const parser = new DOMParser();
+  const parsedText = parser.parseFromString(text, 'image/svg+xml');
+  const parsedSvg = parsedText.querySelector('svg');
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  while (parsedSvg.firstChild) svg.appendChild(parsedSvg.firstChild);
+  svg.classList.add('icon-milo', `icon-type-${type}`);
+  return svg;
+}
+
 // eslint-disable-next-line no-async-promise-executor
 export const fetchIcons = (config) => new Promise(async (resolve) => {
   /* c8 ignore next */
@@ -32,6 +48,15 @@ export const fetchIcons = (config) => new Promise(async (resolve) => {
     fetched = true;
   }
   resolve(fetchedIcons);
+});
+
+// eslint-disable-next-line no-async-promise-executor
+export const fetchIcon = (name, config) => new Promise(async (resolve) => {
+  const { miloLibs, codeRoot } = config;
+  const base = miloLibs || codeRoot;
+  const [folderName, fileName] = name.split(/-(.*)/s);
+  const fetchedIcon = await getSvgFromPath(`${base}/img/icons/${folderName}/${fileName}.svg`, folderName);
+  resolve(fetchedIcon);
 });
 
 function decorateToolTip(icon) {
@@ -52,10 +77,17 @@ function decorateToolTip(icon) {
 export default async function loadIcons(icons, config) {
   const iconSVGs = await fetchIcons(config);
   if (!iconSVGs) return;
+  const appIcons = {};
   icons.forEach(async (icon) => {
     const { classList } = icon;
     if (classList.contains('icon-tooltip')) decorateToolTip(icon);
     const iconName = icon.classList[1].replace('icon-', '');
+    if (iconName.startsWith('app-') || iconName.startsWith('ui-')) {
+      const appIcon = await fetchIcon(iconName, config);
+      if (!appIcon) return;
+      appIcons[iconName] = appIcon;
+      icon.insertAdjacentHTML('afterbegin', appIcons[iconName].outerHTML);
+    }
     if (!iconSVGs[iconName]) return;
     const parent = icon.parentElement;
     if (parent.childNodes.length > 1) {
