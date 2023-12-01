@@ -183,6 +183,11 @@
   gap: var(--spacing-m);
 }
 
+.section.grid-width-full {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 .section[class*='grid-width-'] > .content,
 main > .section[class*='-up'] > .content {
   max-width: initial;
