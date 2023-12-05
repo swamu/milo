@@ -1,5 +1,6 @@
 let fetchedIcons;
 let fetched = false;
+const appIcons = {};
 
 async function getSVGsfromFile(path) {
   /* c8 ignore next */
@@ -34,6 +35,7 @@ async function getSvgFromPath(path, type) {
   const parsedSvg = parsedText.querySelector('svg');
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   while (parsedSvg.firstChild) svg.appendChild(parsedSvg.firstChild);
+  [...parsedSvg.attributes].forEach((attr) => svg.attributes.setNamedItem(attr.cloneNode()));
   svg.classList.add('icon-milo', `icon-type-${type}`);
   return svg;
 }
@@ -55,6 +57,7 @@ export const fetchIcon = (name, config) => new Promise(async (resolve) => {
   const { miloLibs, codeRoot } = config;
   const base = miloLibs || codeRoot;
   const [folderName, fileName] = name.split(/-(.*)/s);
+  console.log('appIcons', appIcons, fileName);
   const fetchedIcon = await getSvgFromPath(`${base}/img/icons/${folderName}/${fileName}.svg`, folderName);
   resolve(fetchedIcon);
 });
@@ -74,10 +77,18 @@ function decorateToolTip(icon) {
   wrapper.parentElement.replaceChild(icon, wrapper);
 }
 
+// async function getAppIcon(iconName, config) {
+//   console.log('!appIcons[iconName]', iconName, appIcons[iconName]);
+//   const appIcon = await fetchIcon(iconName, config);
+//   if (!appIcon) return;
+//   return appIcon;
+//   // icon.insertAdjacentHTML('afterbegin', appIcons[iconName].outerHTML);
+//   // console.log('appIcons', iconName, 'appIcons[iconName]', appIcons[`${iconName}`]);
+// }
+
 export default async function loadIcons(icons, config) {
   const iconSVGs = await fetchIcons(config);
   if (!iconSVGs) return;
-  const appIcons = {};
   icons.forEach(async (icon) => {
     const { classList } = icon;
     if (classList.contains('icon-tooltip')) decorateToolTip(icon);
