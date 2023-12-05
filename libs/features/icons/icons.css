@@ -1,3 +1,9 @@
+:root {
+  /* Icon Fill colors */
+  /* todo: update svg src w/ `--icon-fill` */
+  --iconFill: var(--text-color);
+}
+
 .milo-tooltip {
   position: relative;
   text-decoration: none;

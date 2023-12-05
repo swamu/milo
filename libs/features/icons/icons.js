@@ -53,15 +53,6 @@ export const fetchIcons = (config) => new Promise(async (resolve) => {
 });
 
 // eslint-disable-next-line no-async-promise-executor
-export const fetchIcon = (name, config) => new Promise(async (resolve) => {
-  const { miloLibs, codeRoot } = config;
-  const base = miloLibs || codeRoot;
-  const [folderName, fileName] = name.split(/-(.*)/s);
-  console.log('appIcons', appIcons, fileName);
-  const fetchedIcon = await getSvgFromPath(`${base}/img/icons/${folderName}/${fileName}.svg`, folderName);
-  resolve(fetchedIcon);
-});
-
 function decorateToolTip(icon) {
   const wrapper = icon.closest('em');
   wrapper.className = 'tooltip-wrapper';
@@ -77,28 +68,13 @@ function decorateToolTip(icon) {
   wrapper.parentElement.replaceChild(icon, wrapper);
 }
 
-// async function getAppIcon(iconName, config) {
-//   console.log('!appIcons[iconName]', iconName, appIcons[iconName]);
-//   const appIcon = await fetchIcon(iconName, config);
-//   if (!appIcon) return;
-//   return appIcon;
-//   // icon.insertAdjacentHTML('afterbegin', appIcons[iconName].outerHTML);
-//   // console.log('appIcons', iconName, 'appIcons[iconName]', appIcons[`${iconName}`]);
-// }
-
-export default async function loadIcons(icons, config) {
+async function fetchIconSprite(icons, config) {
   const iconSVGs = await fetchIcons(config);
   if (!iconSVGs) return;
   icons.forEach(async (icon) => {
     const { classList } = icon;
     if (classList.contains('icon-tooltip')) decorateToolTip(icon);
     const iconName = icon.classList[1].replace('icon-', '');
-    if (iconName.startsWith('app-') || iconName.startsWith('ui-')) {
-      const appIcon = await fetchIcon(iconName, config);
-      if (!appIcon) return;
-      appIcons[iconName] = appIcon;
-      icon.insertAdjacentHTML('afterbegin', appIcons[iconName].outerHTML);
-    }
     if (!iconSVGs[iconName]) return;
     const parent = icon.parentElement;
     if (parent.childNodes.length > 1) {
@@ -113,4 +89,36 @@ export default async function loadIcons(icons, config) {
     }
     icon.insertAdjacentHTML('afterbegin', iconSVGs[iconName].outerHTML);
   });
+}
+
+const fetchIcon = async (name, config) => {
+  const { miloLibs, codeRoot } = config;
+  const base = miloLibs || codeRoot;
+  const [folderName, fileName] = name.split(/-(.*)/s);
+  // Check if the icon is already in the cache
+  if (appIcons[name]) return appIcons[name];
+  const fetchedIcon = await getSvgFromPath(`${base}/img/icons/${folderName}/${fileName}.svg`, folderName);
+  appIcons[name] = fetchedIcon;
+  return fetchedIcon;
+};
+
+async function fetchAppIcons(icons, config) {
+  for (const icon of [...icons]) {
+    const iconName = icon.classList[1].replace('icon-', '');
+    if (iconName.startsWith('app-') || iconName.startsWith('ui-')) {
+      try {
+        const appIcon = await fetchIcon(iconName, config);
+        if (appIcon) {
+          icon.insertAdjacentHTML('afterbegin', appIcon.outerHTML);
+        }
+      } catch (error) {
+        console.error(`Error loading icon ${iconName}:`, error);
+      }
+    }
+  }
+}
+
+export default async function loadIcons(icons, config) {
+  await fetchIconSprite(icons, config);
+  await fetchAppIcons(icons, config);
 }
