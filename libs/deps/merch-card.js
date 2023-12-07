@@ -1,4 +1,4 @@
-// Wed, 06 Dec 2023 15:56:55 GMT
+// Thu, 07 Dec 2023 01:12:49 GMT
 import{html as n,LitElement as T}from"./lit-all.min.js";import{css as x,unsafeCSS as p}from"./lit-all.min.js";var s="(min-width: 768px)",c="(min-width: 1200px)",i="(min-width: 1600px)";var v=x`
     :host {
         position: relative;
@@ -785,7 +785,17 @@ div[slot='bg-image'] img {
 
 `;document.head.appendChild(E);var C="MERCH-CARD",O="merch-card",b=class extends T{static properties={name:{type:String},variant:{type:String,reflect:!0},size:{type:String,attribute:"size",reflect:!0},badgeColor:{type:String,attribute:"badge-color"},badgeBackgroundColor:{type:String,attribute:"badge-background-color"},badgeText:{type:String,attribute:"badge-text"},icons:{type:Array},actionMenu:{type:Boolean,attribute:"action-menu"},actionMenuContent:{type:String,attribute:"action-menu-content"},title:{type:String},description:{type:String},customHr:{type:Boolean,attribute:"custom-hr"},detailBg:{type:String,attribute:"detail-bg"},secureLabel:{type:String,attribute:"secure-label"},checkboxLabel:{type:String,attribute:"checkbox-label"},stockOfferOsis:{type:Object,attribute:"stock-offer-osis",converter:{fromAttribute:e=>{let[t,r,a]=e.split(",");return{PUF:t,ABM:r,M2M:a}}}},filters:{type:String,reflect:!0,converter:{fromAttribute:e=>Object.fromEntries(e.split(",").map(t=>{let[r,a,o]=t.split(":"),d=Number(a);return[r,{order:isNaN(d)?void 0:d,size:o}]})),toAttribute:e=>Object.entries(e).map(([t,{order:r,size:a}])=>[t,r,a].filter(o=>o!=null).join(":")).join(",")}},types:{type:String,attribute:"types",reflect:!0}};static styles=[v,...y()];constructor(){super(),this.filters={},this.types=""}updated(e){e.has("badgeBackgroundColor")&&(this.style.border=`1px solid ${this.badgeBackgroundColor}`)}renderIcons(){return this.icons?this.icons&&this.icons.length>0?n`
                   <div class="icons">
-                      ${this.icons.map(e=>n`<img src="${e.src}" alt="${e.alt}" />`)}
+                      ${this.icons.map(e=>{let t=Array.from(this.querySelectorAll("a")).find(r=>r.textContent.trim()==="Learn more");return this.variant==="catalog"?n`
+                                    <a href="${t?.href||"#"}">
+                                        <img
+                                            src="${e.src}"
+                                            alt="${e.alt}"
+                                        />
+                                    </a>
+                                `:n`<img
+                                    src="${e.src}"
+                                    alt="${e.alt}"
+                                />`})}
                   </div>
               `:"":n`<div class="icons">
                 <slot name="icons"></slot>
