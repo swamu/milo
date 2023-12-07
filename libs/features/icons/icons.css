@@ -1,9 +1,3 @@
-:root {
-  /* Icon Fill colors */
-  /* todo: update svg src w/ `--icon-fill` */
-  --iconFill: var(--text-color);
-}
-
 .milo-tooltip {
   position: relative;
   text-decoration: none;
@@ -96,8 +90,11 @@
 
 svg.icon-milo.icon-type-ui,
 svg.icon-milo.icon-type-app {
+  margin-inline-end: var(--spacing-xxs);
+}
+
+svg.icon-milo.icon-type-app {
   height: initial;
   top: 0;
   width: initial;
-  margin-inline-end: var(--spacing-xxs);
 }
