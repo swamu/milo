@@ -1,6 +1,7 @@
 let fetchedIcons;
 let fetched = false;
 const appIcons = {};
+const sizes = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'initial'];
 
 async function getSVGsfromFile(path) {
   /* c8 ignore next */
@@ -97,25 +98,38 @@ const fetchIcon = async (name, config) => {
   const [folderName, fileName] = name.split(/-(.*)/s);
   // Check if the icon is already in the cache
   if (appIcons[name]) return appIcons[name];
-  const fetchedIcon = await getSvgFromPath(`${base}/img/icons/${folderName}/${fileName}.svg`, folderName);
+  let foundSize = null;
+  sizes.some((size) => {
+    if (name.endsWith(`-${size}`)) foundSize = `-${size}`;
+    return foundSize;
+  });
+  let svgPath = `${base}/img/icons/${folderName}/${fileName}.svg`;
+  if (foundSize !== null) {
+    const nameSplit = fileName.split(foundSize);
+    svgPath = `${base}/img/icons/${folderName}/${nameSplit[0]}.svg`;
+  }
+  const fetchedIcon = await getSvgFromPath(svgPath, folderName);
+  if (foundSize !== null) fetchedIcon.iconSize = `icon-size${foundSize}`;
   appIcons[name] = fetchedIcon;
   return fetchedIcon;
 };
 
 async function fetchAppIcons(icons, config) {
-  for (const icon of [...icons]) {
+  const iconsArray = [...icons];
+  iconsArray.forEach(async (icon) => {
     const iconName = icon.classList[1].replace('icon-', '');
     if (iconName.startsWith('app-') || iconName.startsWith('ui-')) {
       try {
         const appIcon = await fetchIcon(iconName, config);
         if (appIcon) {
+          if (appIcon.iconSize) appIcon.classList.add(appIcon.iconSize);
           icon.insertAdjacentHTML('afterbegin', appIcon.outerHTML);
         }
       } catch (error) {
         console.error(`Error loading icon ${iconName}:`, error);
       }
     }
-  }
+  });
 }
 
 export default async function loadIcons(icons, config) {
