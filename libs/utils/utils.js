@@ -695,7 +695,7 @@ async function decoratePlaceholders(area, config) {
   const found = regex.test(el.innerHTML);
   if (!found) return;
   const { replaceText } = await import('../features/placeholders.js');
-  el.innerHTML = await replaceText(el.innerHTML, config, regex);
+  // el.innerHTML = await replaceText(el.innerHTML, config, regex);
 }
 
 async function loadFooter() {
