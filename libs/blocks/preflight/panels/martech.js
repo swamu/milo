@@ -41,7 +41,7 @@ export default function Martech() {
   return html`
   <div class="access-columns martech">
     ${martechBlock.value && html`
-      <button class="con-button fill large l-spacing" onclick=${copyTable}>Copy Table</button>
+      <button class="preflight-action" onclick=${copyTable}>Copy Table</button>
       <div dangerouslySetInnerHTML="${{ __html: martechBlock.value }}"></div>
     `}
   </div>`;
