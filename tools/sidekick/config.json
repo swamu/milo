@@ -154,18 +154,6 @@
       "url": "https://milo.adobe.com/tools/faas",
       "isPalette": false,
       "includePaths": [ "**.docx**"]
-    },
-    {
-      "containerId": "tools",
-      "id": "martech-metadata-generator",
-      "title": "Martech Metadata Generator",
-      "environments": [ "edit" ],
-      "url": "/drafts/ebartholomew/tools/martech-metadata-generator",
-      "isPalette": true,
-      "passReferrer": true,
-      "passConfig": true,
-      "paletteRect": "top: auto; bottom: 25px; left: 75px; height: 388px; width: 360px;",
-      "includePaths": [ "**.docx**" ]
     }
   ]
 }

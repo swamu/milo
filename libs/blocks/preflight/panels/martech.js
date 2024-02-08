@@ -39,10 +39,10 @@ export default function Martech() {
   useEffect(() => { checkMartechMeta(); }, []);
 
   return html`
-  <div class="access-columns">
+  <div class="access-columns martech">
     ${martechBlock.value && html`
-      <button class="con-button" onclick=${copyTable}>Copy Table</button>
-      ${martechBlock.value}
+      <button class="con-button fill large l-spacing" onclick=${copyTable}>Copy Table</button>
+      <div dangerouslySetInnerHTML="${{ __html: martechBlock.value }}"></div>
     `}
   </div>`;
 }
