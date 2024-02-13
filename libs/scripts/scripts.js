@@ -140,11 +140,11 @@ const config = {
 
 const observer = new PerformanceObserver((list) => {
   const entries = list.getEntries();
-  const lastEntry = entries[entries.length - 1]; // Use the latest LCP candidate
+  const lastEntry = entries[entries.length - 1];
   console.log('LCP: ', lastEntry.startTime);
   console.log(lastEntry);
 });
-observer.observe({ type: "largest-contentful-paint", buffered: true });
+observer.observe({ type: 'largest-contentful-paint', buffered: true });
 
 const eagerLoad = (img) => {
   img?.setAttribute('loading', 'eager');
@@ -162,7 +162,7 @@ const eagerLoad = (img) => {
     marquee.querySelectorAll('img').forEach(eagerLoad);
     return;
   }
-  eagerLoad(marquee.querySelector('img'));
+  eagerLoad(marquee.querySelectorAll('img').pop());
 }());
 
 (async function loadPage() {
