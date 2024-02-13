@@ -162,7 +162,10 @@ const eagerLoad = (img) => {
     marquee.querySelectorAll('img').forEach(eagerLoad);
     return;
   }
-  eagerLoad(marquee.querySelectorAll('img').pop());
+
+  console.log();
+
+  eagerLoad([...marquee.querySelectorAll('img')].pop());
 }());
 
 (async function loadPage() {
