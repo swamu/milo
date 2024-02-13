@@ -138,18 +138,31 @@ const config = {
   // taxonomyRoot: '/your-path-here',
 };
 
+const observer = new PerformanceObserver((list) => {
+  const entries = list.getEntries();
+  const lastEntry = entries[entries.length - 1]; // Use the latest LCP candidate
+  console.log('LCP: ', lastEntry.startTime);
+  console.log(lastEntry);
+});
+observer.observe({ type: "largest-contentful-paint", buffered: true });
+
 const eagerLoad = (img) => {
   img?.setAttribute('loading', 'eager');
   img?.setAttribute('fetchpriority', 'high');
 };
 
 (async function loadLCPImage() {
-  const firstDiv = document.querySelector('body > main > div:nth-child(1) > div');
-  if (firstDiv?.classList.contains('marquee')) {
-    firstDiv.querySelectorAll('img').forEach(eagerLoad);
-  } else {
+  const marquee = document.querySelector('.marquee');
+  if (!marquee) {
     eagerLoad(document.querySelector('img'));
+    return;
   }
+
+  if (marquee.classList.contains('split')) {
+    marquee.querySelectorAll('img').forEach(eagerLoad);
+    return;
+  }
+  eagerLoad(marquee.querySelector('img'));
 }());
 
 (async function loadPage() {
