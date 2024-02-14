@@ -146,25 +146,22 @@ const observer = new PerformanceObserver((list) => {
 });
 observer.observe({ type: 'largest-contentful-paint', buffered: true });
 
-const eagerLoad = (img) => {
-  img?.setAttribute('loading', 'eager');
-  img?.setAttribute('fetchpriority', 'high');
+const eagerLoad = (parent, selector) => {
+  const img = parent.querySelector(selector);
+  img?.removeAttribute('loading');
 };
 
 (async function loadLCPImage() {
   const marquee = document.querySelector('.marquee');
   if (!marquee) {
-    eagerLoad(document.querySelector('img'));
+    eagerLoad(document, 'img');
     return;
   }
 
-  // Select first image of first row
-  const bgImg = marquee.querySelector('div:first-child img');
-
-  // Select last image of last column of last row
-  const lastImg = marquee.querySelector('div:last-child > div:last-child img');
-  const lcpImgs = [bgImg, lastImg];
-  lcpImgs.forEach(eagerLoad);
+  // First image of first row
+  eagerLoad(marquee, 'div:first-child img');
+  // Last image of last column of last row
+  eagerLoad(marquee, 'div:last-child > div:last-child img');
 }());
 
 (async function loadPage() {
