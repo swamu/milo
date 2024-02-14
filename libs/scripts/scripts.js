@@ -158,14 +158,13 @@ const eagerLoad = (img) => {
     return;
   }
 
-  if (marquee.classList.contains('split')) {
-    marquee.querySelectorAll('img').forEach(eagerLoad);
-    return;
-  }
+  // Select first image of first row
+  const bgImg = marquee.querySelector('div:first-child img');
 
-  console.log();
-
-  eagerLoad([...marquee.querySelectorAll('img')].pop());
+  // Select last image of last column of last row
+  const lastImg = marquee.querySelector('div:last-child > div:last-child img');
+  const lcpImgs = [bgImg, lastImg];
+  lcpImgs.forEach(eagerLoad);
 }());
 
 (async function loadPage() {
