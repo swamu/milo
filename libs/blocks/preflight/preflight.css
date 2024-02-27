@@ -253,7 +253,7 @@ span.preflight-time {
 
 /* SEO */
 .seo-columns {
-  margin: 24px 48px;
+  margin: 24px 48px 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
@@ -264,6 +264,10 @@ span.preflight-time {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 12px;
+}
+
+.seo-item:last-child {
+  margin-bottom: 0;
 }
 
 .result-icon {
@@ -313,6 +317,33 @@ span.preflight-time {
 .seo-item-description {
   margin: 0;
 }
+
+.bad-links {
+  margin: 24px 48px;
+}
+
+.bad-links ul {
+  padding: 0;
+  list-style: none;
+}
+
+.bad-links li a {
+  color: #fff;
+}
+
+.broken-link {
+  padding: 6px;
+  background-color: rgba(246 255 0 / 80%)!important;
+  border: 1px solid rgb(246 255 0)!important;
+  color: #000!important;
+  /* box-shadow: 1px 2px 1px #000; */
+}
+
+.broken-link:hover {
+  background-color: transparent!important;
+  color: inherit!important;
+  border-color: #FF1593!important;
+} 
 
 /* Accessibility css */
 .access-columns {

@@ -13,6 +13,8 @@ const descResult = signal({ icon: DEF_ICON, title: 'Meta description', descripti
 const bodyResult = signal({ icon: DEF_ICON, title: 'Body size', description: DEF_DESC });
 const loremResult = signal({ icon: DEF_ICON, title: 'Lorem Ipsum', description: DEF_DESC });
 const linksResult = signal({ icon: DEF_ICON, title: 'Links', description: DEF_DESC });
+// const allLinksResult = signal({ link: DEF_DESC });
+const badLinks = signal({});
 
 function checkH1s() {
   const h1s = document.querySelectorAll('h1');
@@ -121,6 +123,7 @@ async function checkBody() {
 
 async function checkLorem() {
   const result = { ...loremResult.value };
+  console.log('lorem results', result);
   const { innerHTML } = document.documentElement;
   if (innerHTML.includes('Lorem ipsum')) {
     result.icon = fail;
@@ -133,14 +136,70 @@ async function checkLorem() {
   return result.icon;
 }
 
+// async function getAllLinks() {
+//   // allLinksResult
+//   const result = [...badLinks.value];
+//   // console.log('all links results', result);
+//   const pageLinks = document.querySelectorAll('a');
+
+//   for (const link of pageLinks) {
+//     // result.link = link.href;
+//     result.push(link);
+//     console.log('wtf link', link);
+//   }
+//   // badLinks.value = result;
+//   badLinks.value = result;
+//   console.log('badLinks.value', badLinks.value);
+//   return badLinks.value;
+// }
+
 async function checkLinks() {
   const result = { ...linksResult.value };
-  const links = document.querySelectorAll('a[href^="/"]');
+  // const links = document.querySelectorAll('a[href^="/"]');
+  const links = document.querySelectorAll('a');
+  // const pageLinks = document.querySelectorAll('a[href^="http"');
 
+  const badUrl = [];
   let badLink;
   for (const link of links) {
-    const resp = await fetch(link.href, { method: 'HEAD' });
-    if (!resp.ok) badLink = true;
+    // const resp = await fetch(link.href, { method: 'HEAD' });
+    const data = { urls: [link.href] };
+    await fetch(
+      'https://spidy.corp.adobe.com/api/url-http-status',
+      {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+    ).then((response) => response.json())
+      // eslint-disable-next-line no-loop-func
+      .then((json) => {
+        console.log('spidy json', json.data[0].status, json.data[0].url);
+        if (json?.data[0]?.status === 'ECONNREFUSED' || json?.data[0]?.status === 404) {
+          badLink = true;
+          link.classList.add('broken-link');
+          badUrl.push(link);
+        }
+      });
+
+    // eslint-disable-next-line no-loop-func
+    // await resp.json().then((json) => {
+    //   console.log('json', json);
+    //   if (json.data[0].status === 'ECONNREFUSED') {
+    //     badLink = true;
+    //     link.classList.add('broken-link');
+    //     badUrl.push(link);
+    //   }
+    // });
+    // console.log('resp', resp);
+    // if (!resp.ok) {
+    //   badLink = true;
+    //   link.classList.add('broken-link');
+    //   badUrl.push(link);
+    //   // console.log('bad pageLinks', link.href);
+    // }
+    // console.log('badUrl', badUrl);
   }
 
   if (badLink) {
@@ -151,6 +210,7 @@ async function checkLinks() {
     result.description = 'Links are valid.';
   }
   linksResult.value = result;
+  badLinks.value = badUrl;
   return result.icon;
 }
 
@@ -195,6 +255,16 @@ function SeoItem({ icon, title, description }) {
     </div>`;
 }
 
+// function linkList({ link }) {
+//   return html`
+//     <div class="page-links">
+//       <div>Bad links</div>
+//       <ul class="link-list">
+//         <li class="page-link">${link}</li>
+//       </ul>
+//     </div>`;
+// }
+
 async function getResults() {
   const h1 = checkH1s();
   const title = checkTitle();
@@ -203,6 +273,8 @@ async function getResults() {
   const body = checkBody();
   const lorem = checkLorem();
   const links = await checkLinks();
+  // const pageLinks = await getAllLinks();
+  // console.log('all page links', pageLinks);
 
   const icons = [h1, title, canon, desc, body, lorem, links];
 
@@ -220,19 +292,25 @@ async function getResults() {
 
 export default function Panel() {
   useEffect(() => { getResults(); }, []);
-
   return html`
-      <div class=seo-columns>
+    <div class=seo-columns>
       <div class=seo-column>
         <${SeoItem} icon=${titleResult.value.icon} title=${titleResult.value.title} description=${titleResult.value.description} />
         <${SeoItem} icon=${h1Result.value.icon} title=${h1Result.value.title} description=${h1Result.value.description} />
         <${SeoItem} icon=${canonResult.value.icon} title=${canonResult.value.title} description=${canonResult.value.description} />
-        <${SeoItem} icon=${descResult.value.icon} title=${descResult.value.title} description=${descResult.value.description} />
+        <${SeoItem} icon=${linksResult.value.icon} title=${linksResult.value.title} description=${linksResult.value.description} />
       </div>
       <div class=seo-column>
         <${SeoItem} icon=${bodyResult.value.icon} title=${bodyResult.value.title} description=${bodyResult.value.description} />
         <${SeoItem} icon=${loremResult.value.icon} title=${loremResult.value.title} description=${loremResult.value.description} />
-        <${SeoItem} icon=${linksResult.value.icon} title=${linksResult.value.title} description=${linksResult.value.description} />
+        <${SeoItem} icon=${descResult.value.icon} title=${descResult.value.title} description=${descResult.value.description} />
       </div>
+    </div>
+    <div class='bad-links'>
+      <h3>404 Links</h3>
+      <ul class='link-list'>
+        ${Object.keys(badLinks.value).map((key) => html`
+        <li><a href='${badLinks.value[key].href}' target='_blank'>${badLinks.value[key].href}</a></li>`)}
+      </ul>
     </div>`;
 }
