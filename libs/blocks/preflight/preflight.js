@@ -8,8 +8,8 @@ const HEADING = 'Milo Preflight';
 const IMG_PATH = '/blocks/preflight/img';
 
 const tabs = signal([
-  { title: 'General', selected: true },
-  { title: 'SEO' },
+  { title: 'General' },
+  { title: 'SEO', selected: true },
   { title: 'Accessibility' },
 ]);
 

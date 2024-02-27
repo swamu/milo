@@ -14,7 +14,7 @@ const bodyResult = signal({ icon: DEF_ICON, title: 'Body size', description: DEF
 const loremResult = signal({ icon: DEF_ICON, title: 'Lorem Ipsum', description: DEF_DESC });
 const linksResult = signal({ icon: DEF_ICON, title: 'Links', description: DEF_DESC });
 // const allLinksResult = signal({ link: DEF_DESC });
-const badLinks = signal({});
+const badLinks = signal([]);
 
 function checkH1s() {
   const h1s = document.querySelectorAll('h1');
@@ -153,56 +153,64 @@ async function checkLorem() {
 //   return badLinks.value;
 // }
 
+function makeGroups(items, size = 20) {
+  const groups = [];
+  while (items.length) {
+    groups.push(items.splice(0, size));
+  }
+  return groups;
+}
+
 async function checkLinks() {
   const result = { ...linksResult.value };
-  // const links = document.querySelectorAll('a[href^="/"]');
-  const links = document.querySelectorAll('a');
-  // const pageLinks = document.querySelectorAll('a[href^="http"');
+  const links = [...document.querySelectorAll('a')];
 
-  const badUrl = [];
-  let badLink;
-  for (const link of links) {
-    // const resp = await fetch(link.href, { method: 'HEAD' });
-    const data = { urls: [link.href] };
-    await fetch(
-      'https://spidy.corp.adobe.com/api/url-http-status',
-      {
-        method: 'POST',
-        credentials: 'omit',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      },
-    ).then((response) => response.json())
-      // eslint-disable-next-line no-loop-func
-      .then((json) => {
-        console.log('spidy json', json.data[0].status, json.data[0].url);
-        if (json?.data[0]?.status === 'ECONNREFUSED' || json?.data[0]?.status === 404) {
-          badLink = true;
-          link.classList.add('broken-link');
-          badUrl.push(link);
-        }
-      });
+  const groups = makeGroups(links);
 
-    // eslint-disable-next-line no-loop-func
-    // await resp.json().then((json) => {
-    //   console.log('json', json);
-    //   if (json.data[0].status === 'ECONNREFUSED') {
-    //     badLink = true;
-    //     link.classList.add('broken-link');
-    //     badUrl.push(link);
-    //   }
-    // });
-    // console.log('resp', resp);
-    // if (!resp.ok) {
-    //   badLink = true;
-    //   link.classList.add('broken-link');
-    //   badUrl.push(link);
-    //   // console.log('bad pageLinks', link.href);
-    // }
-    // console.log('badUrl', badUrl);
+  for (const group of groups) {
+    const urls = group.map((link) => link.href);
+    const spidyUrl = 'https://spidy.corp.adobe.com/api/url-http-status';
+    const opts = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls }),
+    };
+    const resp = await fetch(spidyUrl, opts);
+    if (!resp.ok) return;
+    const json = await resp.json();
+    if (!json) return;
+    json.data.forEach((linkResult) => {
+      const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
+      // Response will come back out of order, use ID to find the correct index
+      group[linkResult.id].status = status;
+      if (status >= 399) {
+        badLinks.value = [...badLinks.value, group[linkResult.id].href];
+        group[linkResult.id].classList.add('broken-link');
+      }
+    });
   }
 
-  if (badLink) {
+  // for (const link of links) {
+  //   const spidyUrl = 'https://spidy.corp.adobe.com/api/url-http-status';
+  //   const opts = {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ urls: [link.href] }),
+  //   };
+
+  //   const resp = await fetch(spidyUrl, opts);
+  //   if (!resp.ok) return;
+  //   const json = await resp.json();
+  //   if (!json) return;
+  //   let { status } = json.data[0];
+  //   if (status === 'ECONNREFUSED') status = 503;
+  //   if (status >= 399) {
+  //     badLinks.value = [...badLinks.value, link.href];
+  //     link.classList.add('broken-link');
+  //   }
+  // }
+
+  if (badLinks.value.length > 0) {
     result.icon = fail;
     result.description = 'Reason: There are one or more broken links.';
   } else {
@@ -210,7 +218,6 @@ async function checkLinks() {
     result.description = 'Links are valid.';
   }
   linksResult.value = result;
-  badLinks.value = badUrl;
   return result.icon;
 }
 
@@ -309,8 +316,7 @@ export default function Panel() {
     <div class='bad-links'>
       <h3>404 Links</h3>
       <ul class='link-list'>
-        ${Object.keys(badLinks.value).map((key) => html`
-        <li><a href='${badLinks.value[key].href}' target='_blank'>${badLinks.value[key].href}</a></li>`)}
+        ${badLinks.value.map((href) => html`<li><a href='${href}' target='_blank'>${href}</a></li>`)}
       </ul>
     </div>`;
 }
