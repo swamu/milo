@@ -13,7 +13,6 @@ const descResult = signal({ icon: DEF_ICON, title: 'Meta description', descripti
 const bodyResult = signal({ icon: DEF_ICON, title: 'Body size', description: DEF_DESC });
 const loremResult = signal({ icon: DEF_ICON, title: 'Lorem Ipsum', description: DEF_DESC });
 const linksResult = signal({ icon: DEF_ICON, title: 'Links', description: DEF_DESC });
-// const allLinksResult = signal({ link: DEF_DESC });
 const badLinks = signal([]);
 
 function checkH1s() {
@@ -123,7 +122,6 @@ async function checkBody() {
 
 async function checkLorem() {
   const result = { ...loremResult.value };
-  console.log('lorem results', result);
   const { innerHTML } = document.documentElement;
   if (innerHTML.includes('Lorem ipsum')) {
     result.icon = fail;
@@ -136,23 +134,6 @@ async function checkLorem() {
   return result.icon;
 }
 
-// async function getAllLinks() {
-//   // allLinksResult
-//   const result = [...badLinks.value];
-//   // console.log('all links results', result);
-//   const pageLinks = document.querySelectorAll('a');
-
-//   for (const link of pageLinks) {
-//     // result.link = link.href;
-//     result.push(link);
-//     console.log('wtf link', link);
-//   }
-//   // badLinks.value = result;
-//   badLinks.value = result;
-//   console.log('badLinks.value', badLinks.value);
-//   return badLinks.value;
-// }
-
 function makeGroups(items, size = 20) {
   const groups = [];
   while (items.length) {
@@ -163,8 +144,9 @@ function makeGroups(items, size = 20) {
 
 async function checkLinks() {
   const result = { ...linksResult.value };
-  const links = [...document.querySelectorAll('a')];
+  if (result.description !== DEF_DESC) return;
 
+  const links = [...document.querySelectorAll('a')];
   const groups = makeGroups(links);
 
   for (const group of groups) {
@@ -184,41 +166,24 @@ async function checkLinks() {
       // Response will come back out of order, use ID to find the correct index
       group[linkResult.id].status = status;
       if (status >= 399) {
-        badLinks.value = [...badLinks.value, group[linkResult.id].href];
+        badLinks.value = [...badLinks.value,
+          {
+            href: group[linkResult.id].href,
+            status: group[linkResult.id].status,
+          }];
         group[linkResult.id].classList.add('broken-link');
       }
     });
   }
 
-  // for (const link of links) {
-  //   const spidyUrl = 'https://spidy.corp.adobe.com/api/url-http-status';
-  //   const opts = {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ urls: [link.href] }),
-  //   };
-
-  //   const resp = await fetch(spidyUrl, opts);
-  //   if (!resp.ok) return;
-  //   const json = await resp.json();
-  //   if (!json) return;
-  //   let { status } = json.data[0];
-  //   if (status === 'ECONNREFUSED') status = 503;
-  //   if (status >= 399) {
-  //     badLinks.value = [...badLinks.value, link.href];
-  //     link.classList.add('broken-link');
-  //   }
-  // }
-
   if (badLinks.value.length > 0) {
     result.icon = fail;
-    result.description = 'Reason: There are one or more broken links.';
+    result.description = 'Reason: There are broken links on the page. See the list of links below. Broken links are also highlighted on the page.';
   } else {
     result.icon = pass;
     result.description = 'Links are valid.';
   }
   linksResult.value = result;
-  return result.icon;
 }
 
 export async function sendResults() {
@@ -262,16 +227,6 @@ function SeoItem({ icon, title, description }) {
     </div>`;
 }
 
-// function linkList({ link }) {
-//   return html`
-//     <div class="page-links">
-//       <div>Bad links</div>
-//       <ul class="link-list">
-//         <li class="page-link">${link}</li>
-//       </ul>
-//     </div>`;
-// }
-
 async function getResults() {
   const h1 = checkH1s();
   const title = checkTitle();
@@ -280,8 +235,6 @@ async function getResults() {
   const body = checkBody();
   const lorem = checkLorem();
   const links = await checkLinks();
-  // const pageLinks = await getAllLinks();
-  // console.log('all page links', pageLinks);
 
   const icons = [h1, title, canon, desc, body, lorem, links];
 
@@ -314,9 +267,9 @@ export default function Panel() {
       </div>
     </div>
     <div class='bad-links'>
-      <h3>404 Links</h3>
+      <h3>Broken links</h3>
       <ul class='link-list'>
-        ${badLinks.value.map((href) => html`<li><a href='${href}' target='_blank'>${href}</a></li>`)}
+        ${badLinks.value.map((link) => html`<li><a href='${link.href}' target='_blank'>${link.href} <span>status ${link.status}</span></a></li>`)}
       </ul>
     </div>`;
 }

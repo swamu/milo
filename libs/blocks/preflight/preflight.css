@@ -327,8 +327,38 @@ span.preflight-time {
   list-style: none;
 }
 
+.bad-links li {
+  margin: 15px 0;
+}
+
 .bad-links li a {
   color: #fff;
+}
+
+.bad-links li a span {
+  display: inline-block;
+  font-style: italic;
+  font-size: smaller;
+  background: rgba(246 255 0 / 70%);
+  padding: 0 6px 1px 4px;
+  line-height: 1.3rem;
+  border-radius: 0 5px 5px 0;
+  color: #000;
+  position: relative;
+  margin-left: 8px;
+}
+
+.bad-links li a span::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-right: 8px solid rgba(246 255 0 / 70%);
+  border-bottom: 10px solid transparent;
 }
 
 .broken-link {
@@ -336,7 +366,6 @@ span.preflight-time {
   background-color: rgba(246 255 0 / 80%)!important;
   border: 1px solid rgb(246 255 0)!important;
   color: #000!important;
-  /* box-shadow: 1px 2px 1px #000; */
 }
 
 .broken-link:hover {
