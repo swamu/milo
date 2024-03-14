@@ -143,47 +143,80 @@ function makeGroups(items, size = 20) {
 }
 
 async function checkLinks() {
-  const result = { ...linksResult.value };
-  if (result.description !== DEF_DESC) return;
+  const spidyUrl = 'https://spidy.corp.adobe.com';
+  if (linksResult.value.checked) return;
 
-  const links = [...document.querySelectorAll('a')];
+  const connectionError = () => {
+    linksResult.value = {
+      icon: fail,
+      description: `A VPN connection is required to use the link check service.
+      Please turn on VPN and refresh the page. If VPN is running contact your site engineers for help.`,
+    };
+  };
+
+  // Check to see if Spidy is available.
+  try {
+    const resp = await fetch(spidyUrl, { method: 'HEAD' });
+    if (!resp.ok) {
+      connectionError();
+      return;
+    }
+  } catch (e) {
+    connectionError();
+    console.error(`There was a prolem connecting to the link check API ${spidyUrl}. ${e}`);
+    return;
+  }
+
+  const result = { ...linksResult.value };
+
+  // Find all links. Remove any local or existing preflight links
+  const links = [...document.querySelectorAll('a')]
+    .filter((link) => !link.href.includes('local') && !link.closest('.preflight'));
   const groups = makeGroups(links);
 
   for (const group of groups) {
     const urls = group.map((link) => link.href);
-    const spidyUrl = 'https://spidy.corp.adobe.com/api/url-http-status';
     const opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ urls }),
     };
-    const resp = await fetch(spidyUrl, opts);
-    if (!resp.ok) return;
-    const json = await resp.json();
-    if (!json) return;
-    json.data.forEach((linkResult) => {
-      const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
-      // Response will come back out of order, use ID to find the correct index
-      group[linkResult.id].status = status;
-      if (status >= 399) {
-        badLinks.value = [...badLinks.value,
-          {
-            href: group[linkResult.id].href,
-            status: group[linkResult.id].status,
-          }];
-        group[linkResult.id].classList.add('broken-link');
-      }
-    });
+    try {
+      const resp = await fetch(`${spidyUrl}/api/url-http-status`, opts);
+      if (!resp.ok) return;
+
+      const json = await resp.json();
+      if (!json) return;
+      json.data.forEach((linkResult) => {
+        const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
+        // Response will come back out of order, use ID to find the correct index
+        group[linkResult.id].status = status;
+        if (status >= 399) {
+          badLinks.value = [...badLinks.value,
+            {
+              href: group[linkResult.id].href,
+              status: group[linkResult.id].status,
+            }];
+          group[linkResult.id].classList.add('broken-link');
+          group[linkResult.id].dataset.status = status;
+        }
+      });
+    } catch (e) {
+      console.error(`There was a prolem connecting to the link check API ${spidyUrl}/api/url-http-status. ${e}`);
+    }
   }
 
   if (badLinks.value.length > 0) {
     result.icon = fail;
-    result.description = 'Reason: There are broken links on the page. See the list of links below. Broken links are also highlighted on the page.';
-  } else {
+    result.description = `Reason: ${badLinks.value.length} broken link(s) found on the page. Use the list below to identify and fix them.`;
+  }
+
+  /* No broken links */
+  if (badLinks.value.length === 0) {
     result.icon = pass;
     result.description = 'Links are valid.';
   }
-  linksResult.value = result;
+  linksResult.value = { ...result, checked: true };
 }
 
 export async function sendResults() {
@@ -266,10 +299,21 @@ export default function Panel() {
         <${SeoItem} icon=${descResult.value.icon} title=${descResult.value.title} description=${descResult.value.description} />
       </div>
     </div>
-    <div class='bad-links'>
-      <h3>Broken links</h3>
-      <ul class='link-list'>
-        ${badLinks.value.map((link) => html`<li><a href='${link.href}' target='_blank'>${link.href} <span>status ${link.status}</span></a></li>`)}
-      </ul>
+    <div class='broken-links'>
+    ${badLinks.value.length > 0 && html`
+      <p class="note">Broken links can also be found highlted on the page. Close preflight to see problem links highlighted in red.</p>
+      <table>
+        <tr>
+          <th></th>
+          <th>Broken URLs</th>
+          <th>Status</th>
+        </tr>
+        ${badLinks.value.map((link, idx) => html`
+          <tr>
+            <td>${idx + 1}.</td>
+            <td><a href='${link.href}' target='_blank'>${link.href}</a></td>
+            <td><span>${link.status}</span></td>
+          </tr>`)}
+      </table>`}
     </div>`;
 }

@@ -318,61 +318,77 @@ span.preflight-time {
   margin: 0;
 }
 
-.bad-links {
+.broken-links {
   margin: 24px 48px;
 }
 
-.bad-links ul {
-  padding: 0;
-  list-style: none;
+.broken-links .title {
+  margin-bottom: 0;
 }
 
-.bad-links li {
-  margin: 15px 0;
+.broken-links .note {
+  margin-top: 20px;
 }
 
-.bad-links li a {
+.broken-links table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 6px;
+  background-color: rgb(0 0 0 / 8%);
+}
+
+.broken-links table th {
+  text-transform: uppercase;
+}
+
+.broken-links table td a {
   color: #fff;
 }
 
-.bad-links li a span {
-  display: inline-block;
-  font-style: italic;
-  font-size: smaller;
-  background: rgba(246 255 0 / 70%);
-  padding: 0 6px 1px 4px;
-  line-height: 1.3rem;
-  border-radius: 0 5px 5px 0;
-  color: #000;
-  position: relative;
-  margin-left: 8px;
+.broken-links table th:first-child,
+.broken-links table td:first-child,
+.broken-links table th:last-child,
+.broken-links table td:last-child {
+  padding: 12px 0;
+  text-align: center;
 }
 
-.bad-links li a span::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 10px solid transparent;
-  border-right: 8px solid rgba(246 255 0 / 70%);
-  border-bottom: 10px solid transparent;
+.broken-links table th:first-child {
+  width: 4%;
+}
+
+.broken-links table th:nth-child(2) {
+  text-align: left;
+}
+
+.broken-links table tr:first-child th {
+  padding-top: 15px;
+}
+
+.broken-links table tr:hover td {
+  background-color: rgb(0 0 0 / 20%);
+}
+
+.broken-links table tr td:last-child {
+  text-align: center;
 }
 
 .broken-link {
   padding: 6px;
-  background-color: rgba(246 255 0 / 80%)!important;
-  border: 1px solid rgb(246 255 0)!important;
-  color: #000!important;
+  background-color: rgb(255 0 0) !important;
+  border: 3px solid #000!important;
+  color: #fff!important;
 }
 
 .broken-link:hover {
   background-color: transparent!important;
   color: inherit!important;
-  border-color: #FF1593!important;
-} 
+  border-color:rgb(255 0 0)!important;
+}
+
+.broken-link::after {
+  content: attr(data-status);
+}
 
 /* Accessibility css */
 .access-columns {
