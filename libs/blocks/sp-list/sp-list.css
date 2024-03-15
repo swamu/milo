@@ -1,0 +1,104 @@
+sp-form {
+  display: flex;
+  width: 400px;
+  margin: 0 auto;
+  margin-top: 10vh;
+  background-color: white;
+  border: 2px solid #eee;
+  border-radius: 5px;
+  padding: 10px 25px 25px;
+  flex-direction: column;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+h3 {
+  margin: 0;
+}
+
+h4 {
+  margin: 0 0 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+p {
+  margin-top: 0;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+label {
+  font-size: 13px;
+}
+
+.path-input {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
+.path-input::before {
+  content: '/drafts/';
+  position: absolute;
+  top: 29px;
+  left: 10px;
+  color: #999;
+  z-index: 1;
+}
+
+input {
+  display: block;
+  border-radius: 5px;
+  padding: 5px 10px;
+  border: 1px solid #999;
+}
+
+input[type="number"] {
+  width: 20%;
+}
+
+input[type="text"] {
+  position: relative;
+  width: calc(100% - 75px);
+  padding-left: 65px;
+  font-size: 14px;
+}
+
+.load-ind {
+  display: inline-flex;
+  gap: 22px;
+  align-items: center;
+  height: 33px;
+  width: 45px;
+}
+
+.start-button, .log-button {
+  cursor: pointer;
+  margin-top: 20px;
+  align-self: flex-end;
+  width: 150px;
+  color: white;
+  border-radius: 5px;
+  background-color: #ff2095;
+  font-size: 16px;
+  padding: 10px 5px;
+  border: none;
+  font-weight: bold;
+}
+
+.clear-button {
+  background-color: #ddd;
+  color: #333;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+  padding: 10px 15px;
+  border: none;
+  font-weight: bold;
+}
