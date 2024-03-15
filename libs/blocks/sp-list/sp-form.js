@@ -7,7 +7,7 @@ const { miloLibs, codeRoot } = getConfig();
 const base = miloLibs || codeRoot;
 const styleSheet = await getSheet(`${base}/blocks/sp-list/sp-list.css`);
 const loaderSheet = await getSheet(`${base}/blocks/bulk-publish-v2/components/loader.css`);
-
+const miloOrigin = 'https://main--milo--adobecom.hlx.page';
 class SPForm extends LitElement {
   static properties = {
     copies: { state: true },
@@ -37,6 +37,15 @@ class SPForm extends LitElement {
       const resp = await copyFile(source, destination);
       this.results = [...this.results, resp];
     }
+  }
+
+  async copyDocUrls() {
+    const folderpath = this.destPath.substring(0, this.destPath.lastIndexOf('/'));
+    const files = this.results.map(({ name }) => {
+      const url = `${miloOrigin}/drafts/${folderpath}/${name.replace('.docx', '')}`;
+      return url;
+    });
+    navigator.clipboard.writeText(files.join('\n'));
   }
 
   clear() {
@@ -76,6 +85,7 @@ class SPForm extends LitElement {
           <h4><div class="load-ind"><span class="loader pink"></span></div>
           ${this.results.length}/${this.copies}</h4>` : ''}
         ${showClear ? html`
+          <button class="log-button" @click=${() => this.copyDocUrls()}>Copy URLs</button>
           <button class="log-button" @click=${() => { console.log(this.results); }}>Log Results</button>
           <button class="clear-button" @click=${() => this.clear()}>Clear</button>` : ''}
       </div>
