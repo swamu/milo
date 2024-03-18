@@ -180,7 +180,6 @@ async function checkLinks() {
       return false;
     });
 
-  links.forEach(())
   const groups = makeGroups(links);
 
   // for (const group of groups) {
