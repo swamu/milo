@@ -171,15 +171,17 @@ async function checkLinks() {
 
   // Find all links. Remove any local or existing preflight links
   const links = [...document.querySelectorAll('a')]
-    .filter((link) => !link.href.includes('local') && !link.closest('.preflight'));
+    .filter((link) => {
+      if (!link.href.includes('local') && !link.closest('.preflight')) {
+        link.dataset.liveHref = link.href.replace('.hlx.page', '.hlx.live');
+        return true;
+      }
+      return false;
+    });
   const groups = makeGroups(links);
 
   for (const group of groups) {
-    // Check .hlx.live URLS
-    const urls = group.map((link) => (link.href.includes('.hlx.page')
-      ? link.href.replace('.hlx.page', '.hlx.live')
-      : link.href));
-
+    const urls = group.map((link) => link.href);
     const opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -204,9 +206,7 @@ async function checkLinks() {
           badLinks.value = [...badLinks.value,
             {
               // Diplay .hlx.live URL in broken link list for relative links
-              href: group[linkResult.id].href.includes('.hlx.page')
-                ? group[linkResult.id].href.replace('.hlx.page', '.hlx.live')
-                : group[linkResult.id].href,
+              href: group[linkResult.id].dataset.liveHref,
               status: group[linkResult.id].status,
               parent,
             }];

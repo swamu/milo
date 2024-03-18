@@ -374,9 +374,9 @@ span.preflight-time {
 
 .broken-link {
   padding: 6px;
-  background-color: rgb(255 0 0) !important;
   border: 3px solid #000!important;
   color: #fff!important;
+  animation: pulse 1.5s ease-out infinite;
 }
 
 .broken-link:hover {
@@ -390,6 +390,12 @@ span.preflight-time {
   margin-left: 5px;
   font-size: smaller;
   font-weight: bold;
+}
+
+@keyframes pulse {
+  0% {background-color: rgb(255 0 0);}
+  50% {background-color: rgb(200 0 0);}
+  100% {background-color: rgb(255 0 0);}
 }
 
 /* Accessibility css */
