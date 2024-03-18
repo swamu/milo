@@ -173,7 +173,7 @@ async function checkLinks() {
   const links = [...document.querySelectorAll('a')]
     .filter((link) => {
       if (!link.href.includes('local') && !link.closest('.preflight')) {
-        link.dataset.livehref = link.href.replace('hlx.page', 'hlx.live');
+        link.dataset.liveHref = link.href.replace('hlx.page', 'hlx.live');
         console.log(link);
         return true;
       }
