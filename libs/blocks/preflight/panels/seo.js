@@ -169,11 +169,15 @@ async function checkLinks() {
 
   const result = { ...linksResult.value };
 
-  // Find all links. Remove any local or existing preflight links
+  /* Find all links.
+   * Remove any local or existing preflight links.
+   * Set link to use hlx.live
+   * */
   const links = [...document.querySelectorAll('a')]
     .filter((link) => {
       if (!link.href.includes('local') && !link.closest('.preflight')) {
-        link.dataset.liveHref = link.href.replace('.hlx.page', '.hlx.live');
+        link.dataset.liveHref = link.href.replace('hlx.page', 'hlx.live');
+        link.href = link.dataset.liveHref;
         return true;
       }
       return false;
@@ -224,7 +228,7 @@ async function checkLinks() {
     result.description = `Reason: ${badLinks.value.length} broken link(s) found on the page. Use the list below to identify and fix them.`;
   }
 
-  /* No broken links */
+  // No broken links
   if (badLinks.value.length === 0) {
     result.icon = pass;
     result.description = 'Links are valid.';
