@@ -345,12 +345,15 @@ span.preflight-time {
   color: #fff;
 }
 
-.broken-links table th:first-child,
-.broken-links table td:first-child,
-.broken-links table th:last-child,
-.broken-links table td:last-child {
+.broken-links table th,
+.broken-links table td {
   padding: 12px 0;
   text-align: center;
+}
+
+.broken-links table th:nth-child(2),
+.broken-links table td:nth-child(2) {
+  text-align: initial;
 }
 
 .broken-links table th:first-child {
@@ -369,10 +372,6 @@ span.preflight-time {
   background-color: rgb(0 0 0 / 20%);
 }
 
-.broken-links table tr td:last-child {
-  text-align: center;
-}
-
 .broken-link {
   padding: 6px;
   background-color: rgb(255 0 0) !important;
@@ -387,7 +386,10 @@ span.preflight-time {
 }
 
 .broken-link::after {
-  content: attr(data-status);
+  content: '(' attr(data-status) ')';
+  margin-left: 5px;
+  font-size: smaller;
+  font-weight: bold;
 }
 
 /* Accessibility css */

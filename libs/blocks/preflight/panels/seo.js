@@ -175,7 +175,11 @@ async function checkLinks() {
   const groups = makeGroups(links);
 
   for (const group of groups) {
-    const urls = group.map((link) => link.href);
+    // Check .hlx.live URLS
+    const urls = group.map((link) => (link.href.includes('.hlx.page')
+      ? link.href.replace('.hlx.page', '.hlx.live')
+      : link.href));
+
     const opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -191,11 +195,20 @@ async function checkLinks() {
         const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
         // Response will come back out of order, use ID to find the correct index
         group[linkResult.id].status = status;
+
         if (status >= 399) {
+          let parent = '';
+          if (group[linkResult.id].closest('header')) parent = 'Gnav';
+          if (group[linkResult.id].closest('main')) parent = 'Main content';
+          if (group[linkResult.id].closest('footer')) parent = 'Footer';
           badLinks.value = [...badLinks.value,
             {
-              href: group[linkResult.id].href,
+              // Diplay .hlx.live URL in broken link list for relative links
+              href: group[linkResult.id].href.includes('.hlx.page')
+                ? group[linkResult.id].href.replace('.hlx.page', '.hlx.live')
+                : group[linkResult.id].href,
               status: group[linkResult.id].status,
+              parent,
             }];
           group[linkResult.id].classList.add('broken-link');
           group[linkResult.id].dataset.status = status;
@@ -306,12 +319,14 @@ export default function Panel() {
         <tr>
           <th></th>
           <th>Broken URLs</th>
+          <th>Located in</th>
           <th>Status</th>
         </tr>
         ${badLinks.value.map((link, idx) => html`
           <tr>
             <td>${idx + 1}.</td>
             <td><a href='${link.href}' target='_blank'>${link.href}</a></td>
+            <td><span>${link.parent}</span></td>
             <td><span>${link.status}</span></td>
           </tr>`)}
       </table>`}
