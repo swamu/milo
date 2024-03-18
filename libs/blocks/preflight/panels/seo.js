@@ -171,53 +171,59 @@ async function checkLinks() {
 
   // Find all links. Remove any local or existing preflight links
   const links = [...document.querySelectorAll('a')]
-    .filter((link) => !link.href.includes('local') && !link.closest('.preflight'));
+    .filter((link) => {
+      if (!link.href.includes('local') && !link.closest('.preflight')) {
+        link.href.replace('hlx.page', 'hlx.live');
+        return true;
+      }
+      return false;
+    });
+
+  console.log(links);
   const groups = makeGroups(links);
 
-  for (const group of groups) {
-    // Check .hlx.live URLS
-    const urls = group.map((link) => (link.href.includes('.hlx.page')
-      ? link.href.replace('.hlx.page', '.hlx.live')
-      : link.href));
+  // for (const group of groups) {
+  //   // Check .hlx.live URLS
+  //   const urls = group.map((link) => link);
 
-    const opts = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls }),
-    };
-    try {
-      const resp = await fetch(`${spidyUrl}/api/url-http-status`, opts);
-      if (!resp.ok) return;
+  //   const opts = {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ urls }),
+  //   };
+  //   try {
+  //     const resp = await fetch(`${spidyUrl}/api/url-http-status`, opts);
+  //     if (!resp.ok) return;
 
-      const json = await resp.json();
-      if (!json) return;
-      json.data.forEach((linkResult) => {
-        const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
-        // Response will come back out of order, use ID to find the correct index
-        group[linkResult.id].status = status;
+  //     const json = await resp.json();
+  //     if (!json) return;
+  //     json.data.forEach((linkResult) => {
+  //       const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
+  //       // Response will come back out of order, use ID to find the correct index
+  //       group[linkResult.id].status = status;
 
-        if (status >= 399) {
-          let parent = '';
-          if (group[linkResult.id].closest('header')) parent = 'Gnav';
-          if (group[linkResult.id].closest('main')) parent = 'Main content';
-          if (group[linkResult.id].closest('footer')) parent = 'Footer';
-          badLinks.value = [...badLinks.value,
-            {
-              // Diplay .hlx.live URL in broken link list for relative links
-              href: group[linkResult.id].href.includes('.hlx.page')
-                ? group[linkResult.id].href.replace('.hlx.page', '.hlx.live')
-                : group[linkResult.id].href,
-              status: group[linkResult.id].status,
-              parent,
-            }];
-          group[linkResult.id].classList.add('broken-link');
-          group[linkResult.id].dataset.status = status;
-        }
-      });
-    } catch (e) {
-      console.error(`There was a prolem connecting to the link check API ${spidyUrl}/api/url-http-status. ${e}`);
-    }
-  }
+  //       if (status >= 399) {
+  //         let parent = '';
+  //         if (group[linkResult.id].closest('header')) parent = 'Gnav';
+  //         if (group[linkResult.id].closest('main')) parent = 'Main content';
+  //         if (group[linkResult.id].closest('footer')) parent = 'Footer';
+  //         badLinks.value = [...badLinks.value,
+  //           {
+  //             // Diplay .hlx.live URL in broken link list for relative links
+  //             href: group[linkResult.id].href.includes('.hlx.page')
+  //               ? group[linkResult.id].href.replace('.hlx.page', '.hlx.live')
+  //               : group[linkResult.id].href,
+  //             status: group[linkResult.id].status,
+  //             parent,
+  //           }];
+  //         group[linkResult.id].classList.add('broken-link');
+  //         group[linkResult.id].dataset.status = status;
+  //       }
+  //     });
+  //   } catch (e) {
+  //     console.error(`There was a prolem connecting to the link check API ${spidyUrl}/api/url-http-status. ${e}`);
+  //   }
+  // }
 
   if (badLinks.value.length > 0) {
     result.icon = fail;
