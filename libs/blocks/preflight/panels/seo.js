@@ -173,13 +173,14 @@ async function checkLinks() {
   const links = [...document.querySelectorAll('a')]
     .filter((link) => {
       if (!link.href.includes('local') && !link.closest('.preflight')) {
-        link.href.replace('hlx.page', 'hlx.live');
+        link.dataset.livehref = link.href.replace('hlx.page', 'hlx.live');
+        console.log(link);
         return true;
       }
       return false;
     });
 
-  console.log(links);
+  links.forEach(())
   const groups = makeGroups(links);
 
   // for (const group of groups) {
