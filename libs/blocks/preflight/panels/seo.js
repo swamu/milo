@@ -149,6 +149,7 @@ async function checkLinks() {
   const connectionError = () => {
     linksResult.value = {
       icon: fail,
+      title: 'Links',
       description: `A VPN connection is required to use the link check service.
       Please turn on VPN and refresh the page. If VPN is running contact your site engineers for help.`,
     };
@@ -177,7 +178,6 @@ async function checkLinks() {
     .filter((link) => {
       if (!link.href.includes('local') && !link.closest('.preflight')) {
         link.dataset.liveHref = link.href.replace('hlx.page', 'hlx.live');
-        link.href = link.dataset.liveHref;
         return true;
       }
       return false;
@@ -185,7 +185,10 @@ async function checkLinks() {
   const groups = makeGroups(links);
 
   for (const group of groups) {
-    const urls = group.map((link) => link.href);
+    const urls = group.map((link) => {
+      const liverHref = link.dataset.liveHref;
+      return liverHref;
+    });
     const opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
