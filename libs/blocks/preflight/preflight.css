@@ -373,9 +373,12 @@ span.preflight-time {
 }
 
 .broken-link {
-  padding: 6px;
   border: 3px solid #000!important;
   color: #fff!important;
+  font-size: larger!important;
+  font-weight: bold!important;
+  padding-top: 12px!important;
+  padding-bottom: 12px!important;
   animation: pulse 1.5s ease-out infinite;
 }
 
@@ -394,7 +397,7 @@ span.preflight-time {
 
 @keyframes pulse {
   0% {background-color: rgb(255 0 0);}
-  50% {background-color: rgb(200 0 0);}
+  50% {background-color: rgb(150 0 0);}
   100% {background-color: rgb(255 0 0);}
 }
 

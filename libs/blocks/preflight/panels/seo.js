@@ -1,4 +1,5 @@
 import { html, signal, useEffect } from '../../../deps/htm-preact.js';
+import getServiceConfig from '../../../utils/service-config.js';
 
 const DEF_ICON = 'purple';
 const DEF_DESC = 'Checking...';
@@ -143,7 +144,7 @@ function makeGroups(items, size = 20) {
 }
 
 async function checkLinks() {
-  const spidyUrl = 'https://spidy.corp.adobe.com';
+  const { spidy } = await getServiceConfig(window.location.origin);
   if (linksResult.value.checked) return;
 
   const connectionError = () => {
@@ -157,14 +158,14 @@ async function checkLinks() {
 
   // Check to see if Spidy is available.
   try {
-    const resp = await fetch(spidyUrl, { method: 'HEAD' });
+    const resp = await fetch(spidy.url, { method: 'HEAD' });
     if (!resp.ok) {
       connectionError();
       return;
     }
   } catch (e) {
     connectionError();
-    console.error(`There was a prolem connecting to the link check API ${spidyUrl}. ${e}`);
+    console.error(`There was a problem connecting to the link check API ${spidy.url}. ${e}`);
     return;
   }
 
@@ -195,7 +196,7 @@ async function checkLinks() {
       body: JSON.stringify({ urls }),
     };
     try {
-      const resp = await fetch(`${spidyUrl}/api/url-http-status`, opts);
+      const resp = await fetch(`${spidy.url}/api/url-http-status`, opts);
       if (!resp.ok) return;
 
       const json = await resp.json();
@@ -222,7 +223,7 @@ async function checkLinks() {
         }
       });
     } catch (e) {
-      console.error(`There was a prolem connecting to the link check API ${spidyUrl}/api/url-http-status. ${e}`);
+      console.error(`There was a problem connecting to the link check API ${spidy.url}/api/url-http-status. ${e}`);
     }
   }
 
