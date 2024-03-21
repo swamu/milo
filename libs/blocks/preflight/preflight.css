@@ -339,6 +339,7 @@ span.preflight-time {
 
 .broken-links table th {
   text-transform: uppercase;
+  width: 10%;
 }
 
 .broken-links table td a {
@@ -357,11 +358,12 @@ span.preflight-time {
 }
 
 .broken-links table th:first-child {
-  width: 4%;
+  width: 5%;
 }
 
 .broken-links table th:nth-child(2) {
   text-align: left;
+  width: 75%
 }
 
 .broken-links table tr:first-child th {
