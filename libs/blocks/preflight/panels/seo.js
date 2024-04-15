@@ -172,13 +172,13 @@ async function checkLinks() {
 
   const result = { ...linksResult.value };
 
-  /* Find all links.
-   * Remove any local or existing preflight links.
+  /* Find all links with an href.
+   * Filter out any local or existing preflight links.
    * Set link to use hlx.live
    * */
   const links = [...document.querySelectorAll('a')]
     .filter((link) => {
-      if (!link.href.includes('local') && !link.closest('.preflight')) {
+      if (link.href && !link.href.includes('local') && !link.closest('.preflight')) {
         link.dataset.liveHref = link.href.replace('hlx.page', 'hlx.live');
         return true;
       }
@@ -207,36 +207,36 @@ async function checkLinks() {
     }
 
     const json = await resp.json();
-    if (!json) return;
+    if (!json.success) return;
     json.data.forEach((linkResult) => {
       const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
       // Response will come back out of order, use ID to find the correct index
-      group[linkResult.id].status = status;
+      group[linkResult.spidyId].status = status;
 
       if (status >= 399) {
         let parent = '';
-        if (group[linkResult.id].closest('header')) parent = 'Gnav';
-        if (group[linkResult.id].closest('main')) parent = 'Main content';
-        if (group[linkResult.id].closest('footer')) parent = 'Footer';
+        if (group[linkResult.spidyId].closest('header')) parent = 'Gnav';
+        if (group[linkResult.spidyId].closest('main')) parent = 'Main content';
+        if (group[linkResult.spidyId].closest('footer')) parent = 'Footer';
         badLinks.value = [...badLinks.value,
           {
-            // Diplay .hlx.live URL in broken link list for relative links
-            href: group[linkResult.id].dataset.liveHref,
-            status: group[linkResult.id].status,
+            // Diplay .hlx.live URL in problematic link list for relative links
+            href: group[linkResult.spidyId].dataset.liveHref,
+            status: group[linkResult.spidyId].status,
             parent,
           }];
-        group[linkResult.id].classList.add('broken-link');
-        group[linkResult.id].dataset.status = status;
+        group[linkResult.spidyId].classList.add('problem-link');
+        group[linkResult.spidyId].dataset.status = status;
       }
     });
   }
 
   if (badLinks.value.length) {
     result.icon = fail;
-    result.description = `Reason: ${badLinks.value.length} broken link(s) found on the page. Use the list below to identify and fix them.`;
+    result.description = `Reason: ${badLinks.value.length} problematic link(s) found on the page. Use the list below to identify and fix them.`;
   }
 
-  // No broken links
+  // No problematic links
   if (badLinks.value.length === 0) {
     result.icon = pass;
     result.description = 'Links are valid.';
@@ -324,13 +324,13 @@ export default function Panel() {
         <${SeoItem} icon=${descResult.value.icon} title=${descResult.value.title} description=${descResult.value.description} />
       </div>
     </div>
-    <div class='broken-links'>
+    <div class='problem-links'>
     ${badLinks.value.length > 0 && html`
-      <p class="note">Broken links can also be found on the page. Close preflight to see problem links highlighted in red.</p>
+      <p class="note">Problematic links can also be found on the page. Close preflight to see links highlighted in red.</p>
       <table>
         <tr>
           <th></th>
-          <th>Broken URLs</th>
+          <th>Problematic URLs</th>
           <th>Located in</th>
           <th>Status</th>
         </tr>
