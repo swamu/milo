@@ -135,26 +135,24 @@ async function checkLorem() {
   return result.icon;
 }
 
-function makeGroups(items, size = 20) {
-  const groups = [];
-  while (items.length) {
-    groups.push(items.splice(0, size));
-  }
-  return groups;
+function makeGroups(arr, n = 20) {
+  const batchSize = Math.ceil(arr.length / n);
+  const size = Math.ceil(arr.length / batchSize);
+  return Array.from({ length: batchSize }, (v, i) => arr.slice(i * size, i * size + size));
 }
+
+const connectionError = () => {
+  linksResult.value = {
+    icon: fail,
+    title: 'Links',
+    description: `A VPN connection is required to use the link check service.
+    Please turn on VPN and refresh the page. If VPN is running contact your site engineers for help.`,
+  };
+};
 
 async function checkLinks() {
   const { spidy } = await getServiceConfig(window.location.origin);
   if (linksResult.value.checked) return;
-
-  const connectionError = () => {
-    linksResult.value = {
-      icon: fail,
-      title: 'Links',
-      description: `A VPN connection is required to use the link check service.
-      Please turn on VPN and refresh the page. If VPN is running contact your site engineers for help.`,
-    };
-  };
 
   // Check to see if Spidy is available.
   try {
@@ -170,7 +168,7 @@ async function checkLinks() {
     return;
   }
 
-  const result = { ...linksResult.value };
+  const existingResult = { ...linksResult.value };
 
   /* Find all links with an href.
    * Filter out any local or existing preflight links.
@@ -186,6 +184,7 @@ async function checkLinks() {
     });
   const groups = makeGroups(links);
 
+  const results = [];
   for (const group of groups) {
     const urls = group.map((link) => {
       const { liveHref } = link.dataset;
@@ -207,41 +206,93 @@ async function checkLinks() {
     }
 
     const json = await resp.json();
-    if (!json.success) return;
-    json.data.forEach((linkResult) => {
-      const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
-      // Response will come back out of order, use ID to find the correct index
-      group[linkResult.spidyId].status = status;
+    if (!json.data || json.data.length === 0) return;
 
+    const badResults = json.data.reduce((acc, result) => {
+      const status = result.status === 'ECONNREFUSED' ? 503 : result.status;
       if (status >= 399) {
-        let parent = '';
-        if (group[linkResult.spidyId].closest('header')) parent = 'Gnav';
-        if (group[linkResult.spidyId].closest('main')) parent = 'Main content';
-        if (group[linkResult.spidyId].closest('footer')) parent = 'Footer';
-        badLinks.value = [...badLinks.value,
-          {
-            // Diplay .hlx.live URL in problematic link list for relative links
-            href: group[linkResult.spidyId].dataset.liveHref,
-            status: group[linkResult.spidyId].status,
-            parent,
-          }];
-        group[linkResult.spidyId].classList.add('problem-link');
-        group[linkResult.spidyId].dataset.status = status;
+        result.status = status;
+        acc.push(result);
       }
-    });
+      return acc;
+    }, []);
+
+    results.push(...badResults);
   }
 
+  const badResults = results.reduce((acc, result) => {
+    // console.log('result status', result.status);
+    const found = links.find((link) => {
+      if (link.closest('header')) link.dataset.parent = 'gnav';
+      if (link.closest('main')) link.dataset.parent = 'main';
+      if (link.closest('footer')) link.dataset.parent = 'footer';
+      link.dataset.status = result.status;
+      // console.log('link', link);
+      // console.log('liveHref', link.dataset.liveHref);
+      return link.dataset.liveHref === result.url;
+    });
+    if (found) acc.push(found);
+    return acc;
+  }, []);
+
+  badLinks.value = badResults;
+  console.log('badResults', badResults);
+
+  // json.data.forEach((result) => {
+    //   const { url } = result.url;
+
+    // });
+
+    // if (!json.success) return;
+    // // console.log('json.data', json.data);
+
+
+
+    // const combined = pageLinks.map((url) => {
+    //   const theirUrl = json.data.find((linkResult) => linkResult.url);
+    //   console.log('url', url);
+    //   console.log('theirUrl', theirUrl);
+    //   // console.log('theirUrl status', theirUrl.status);
+    //   // url.status = theirUrl.status;
+    //   return url;
+    // });
+    // console.log('combined', combined);
+    // json.data.forEach((linkResult) => {
+    //   const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
+    //   // Response will come back out of order, use ID to find the correct index
+
+    //   // console.log('pageLinks', pageLinks);
+    //   // console.log('linkResult', linkResult);
+    //   group[linkResult.id].status = status;
+
+    //   if (status >= 399) {
+    //     let parent = '';
+    //     if (group[linkResult.id].closest('header')) parent = 'Gnav';
+    //     if (group[linkResult.id].closest('main')) parent = 'Main content';
+    //     if (group[linkResult.id].closest('footer')) parent = 'Footer';
+    //     badLinks.value = [...badLinks.value,
+    //       {
+    //         // Diplay .hlx.live URL in problematic link list for relative links
+    //         href: group[linkResult.id].dataset.liveHref,
+    //         status: group[linkResult.id].status,
+    //         parent,
+    //       }];
+    //     group[linkResult.id].classList.add('problem-link');
+    //     group[linkResult.id].dataset.status = status;
+    //   }
+    // });
+
   if (badLinks.value.length) {
-    result.icon = fail;
-    result.description = `Reason: ${badLinks.value.length} problematic link(s) found on the page. Use the list below to identify and fix them.`;
+    existingResult.icon = fail;
+    existingResult.description = `Reason: ${badLinks.value.length} problematic link(s) found on the page. Use the list below to identify and fix them.`;
   }
 
   // No problematic links
   if (badLinks.value.length === 0) {
-    result.icon = pass;
-    result.description = 'Links are valid.';
+    existingResult.icon = pass;
+    existingResult.description = 'Links are valid.';
   }
-  linksResult.value = { ...result, checked: true };
+  linksResult.value = { ...existingResult, checked: true };
 }
 
 export async function sendResults() {
