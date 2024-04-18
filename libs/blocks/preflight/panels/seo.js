@@ -7,6 +7,8 @@ const pass = 'green';
 const fail = 'red';
 const limbo = 'orange';
 
+const KNOWN_BAD_URLS = ['news.adobe.com'];
+
 const h1Result = signal({ icon: DEF_ICON, title: 'H1 count', description: DEF_DESC });
 const titleResult = signal({ icon: DEF_ICON, title: 'Title size', description: DEF_DESC });
 const canonResult = signal({ icon: DEF_ICON, title: 'Canonical', description: DEF_DESC });
@@ -150,65 +152,27 @@ const connectionError = () => {
   };
 };
 
-async function checkLinks() {
-  const { spidy } = await getServiceConfig(window.location.origin);
-  if (linksResult.value.checked) return;
-
-  // Check to see if Spidy is available.
+async function spidyCheck(url) {
   try {
-    const resp = await fetch(spidy.url, { method: 'HEAD' });
-    if (!resp.ok) {
-      connectionError();
-      return;
-    }
+    const resp = await fetch(url, { method: 'HEAD' });
+    if (resp.ok) return true;
+    connectionError();
   } catch (e) {
     connectionError();
-    // eslint-disable-next-line no-console
-    console.error(`There was a problem connecting to the link check API ${spidy.url}. ${e}`);
-    return;
+    window.lana.log(`There was a problem connecting to the link check API ${url}. ${e}`);
   }
+  return false;
+}
 
-  const existingResult = { ...linksResult.value };
-
-  /* Find all links with an href.
-   * Filter out any local or existing preflight links.
-   * Set link to use hlx.live
-   * */
-  const links = [...document.querySelectorAll('a')]
-    .filter((link) => {
-      if (link.href && !link.href.includes('local') && !link.closest('.preflight')) {
-        link.dataset.liveHref = link.href.replace('hlx.page', 'hlx.live');
-        return true;
-      }
-      return false;
-    });
-  const groups = makeGroups(links);
-
-  const results = [];
-  for (const group of groups) {
-    const urls = group.map((link) => {
-      const { liveHref } = link.dataset;
-      return liveHref;
-    });
-    const opts = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls }),
-    };
-    let resp;
-
-    try {
-      resp = await fetch(`${spidy.url}/api/url-http-status`, opts);
-      if (!resp.ok) return;
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(`There was a problem connecting to the link check API ${spidy.url}/api/url-http-status. ${e}`);
-    }
+async function getSpidyResults(url, opts) {
+  try {
+    const resp = await fetch(`${url}/api/url-http-status`, opts);
+    if (!resp.ok) return [];
 
     const json = await resp.json();
-    if (!json.data || json.data.length === 0) return;
+    if (!json.data || json.data.length === 0) return [];
 
-    const badResults = json.data.reduce((acc, result) => {
+    return json.data.reduce((acc, result) => {
       const status = result.status === 'ECONNREFUSED' ? 503 : result.status;
       if (status >= 399) {
         result.status = status;
@@ -216,83 +180,79 @@ async function checkLinks() {
       }
       return acc;
     }, []);
-
-    results.push(...badResults);
+  } catch (e) {
+    window.lana.log(`There was a problem connecting to the link check API ${url}/api/url-http-status. ${e}`);
+    return [];
   }
+}
 
-  const badResults = results.reduce((acc, result) => {
-    // console.log('result status', result.status);
-    const found = links.find((link) => {
-      if (link.closest('header')) link.dataset.parent = 'gnav';
-      if (link.closest('main')) link.dataset.parent = 'main';
-      if (link.closest('footer')) link.dataset.parent = 'footer';
-      link.dataset.status = result.status;
-      // console.log('link', link);
-      // console.log('liveHref', link.dataset.liveHref);
-      return link.dataset.liveHref === result.url;
+function compareResults(result, link) {
+  const match = link.liveHref === result.url;
+  if (!match) return false;
+  if (link.closest('header')) link.parent = 'gnav';
+  if (link.closest('main')) link.parent = 'main';
+  if (link.closest('footer')) link.parent = 'footer';
+  link.classList.add('problem-link');
+  link.status = result.status;
+  return true;
+}
+
+async function checkLinks() {
+  const { spidy } = await getServiceConfig(window.location.origin);
+  // Do not re-check if the page has already been checked
+  if (linksResult.value.checked) return;
+
+  // Check to see if Spidy is available.
+  const canSpidy = spidyCheck(spidy.url);
+  if (!canSpidy) return;
+
+  /**
+   * Find all links with an href.
+   * Filter out any local or existing preflight links.
+   * Set link to use hlx.live so the service can see them without auth
+   * */
+  const links = [...document.querySelectorAll('a')]
+    .filter((link) => {
+      if (
+        link.href // Has an href tag
+        && !link.href.includes('local') // Is not a local link
+        && !link.closest('.preflight') // Is not inside preflight
+        && !KNOWN_BAD_URLS.some((url) => url === link.hostname) // Is not a known bad url
+      ) {
+        link.liveHref = link.href.replace('hlx.page', 'hlx.live');
+        return true;
+      }
+      return false;
     });
-    if (found) acc.push(found);
-    return acc;
-  }, []);
 
-  badLinks.value = badResults;
-  console.log('badResults', badResults);
+  const groups = makeGroups(links);
 
-  // json.data.forEach((result) => {
-    //   const { url } = result.url;
+  const baseOpts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
 
-    // });
+  const badResults = [];
+  for (const group of groups) {
+    const urls = group.map((link) => link.liveHref);
+    const opts = { ...baseOpts, body: JSON.stringify({ urls }) };
 
-    // if (!json.success) return;
-    // // console.log('json.data', json.data);
-
-
-
-    // const combined = pageLinks.map((url) => {
-    //   const theirUrl = json.data.find((linkResult) => linkResult.url);
-    //   console.log('url', url);
-    //   console.log('theirUrl', theirUrl);
-    //   // console.log('theirUrl status', theirUrl.status);
-    //   // url.status = theirUrl.status;
-    //   return url;
-    // });
-    // console.log('combined', combined);
-    // json.data.forEach((linkResult) => {
-    //   const status = linkResult.status === 'ECONNREFUSED' ? 503 : linkResult.status;
-    //   // Response will come back out of order, use ID to find the correct index
-
-    //   // console.log('pageLinks', pageLinks);
-    //   // console.log('linkResult', linkResult);
-    //   group[linkResult.id].status = status;
-
-    //   if (status >= 399) {
-    //     let parent = '';
-    //     if (group[linkResult.id].closest('header')) parent = 'Gnav';
-    //     if (group[linkResult.id].closest('main')) parent = 'Main content';
-    //     if (group[linkResult.id].closest('footer')) parent = 'Footer';
-    //     badLinks.value = [...badLinks.value,
-    //       {
-    //         // Diplay .hlx.live URL in problematic link list for relative links
-    //         href: group[linkResult.id].dataset.liveHref,
-    //         status: group[linkResult.id].status,
-    //         parent,
-    //       }];
-    //     group[linkResult.id].classList.add('problem-link');
-    //     group[linkResult.id].dataset.status = status;
-    //   }
-    // });
-
-  if (badLinks.value.length) {
-    existingResult.icon = fail;
-    existingResult.description = `Reason: ${badLinks.value.length} problematic link(s) found on the page. Use the list below to identify and fix them.`;
+    const spidyResults = await getSpidyResults(spidy.url, opts);
+    badResults.push(...spidyResults);
   }
 
-  // No problematic links
-  if (badLinks.value.length === 0) {
-    existingResult.icon = pass;
-    existingResult.description = 'Links are valid.';
-  }
-  linksResult.value = { ...existingResult, checked: true };
+  badLinks.value = badResults.map((result) => links.find((link) => compareResults(result, link)));
+
+  // Format the results for display
+  const count = badLinks.value.length;
+  const linkText = count > 1 || count === 0 ? 'links' : 'link';
+  const badDesc = `Reason: ${count} problem ${linkText}. Use the list below to fix them.`;
+  const goodDesc = 'Links are valid.';
+
+  // Build the result display object
+  linksResult.value = {
+    title: linksResult.value.title,
+    checked: true,
+    icon: count > 0 ? fail : pass,
+    description: count > 0 ? badDesc : goodDesc,
+  };
 }
 
 export async function sendResults() {
@@ -377,7 +337,7 @@ export default function Panel() {
     </div>
     <div class='problem-links'>
     ${badLinks.value.length > 0 && html`
-      <p class="note">Problematic links can also be found on the page. Close preflight to see links highlighted in red.</p>
+      <p class="note">Close preflight to see problem links highlighted on page.</p>
       <table>
         <tr>
           <th></th>

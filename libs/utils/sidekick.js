@@ -1,6 +1,13 @@
-// loadScript and loadStyle are passed in to avoid circular dependencies
+function stylePublish(sk) {
+  const pubPlg = sk.shadowRoot.querySelector('.publish.plugin');
+  if (!pubPlg) return;
+  pubPlg.style = 'order: 100; flex: 1 1 auto; display: flex; justify-content: end;';
+  const btn = pubPlg.querySelector('button');
+  btn.style.background = 'rgb(129 27 14)';
+}
+
+
 export default function init({ createTag, loadBlock, loadScript, loadStyle }) {
-  // manifest v3
   const sendToCaasListener = async (e) => {
     const { host, project, ref: branch, repo, owner } = e.detail.data.config;
     const { sendToCaaS } = await import('https://milo.adobe.com/tools/send-to-caas/send-to-caas.js');
@@ -35,4 +42,7 @@ export default function init({ createTag, loadBlock, loadScript, loadStyle }) {
   sk.addEventListener('custom:send-to-caas', sendToCaasListener);
   sk.addEventListener('custom:check-schema', checkSchemaListener);
   sk.addEventListener('custom:preflight', preflightListener);
+
+  // Color code publish button
+  stylePublish(sk);
 }
