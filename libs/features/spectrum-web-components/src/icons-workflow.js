@@ -7,5 +7,6 @@ import '@spectrum-web-components/icons-workflow/icons/sp-icon-chevron-double-lef
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-user.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-user-group.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-book.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-info-outline.js';
 
 /* TODO optimize */
