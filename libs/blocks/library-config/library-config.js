@@ -7,6 +7,11 @@ async function loadBlocks(content, list, query) {
   blocks(content, list, query);
 }
 
+async function loadTemplates(content, list, query) {
+  const { default: templates } = await import('./lists/templates.js');
+  templates(content, list, query);
+}
+
 async function loadPlaceholders(content, list) {
   const { default: placeholders } = await import('./lists/placeholders.js');
   placeholders(content, list);
@@ -65,6 +70,9 @@ async function loadList(type, content, list) {
       addSearch(content, list);
       loadBlocks(content, list, query);
       break;
+    case 'templates':
+      loadTemplates(content, list);
+      break;
     case 'placeholders':
       loadPlaceholders(content, list);
       break;
@@ -122,6 +130,7 @@ async function combineLibraries(base, supplied) {
   const library = {
     assets: await fetchAssetsData(assetsPath),
     blocks: base.blocks.data,
+    templates: base.templates?.data,
     icons: base.icons?.data,
     personalization_tags: base.personalization?.data,
     placeholders: base.placeholders?.data,
