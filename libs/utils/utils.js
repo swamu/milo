@@ -588,13 +588,13 @@ export function decorateAutoBlock(a) {
       }
 
       // Modals
-      /*if (url.hash !== '' && !isInlineFrag) {
+      if (url.hash !== '' && !isInlineFrag) {
         a.dataset.modalPath = url.pathname;
         a.dataset.modalHash = url.hash;
         a.href = url.hash;
-        a.className = `modal link-block ${[...a.classList].join(' ')}`;
+        a.className = `modal ${[...a.classList].join(' ')}`;
         return true;
-      }*/
+      }
     }
 
     // slack uploaded mp4s
