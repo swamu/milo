@@ -7,24 +7,16 @@ import { createTag } from '../../utils/utils.js';
 const SCOPES = ['files.readwrite', 'sites.readwrite.all'];
 const TELEMETRY = { application: { appName: 'Milo - Path Finder' } };
 
-function getSiteOrigin() {
-  const search = new URLSearchParams(window.location.search);
-  const repo = search.get('repo');
-  const owner = search.get('owner');
-  return repo && owner ? `https://main--${repo}--${owner}.hlx.live` : window.location.origin;
-}
-
 const getSharePointDetails = (() => {
   let site;
   let driveId;
   let reqOpts;
-  const hlxOrigin = getSiteOrigin();
 
   return async () => {
     if (site && driveId && reqOpts) return { site, driveId, reqOpts };
 
     // Fetching SharePoint details
-    const { sharepoint } = await getServiceConfig(hlxOrigin);
+    const { sharepoint } = await getServiceConfig();
     ({ site } = sharepoint);
     driveId = sharepoint.driveId ? `drives/${sharepoint.driveId}` : 'drive';
     reqOpts = getReqOptions();
