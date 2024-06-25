@@ -238,13 +238,15 @@ export async function loadOstEnv() {
 
 export default async function init(el) {
   el.innerHTML = '<div />';
+  const config = getConfig();
+  const base = config.miloLibs || config.codeRoot;
 
-  loadStyle(OST_STYLE_URL);
+  loadStyle(`${base}/deps/ost.css`);
   loadStyle('https://use.typekit.net/pps7abe.css');
 
   const [ostEnv] = await Promise.all([
     loadOstEnv(),
-    loadScript(OST_SCRIPT_URL),
+    loadScript(`${base}/deps/ost.js`),
   ]);
 
   function openOst() {
