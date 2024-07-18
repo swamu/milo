@@ -975,7 +975,7 @@ async function checkForPageMods() {
 
   const persManifests = await combineMepSources(persEnabled, promoEnabled, mepParam);
   if (targetEnabled === true) {
-    await loadMartech({ persEnabled: true, persManifests, targetEnabled });
+    loadMartech({ persEnabled: true, persManifests, targetEnabled });
     return;
   }
   if (!persManifests.length) return;
