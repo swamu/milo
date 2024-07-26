@@ -219,7 +219,7 @@ export function getHashParams(hashStr) {
       params.hash = part;
     } else {
       const [key, val] = part.split('=');
-      if (key === 'delay' && parseInt(val, 10) > 0) {
+      if (key === 'delay') {
         params.delay = parseInt(val, 10) * 1000;
       }
     }
