@@ -220,7 +220,7 @@ export function getHashParams(hashStr) {
     } else {
       const [key, val] = part.split('=');
       if (key === 'delay') {
-        params.delay = parseInt(val, 10) * 1000;
+        params.delay = parseInt(val, 10) > 0 ? parseInt(val, 10) * 1000 : 0;
       }
     }
     return params;
@@ -229,19 +229,19 @@ export function getHashParams(hashStr) {
 
 export function delayedModal(el) {
   const { hash, delay } = getHashParams(el?.dataset.modalHash);
-  if (!delay || !hash) return false;
+  if ( delay === undefined || !hash) return false;
   isDelayedModal = true;
   const modalOpenEvent = new Event(`${hash}:modalOpen`);
   const pagesModalWasShownOn = window.sessionStorage.getItem(`shown:${hash}`);
   el.dataset.modalHash = hash;
   el.href = hash;
-  if (!pagesModalWasShownOn?.includes(window.location.pathname)) {
+  //if (!pagesModalWasShownOn?.includes(window.location.pathname)) {
     setTimeout(() => {
       window.location.replace(hash);
       sendAnalytics(modalOpenEvent);
       window.sessionStorage.setItem(`shown:${hash}`, `${pagesModalWasShownOn || ''} ${window.location.pathname}`);
     }, delay);
-  }
+  //}
   return true;
 }
 
