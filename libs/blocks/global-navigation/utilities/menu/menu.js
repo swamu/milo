@@ -341,9 +341,11 @@ const decorateMenu = (config) => logErrorFor(async () => {
       config.template.classList.add(selectors.activeNavItem.slice(1));
     }
    if(!isDesktop.matches) {
+    performance.mark('Start-copy')
     const menuContent = menuTemplate.querySelector('.feds-menu-content');
     const newMenuContent = toFragment`<div class="feds-menu-content"></div>`;
     const menuItems = toFragment`<div class="items"></div>`;
+   
     Array.from(menuContent.children).forEach((child, index) => {
       const clonedChild = child.cloneNode(true);
 
@@ -376,7 +378,8 @@ const decorateMenu = (config) => logErrorFor(async () => {
     newMenuContent.setAttribute('id', `feds-menu-content-${config.index + 1}`);
     const sidebarItem = toFragment`<div class="feds-sidebar-item">${newMenuContent}${menuItems}</div>`;
     document.querySelector('.feds-sidebar').append(sidebarItem);
-
+    performance.mark('End-copy');
+    console.log(performance.measure('sidebar', 'Start-copy', 'End-copy'));
    }
     config.template.classList.add('feds-navItem--megaMenu');
   }

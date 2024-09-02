@@ -100,7 +100,7 @@
 
 .feds-sidebar-item.active {
   display: flex;
-  height: 600px;
+  height: 570px;
 }
 
 .feds-sidebar-item.active .feds-menu-content {

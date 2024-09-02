@@ -311,14 +311,13 @@ class Gnav {
     this.block.addEventListener('keydown', setupKeyboardNav);
     setTimeout(this.loadDelayed, CONFIG.delays.loadDelayed);
     setTimeout(setupKeyboardNav, CONFIG.delays.keyboardNav);
-    performance.mark('Start')
+    performance.mark('init-starts');
     for await (const task of tasks) {
       await yieldToMain();
       await task();
     }
-    performance.mark('Ends');
-    console.log(performance.measure('gnav', 'Start', 'Ends'));
-
+    performance.mark('init-ends');
+    console.log(performance.measure('init', 'init-starts', 'init-ends'));
     document.addEventListener('click', closeOnClickOutside);
     isDesktop.addEventListener('change', closeAllDropdowns);
   }, 'Error in global navigation init', 'errorType=error,module=gnav');
@@ -840,12 +839,20 @@ class Gnav {
       }
     }
     if (!isDesktop.matches) {
+      performance.mark('decorateMainNav-start')
       const closeSidebar = toFragment`<div class="feds-close-sidebar">< Main menu<div>x</div></div>`;
       this.elements.navWrapper.append(toFragment`<div class="feds-sidebar">${closeSidebar}<div class="feds-nav-title">Creativity</div><div class="feds-sidebar-button"></div></div>`);
       closeSidebar.addEventListener('click', (elem) => {
         elem.currentTarget.parentElement.classList.remove('active');
-      })
+        elem.currentTarget.parentElement.querySelectorAll('.feds-sidebar-item')?.forEach(item => {
+          item.classList.remove('active');
+        })
+      });
+      performance.mark('decorateMainNav-end');
+
     }
+
+    console.log(performance.measure('decorateMainNav', 'decorateMainNav-start', 'decorateMainNav-end'));
 
     return this.elements.mainNav;
   };
