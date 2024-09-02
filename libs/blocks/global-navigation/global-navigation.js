@@ -311,10 +311,13 @@ class Gnav {
     this.block.addEventListener('keydown', setupKeyboardNav);
     setTimeout(this.loadDelayed, CONFIG.delays.loadDelayed);
     setTimeout(setupKeyboardNav, CONFIG.delays.keyboardNav);
+    performance.mark('Start')
     for await (const task of tasks) {
       await yieldToMain();
       await task();
     }
+    performance.mark('Ends');
+    console.log(performance.measure('gnav', 'Start', 'Ends'));
 
     document.addEventListener('click', closeOnClickOutside);
     isDesktop.addEventListener('change', closeAllDropdowns);
@@ -338,7 +341,7 @@ class Gnav {
           ${this.elements.mobileToggle}
           ${this.decorateBrand()}
         </div>
-        ${this.elements.navWrapper}
+        ${!isDesktop.matches ? '' : this.elements.navWrapper}
         ${this.useUniversalNav ? this.blocks.universalNav : ''}
         ${(!this.useUniversalNav && this.blocks.profile.rawElem) ? this.blocks.profile.decoratedElem : ''}
         ${this.decorateLogo()}
@@ -351,6 +354,7 @@ class Gnav {
     this.elements.topnavWrapper = toFragment`<div class="feds-topnav-wrapper">
         ${this.elements.topnav}
         ${breadcrumbs}
+        ${!isDesktop.matches ? this.elements.navWrapper : ''}
       </div>`;
 
     this.block.append(this.elements.curtain, this.elements.aside, this.elements.topnavWrapper);
@@ -835,6 +839,13 @@ class Gnav {
         setActiveLink(true);
       }
     }
+    if (!isDesktop.matches) {
+      const closeSidebar = toFragment`<div class="feds-close-sidebar">< Main menu<div>x</div></div>`;
+      this.elements.navWrapper.append(toFragment`<div class="feds-sidebar">${closeSidebar}<div class="feds-nav-title">Creativity</div><div class="feds-sidebar-button"></div></div>`);
+      closeSidebar.addEventListener('click', (elem) => {
+        elem.currentTarget.parentElement.classList.remove('active');
+      })
+    }
 
     return this.elements.mainNav;
   };
@@ -878,6 +889,7 @@ class Gnav {
           item,
           template,
           type: itemType,
+          index,
         });
       }, 'Decorate dropdown failed', 'errorType=info,module=gnav');
 
@@ -890,6 +902,7 @@ class Gnav {
       case 'syncDropdownTrigger':
       case 'asyncDropdownTrigger': {
         const dropdownTrigger = toFragment`<button
+          data-index=${index + 1}
           class="feds-navLink feds-navLink--hoverCaret"
           aria-expanded="false"
           aria-haspopup="true"
@@ -908,8 +921,14 @@ class Gnav {
 
         // Toggle trigger's dropdown on click
         dropdownTrigger.addEventListener('click', (e) => {
-          trigger({ element: dropdownTrigger, event: e });
-          setActiveDropdown(dropdownTrigger);
+          if(isDesktop.matches) {
+            trigger({ element: dropdownTrigger, event: e });
+            setActiveDropdown(dropdownTrigger);
+          } else {
+            const itemIndex = e.currentTarget.dataset.index;
+            document.getElementById(`feds-menu-content-${itemIndex}`).parentElement.classList.add('active')
+            document.querySelector('.feds-sidebar').classList.add('active');
+          }
         });
 
         // Update analytics value when dropdown is expanded/collapsed

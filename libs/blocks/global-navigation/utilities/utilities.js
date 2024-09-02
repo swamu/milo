@@ -215,7 +215,6 @@ export const isTangentToViewport = window.matchMedia('(min-width: 900px) and (ma
 
 export function setActiveDropdown(elem) {
   const activeClass = selectors.activeDropdown.replace('.', '');
-
   // We always need to reset all active dropdowns at first
   const resetActiveDropdown = () => {
     [...document.querySelectorAll(selectors.activeDropdown)]

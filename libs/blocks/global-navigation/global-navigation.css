@@ -474,6 +474,104 @@ header.global-navigation {
   right: auto;
 }
 
+/* my changes */
+.feds-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  transform: translateX(-100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.feds-sidebar.active {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.feds-menu-content {
+  display: none;
+}
+
+.feds-sidebar .items {
+  width: 100%;
+  padding: 12px;
+}
+
+.feds-sidebar .feds-navLink {
+  padding: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feds-sidebar .feds-menu-headline {
+  padding: 10px 20px;
+  height: 40px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  width: 78px;
+  white-space: break-spaces;
+  text-align: left;
+  text-transform: uppercase;
+  line-height: 16px;
+}
+
+.feds-sidebar .feds-menu-headline::after {
+  display: none;
+}
+
+.feds-nav-title {
+  font-size: 36px;
+  font-weight: 600;
+  padding: 24px;
+  border-top: 1px solid var(--feds-borderColor-menu--light);
+  border-bottom: 1px solid var(--feds-borderColor-menu--light);
+}
+
+.feds-close-sidebar {
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.feds-navLink--mobile-section.feds-navLink {
+  flex-direction: column;
+  align-items: baseline;
+}
+
+.feds-navLink--mobile-section .feds-navLink-image, .feds-navLink--mobile-section .feds-navLink-description {
+  display: block;
+}
+
+.feds-navLink--mobile-section .feds-navLink-image img {
+  width: 200px;
+  height: 200px;
+}
+
+.feds-navLink--mobile-section .feds-navLink-content {
+  height: 60px;
+  background: linear-gradient(45deg, #9c1f9c, #e396a4);
+  color: white;
+  padding: 8px;
+  margin-top: -80px;
+  width: 184px;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.feds-sidebar-button {
+  position: absolute;
+  bottom: 0;
+  border-top: 1px solid #eee;
+  width: 100%;
+  height: 112px;
+}
 /* Desktop styles */
 @media (min-width: 900px) {
   /* General */

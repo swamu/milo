@@ -17,9 +17,7 @@ import {
 const decorateHeadline = (elem, index) => {
   if (!(elem instanceof HTMLElement)) return null;
 
-  const headline = toFragment`<div class="feds-menu-headline">
-      ${elem.textContent.trim()}
-    </div>`;
+  const headline = toFragment`<div class="feds-menu-headline">${elem.textContent.trim()}</div>`;
 
   const setHeadlineAttributes = () => {
     if (isDesktop.matches) {
@@ -44,7 +42,7 @@ const decorateHeadline = (elem, index) => {
 
   headline.addEventListener('click', (e) => {
     if (isDesktop.matches) return;
-
+    debugger
     trigger({ element: headline, event: e, type: 'headline' });
     setActiveDropdown(headline);
   });
@@ -317,6 +315,7 @@ const decorateMenu = (config) => logErrorFor(async () => {
           ${menuContent}
         </div>
       </div>`;
+    
     addMepHighlightAndTargetId(menuTemplate, content);
 
     decorateCrossCloudMenu(menuTemplate);
@@ -341,7 +340,44 @@ const decorateMenu = (config) => logErrorFor(async () => {
 
       config.template.classList.add(selectors.activeNavItem.slice(1));
     }
+   if(!isDesktop.matches) {
+    const menuContent = menuTemplate.querySelector('.feds-menu-content');
+    const newMenuContent = toFragment`<div class="feds-menu-content"></div>`;
+    const menuItems = toFragment`<div class="items"></div>`;
+    Array.from(menuContent.children).forEach((child, index) => {
+      const clonedChild = child.cloneNode(true);
 
+      Array.from(clonedChild.children).forEach((child, childIndex) => {
+        const clonedChildren = child.cloneNode(true);
+        const headline = clonedChildren.querySelector('.feds-menu-headline');
+        const items = clonedChildren.querySelector('.feds-menu-items');
+        items && items.setAttribute('id', `feds-menu-items-${newMenuContent.childElementCount}`);
+
+        if (headline) {
+          headline.setAttribute('data-index', newMenuContent.childElementCount);
+          if (index === 0 && childIndex === 0) {
+            headline.classList.add('active');
+            items.classList.add('active');
+          }
+          headline.addEventListener('click', (e) => {
+            const headLines = document.querySelectorAll('.feds-menu-headline');
+            headLines.forEach(el => el.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            const menuItems = document.querySelectorAll('.feds-menu-items');
+            menuItems.forEach(el => el.classList.remove('active'));
+            const headlineIndex = e.currentTarget.dataset.index;
+            e.currentTarget.parentElement.parentElement.querySelector(`#feds-menu-items-${headlineIndex}`).classList.add('active');
+          })
+          newMenuContent.appendChild(headline);
+        }
+        items && menuItems.appendChild(items)
+      });
+    });
+    newMenuContent.setAttribute('id', `feds-menu-content-${config.index + 1}`);
+    const sidebarItem = toFragment`<div class="feds-sidebar-item">${newMenuContent}${menuItems}</div>`;
+    document.querySelector('.feds-sidebar').append(sidebarItem);
+
+   }
     config.template.classList.add('feds-navItem--megaMenu');
   }
 
