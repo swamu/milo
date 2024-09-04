@@ -36,10 +36,16 @@
   align-items: center;
   padding: 12px;
   border: none;
-  color: var(--feds-color-link--light);
+  color: #fff;
   font: inherit;
   white-space: nowrap;
   flex-shrink: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feds-sidebar-item .feds-navLink {
+  color: #000;
 }
 
 .feds-navLink:hover,
@@ -85,6 +91,7 @@
   margin-top: -3px;
   transform: rotateZ(-45deg);
   content: "";
+  border-color: #fff;
 }
 
 [dir = "rtl"] .feds-navLink--hoverCaret {
@@ -179,6 +186,7 @@ header.global-navigation {
     position: static;
     margin-top: 0;
     margin-left: 5px;
+    transform: rotateZ(45deg);
   }
 
   .feds-topnav--overflowing .feds-navLink--hoverCaret:after {
@@ -289,5 +297,9 @@ header.global-navigation {
 
   .feds-navLink--gray-gradient {
     background: #eaeaea;
+  }
+  
+  .feds-navLink {
+    color: var(--feds-color-link--light);
   }
 }

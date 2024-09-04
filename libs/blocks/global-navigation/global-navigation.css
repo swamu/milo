@@ -62,8 +62,8 @@ header.global-navigation {
   display: none;
   flex-direction: column;
   height: 100vh;
-  border-top: 1px solid var(--feds-borderColor--light);
-  background-color: var(--feds-background-nav--light);
+  border-color: #000;
+  background-color: #000;
 }
 
 [dir = "rtl"] .feds-nav-wrapper {
@@ -79,6 +79,8 @@ header.global-navigation {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  padding-left: 12px;
+  padding-top: 20px;
 }
 
 /* Promo */
@@ -186,9 +188,9 @@ header.global-navigation {
   padding: 12px;
 }
 
-.feds-navItem:not(:last-child) > .feds-navLink {
+/* .feds-navItem:not(:last-child) > .feds-navLink {
   border-bottom: 1px solid var(--feds-borderColor-link--light);
-}
+} */
 
 /* Item with active dropdown */
 .feds-dropdown--active {
@@ -485,6 +487,7 @@ header.global-navigation {
   transform: translateX(-100%);
   opacity: 0;
   transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 1;
 }
 
 .feds-sidebar.active {
@@ -513,7 +516,6 @@ header.global-navigation {
   font-size: 12px;
   display: flex;
   align-items: center;
-  width: 78px;
   white-space: break-spaces;
   text-align: left;
   text-transform: uppercase;
@@ -565,13 +567,26 @@ header.global-navigation {
   border-bottom-right-radius: 8px;
 }
 
-.feds-sidebar-button {
-  position: absolute;
-  bottom: 0;
-  border-top: 1px solid #eee;
-  width: 100%;
-  height: 112px;
+.back-btn {
+  position: relative;
+  padding-left: 20px;
 }
+
+.back-btn::after {
+  position: absolute;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  transform: rotateZ(45deg);
+  content: "";
+  display: flex;
+  border-width: 0 0 2px 2px;
+  border-style: solid;
+  border-color: var(--feds-color-link--light);
+  transform-origin: 75% 75%;
+  top: 10px;
+}
+
 /* Desktop styles */
 @media (min-width: 900px) {
   /* General */
@@ -778,6 +793,15 @@ header.global-navigation {
   .feds-breadcrumbs a:hover {
     text-decoration: underline;
   }
+
+  .feds-sidebar {
+    display: none;
+  }
+
+  .feds-nav-wrapper {
+    border-top: 1px solid var(--feds-borderColor--light);
+    background-color: var(--feds-background-nav--light);
+  }
 }
 
 /* Small desktop styles */
@@ -789,6 +813,10 @@ header.global-navigation {
 
 /* Desktop styles */
 @media (min-width: 1200px) {
+  .feds-sidebar {
+    display: none;
+  }
+
   .feds-logo {
     display: flex;
   }

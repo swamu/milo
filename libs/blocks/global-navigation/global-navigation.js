@@ -838,10 +838,17 @@ class Gnav {
         setActiveLink(true);
       }
     }
-    if (!isDesktop.matches) {
       performance.mark('decorateMainNav-start')
-      const closeSidebar = toFragment`<div class="feds-close-sidebar">< Main menu<div>x</div></div>`;
-      this.elements.navWrapper.append(toFragment`<div class="feds-sidebar">${closeSidebar}<div class="feds-nav-title">Creativity</div><div class="feds-sidebar-button"></div></div>`);
+      const toggle = toFragment`<button
+      class="feds-toggle"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Navigation menu"
+      aria-controls="feds-nav-wrapper"
+      data-feds-preventAutoClose>
+      </button>`;
+      const closeSidebar = toFragment`<div class="feds-close-sidebar"><div class="back-btn">Main menu</div><div>${toggle}</div></div>`;
+      this.elements.navWrapper.append(toFragment`<div class="feds-sidebar">${closeSidebar}<div class="feds-nav-title">Creativity</div></div></div>`);
       closeSidebar.addEventListener('click', (elem) => {
         elem.currentTarget.parentElement.classList.remove('active');
         elem.currentTarget.parentElement.querySelectorAll('.feds-sidebar-item')?.forEach(item => {
@@ -849,9 +856,6 @@ class Gnav {
         })
       });
       performance.mark('decorateMainNav-end');
-
-    }
-
     console.log(performance.measure('decorateMainNav', 'decorateMainNav-start', 'decorateMainNav-end'));
 
     return this.elements.mainNav;
@@ -935,6 +939,7 @@ class Gnav {
             const itemIndex = e.currentTarget.dataset.index;
             document.getElementById(`feds-menu-content-${itemIndex}`).parentElement.classList.add('active')
             document.querySelector('.feds-sidebar').classList.add('active');
+            document.querySelector('.feds-nav-title').textContent = e.currentTarget.innerText;
           }
         });
 

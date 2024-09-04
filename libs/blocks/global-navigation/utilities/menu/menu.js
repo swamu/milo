@@ -340,13 +340,14 @@ const decorateMenu = (config) => logErrorFor(async () => {
 
       config.template.classList.add(selectors.activeNavItem.slice(1));
     }
-   if(!isDesktop.matches) {
+  //  if(!isDesktop.matches) {
     performance.mark('Start-copy')
-    const menuContent = menuTemplate.querySelector('.feds-menu-content');
+    const menuContents = menuTemplate.querySelector('.feds-menu-content');
     const newMenuContent = toFragment`<div class="feds-menu-content"></div>`;
     const menuItems = toFragment`<div class="items"></div>`;
-   
-    Array.from(menuContent.children).forEach((child, index) => {
+
+    let buttonComp = '';
+    Array.from(menuContents.children).forEach((child, index) => {
       const clonedChild = child.cloneNode(true);
 
       Array.from(clonedChild.children).forEach((child, childIndex) => {
@@ -354,7 +355,12 @@ const decorateMenu = (config) => logErrorFor(async () => {
         const headline = clonedChildren.querySelector('.feds-menu-headline');
         const items = clonedChildren.querySelector('.feds-menu-items');
         items && items.setAttribute('id', `feds-menu-items-${newMenuContent.childElementCount}`);
-
+        if (items && items.querySelector('.feds-cta-wrapper')) {
+          const buttons = items.querySelector('.feds-cta-wrapper');
+          buttonComp = toFragment`<div class="feds-sidebar-button">${buttons}</div>`;
+          buttonComp.setAttribute('id', `feds-menu-button-${config.index + 1}`);
+          items.append(buttonComp)
+        }
         if (headline) {
           headline.setAttribute('data-index', newMenuContent.childElementCount);
           if (index === 0 && childIndex === 0) {
@@ -378,9 +384,10 @@ const decorateMenu = (config) => logErrorFor(async () => {
     newMenuContent.setAttribute('id', `feds-menu-content-${config.index + 1}`);
     const sidebarItem = toFragment`<div class="feds-sidebar-item">${newMenuContent}${menuItems}</div>`;
     document.querySelector('.feds-sidebar').append(sidebarItem);
+    
     performance.mark('End-copy');
     console.log(performance.measure('sidebar', 'Start-copy', 'End-copy'));
-   }
+  //  }
     config.template.classList.add('feds-navItem--megaMenu');
   }
 
