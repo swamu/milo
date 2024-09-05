@@ -626,7 +626,7 @@ const decorateCopyLink = (a, evt) => {
   const safari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')
   const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|touch/i.test(userAgent);
   //const isMobile = true;
-  if ((!isMobile || (!safari && !MOBILE_SIZE) || !navigator.share) {
+  if ((!isMobile || (!safari && !MOBILE_SIZE)) || !navigator.share) {
     a.remove();
     return;
   }
