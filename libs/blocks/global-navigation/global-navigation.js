@@ -680,7 +680,6 @@ class Gnav {
 
   decorateToggle = () => {
     if (!this.mainNavItemCount) return '';
-
     const toggle = toFragment`<button
       class="feds-toggle"
       daa-ll="hamburgermenu|open"
@@ -809,6 +808,7 @@ class Gnav {
   decorateMainNav = async () => {
     const breadcrumbs = isDesktop.matches ? '' : await this.decorateBreadcrumbs();
     this.elements.mainNav = toFragment`<div class="feds-nav"></div>`;
+
     this.elements.navWrapper = toFragment`
       <div class="feds-nav-wrapper" id="feds-nav-wrapper">
         ${breadcrumbs}
@@ -838,6 +838,9 @@ class Gnav {
         setActiveLink(true);
       }
     }
+    const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
+    if (useNewNav) {
+      this.elements.navWrapper.classList.add('new-nav');
       performance.mark('decorateMainNav-start')
       const toggle = toFragment`<button
       class="feds-toggle"
@@ -856,7 +859,8 @@ class Gnav {
         })
       });
       performance.mark('decorateMainNav-end');
-    console.log(performance.measure('decorateMainNav', 'decorateMainNav-start', 'decorateMainNav-end'));
+      console.log(performance.measure('decorateMainNav', 'decorateMainNav-start', 'decorateMainNav-end'));
+    }
 
     return this.elements.mainNav;
   };
@@ -932,14 +936,16 @@ class Gnav {
 
         // Toggle trigger's dropdown on click
         dropdownTrigger.addEventListener('click', (e) => {
-          if(isDesktop.matches) {
-            trigger({ element: dropdownTrigger, event: e });
-            setActiveDropdown(dropdownTrigger);
-          } else {
+          const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
+          
+          if (useNewNav && !isDesktop.matches) {
             const itemIndex = e.currentTarget.dataset.index;
             document.getElementById(`feds-menu-content-${itemIndex}`).parentElement.classList.add('active')
             document.querySelector('.feds-sidebar').classList.add('active');
             document.querySelector('.feds-nav-title').textContent = e.currentTarget.innerText;
+          } else {
+            trigger({ element: dropdownTrigger, event: e });
+            setActiveDropdown(dropdownTrigger);
           }
         });
 

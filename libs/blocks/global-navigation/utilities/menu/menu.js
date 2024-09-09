@@ -340,54 +340,56 @@ const decorateMenu = (config) => logErrorFor(async () => {
 
       config.template.classList.add(selectors.activeNavItem.slice(1));
     }
-  //  if(!isDesktop.matches) {
-    performance.mark('Start-copy')
-    const menuContents = menuTemplate.querySelector('.feds-menu-content');
-    const newMenuContent = toFragment`<div class="feds-menu-content"></div>`;
-    const menuItems = toFragment`<div class="items"></div>`;
+    const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
 
-    let buttonComp = '';
-    Array.from(menuContents.children).forEach((child, index) => {
-      const clonedChild = child.cloneNode(true);
+    if(useNewNav) {
+      performance.mark('Start-copy')
+      const menuContents = menuTemplate.querySelector('.feds-menu-content');
+      const newMenuContent = toFragment`<div class="feds-menu-content"></div>`;
+      const menuItems = toFragment`<div class="items"></div>`;
 
-      Array.from(clonedChild.children).forEach((child, childIndex) => {
-        const clonedChildren = child.cloneNode(true);
-        const headline = clonedChildren.querySelector('.feds-menu-headline');
-        const items = clonedChildren.querySelector('.feds-menu-items');
-        items && items.setAttribute('id', `feds-menu-items-${newMenuContent.childElementCount}`);
-        if (items && items.querySelector('.feds-cta-wrapper')) {
-          const buttons = items.querySelector('.feds-cta-wrapper');
-          buttonComp = toFragment`<div class="feds-sidebar-button">${buttons}</div>`;
-          buttonComp.setAttribute('id', `feds-menu-button-${config.index + 1}`);
-          items.append(buttonComp)
-        }
-        if (headline) {
-          headline.setAttribute('data-index', newMenuContent.childElementCount);
-          if (index === 0 && childIndex === 0) {
-            headline.classList.add('active');
-            items.classList.add('active');
+      let buttonComp = '';
+      Array.from(menuContents.children).forEach((child, index) => {
+        const clonedChild = child.cloneNode(true);
+
+        Array.from(clonedChild.children).forEach((child, childIndex) => {
+          const clonedChildren = child.cloneNode(true);
+          const headline = clonedChildren.querySelector('.feds-menu-headline');
+          const items = clonedChildren.querySelector('.feds-menu-items');
+          items && items.setAttribute('id', `feds-menu-items-${newMenuContent.childElementCount}`);
+          if (items && items.querySelector('.feds-cta-wrapper')) {
+            const buttons = items.querySelector('.feds-cta-wrapper');
+            buttonComp = toFragment`<div class="feds-sidebar-button">${buttons}</div>`;
+            buttonComp.setAttribute('id', `feds-menu-button-${config.index + 1}`);
+            items.append(buttonComp)
           }
-          headline.addEventListener('click', (e) => {
-            const headLines = document.querySelectorAll('.feds-menu-headline');
-            headLines.forEach(el => el.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            const menuItems = document.querySelectorAll('.feds-menu-items');
-            menuItems.forEach(el => el.classList.remove('active'));
-            const headlineIndex = e.currentTarget.dataset.index;
-            e.currentTarget.parentElement.parentElement.querySelector(`#feds-menu-items-${headlineIndex}`).classList.add('active');
-          })
-          newMenuContent.appendChild(headline);
-        }
-        items && menuItems.appendChild(items)
+          if (headline) {
+            headline.setAttribute('data-index', newMenuContent.childElementCount);
+            if (index === 0 && childIndex === 0) {
+              headline.classList.add('active');
+              items.classList.add('active');
+            }
+            headline.addEventListener('click', (e) => {
+              const headLines = document.querySelectorAll('.feds-menu-headline');
+              headLines.forEach(el => el.classList.remove('active'));
+              e.currentTarget.classList.add('active');
+              const menuItems = document.querySelectorAll('.feds-menu-items');
+              menuItems.forEach(el => el.classList.remove('active'));
+              const headlineIndex = e.currentTarget.dataset.index;
+              e.currentTarget.parentElement.parentElement.querySelector(`#feds-menu-items-${headlineIndex}`).classList.add('active');
+            })
+            newMenuContent.appendChild(headline);
+          }
+          items && menuItems.appendChild(items)
+        });
       });
-    });
-    newMenuContent.setAttribute('id', `feds-menu-content-${config.index + 1}`);
-    const sidebarItem = toFragment`<div class="feds-sidebar-item">${newMenuContent}${menuItems}</div>`;
-    document.querySelector('.feds-sidebar').append(sidebarItem);
-    
-    performance.mark('End-copy');
-    console.log(performance.measure('sidebar', 'Start-copy', 'End-copy'));
-  //  }
+      newMenuContent.setAttribute('id', `feds-menu-content-${config.index + 1}`);
+      const sidebarItem = toFragment`<div class="feds-sidebar-item">${newMenuContent}${menuItems}</div>`;
+      document.querySelector('.feds-sidebar').append(sidebarItem);
+      
+      performance.mark('End-copy');
+      console.log(performance.measure('sidebar', 'Start-copy', 'End-copy'));
+    }
     config.template.classList.add('feds-navItem--megaMenu');
   }
 
