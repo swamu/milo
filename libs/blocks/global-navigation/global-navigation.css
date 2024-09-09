@@ -59,7 +59,7 @@ header.global-navigation {
   top: 100%;
   left: 0;
   right: 20px; /* hamburger menu gutter */
-  /* display: none; */
+  display: none;
   flex-direction: column;
   height: 100vh;
   border-top: 1px solid var(--feds-borderColor--light);
@@ -67,12 +67,12 @@ header.global-navigation {
 }
 
 .new-nav.feds-nav-wrapper {
-  border-color: #000;
   background-color: #000;
   transform: translateX(-100%);
   opacity: 0;
   transition: transform 0.3s ease, opacity 0.3s ease;
   width: 100%;
+  display: flex;
 }
 
 [dir = "rtl"] .feds-nav-wrapper {
@@ -561,21 +561,21 @@ header.global-navigation {
   font-weight: 600;
 }
 
-.feds-navLink--mobile-section.feds-navLink {
+.new-nav .feds-navLink {
   flex-direction: column;
   align-items: baseline;
 }
 
-.feds-navLink--mobile-section .feds-navLink-image, .feds-navLink--mobile-section .feds-navLink-description {
+.new-nav .feds-navLink-image, .new-nav .feds-navLink-description {
   display: block;
 }
 
-.feds-navLink--mobile-section .feds-navLink-image img {
+.new-nav .feds-navLink-image img {
   width: 200px;
   height: 200px;
 }
 
-.feds-navLink--mobile-section .feds-navLink-content {
+.new-nav .feds-navLink-content {
   height: 60px;
   background: linear-gradient(45deg, #9c1f9c, #e396a4);
   color: white;
