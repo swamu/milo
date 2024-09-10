@@ -607,6 +607,51 @@ header.global-navigation {
   top: 10px;
 }
 
+.feds-localnav {
+  position: absolute;
+  top: 64px;
+  width: 100%;
+  background: #fff;
+  left: 0;
+}
+
+.global-navigation .feds-localnav-title {
+  width: 100%;
+  height: 80px;
+  font-size: 22px;
+  font-weight: 600;
+  border: 0;
+  padding: 12px;
+  text-align: justify;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+}
+
+.feds-localnav-items {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  display: none;
+}
+
+.feds-localnav-items .feds-navLink {
+  border: 0;
+}
+
+.feds-localnav.active .feds-localnav-items {
+  display: block;
+}
+
+.feds-localnav .feds-localnav-items .feds-navLink {
+  border-bottom: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feds-localnav.active .feds-localnav-title::after {
+  transform: rotateZ(-135deg);
+}
+
 /* Desktop styles */
 @media (min-width: 900px) {
   /* General */

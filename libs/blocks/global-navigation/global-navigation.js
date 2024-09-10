@@ -301,6 +301,7 @@ class Gnav {
     const tasks = [
       this.decorateMainNav,
       this.decorateTopNav,
+      // this.decorateLocalNav,
       this.decorateAside,
       this.decorateTopnavWrapper,
       loadBaseStyles,
@@ -348,10 +349,31 @@ class Gnav {
     `;
   };
 
+  decorateLocalNav = () => {
+    const isLocalNav = this.elements.navWrapper.querySelector('.feds-nav').querySelectorAll('.feds-navItem.feds-navItem--section')?.length === 1;
+    if (!isLocalNav) return null;
+
+    const localNav = toFragment`<div class="feds-localnav"><button class="feds-navLink--hoverCaret feds-localnav-title"></button><div class="feds-localnav-items"></div></div>`;
+    const localNavitems = this.elements.navWrapper.querySelector('.feds-nav').querySelectorAll('.feds-navItem:not(.feds-navItem--section)');
+    const itemWrapper = localNav.querySelector('.feds-localnav-items');
+    localNavitems.forEach((elem, idx) => {
+      if (idx === 0) {
+        localNav.querySelector('.feds-localnav-title').innerText = elem.innerText.trim();
+        return;
+      }
+      itemWrapper.appendChild(elem.cloneNode(true))
+    });
+    localNav.querySelector('.feds-localnav-title').addEventListener('click', () => {
+      localNav.classList.contains('active') ? localNav.classList.remove('active'): localNav.classList.add('active');
+    })
+    return localNav;
+  }
+
   decorateTopnavWrapper = async () => {
     const breadcrumbs = isDesktop.matches ? await this.decorateBreadcrumbs() : '';
     this.elements.topnavWrapper = toFragment`<div class="feds-topnav-wrapper">
         ${this.elements.topnav}
+        ${this.decorateLocalNav()}
         ${breadcrumbs}
         ${!isDesktop.matches ? this.elements.navWrapper : ''}
       </div>`;
