@@ -341,7 +341,7 @@ class Gnav {
           ${this.elements.mobileToggle}
           ${this.decorateBrand()}
         </div>
-        ${!isDesktop.matches ? '' : this.elements.navWrapper}
+        ${this.elements.navWrapper}
         ${this.useUniversalNav ? this.blocks.universalNav : ''}
         ${(!this.useUniversalNav && this.blocks.profile.rawElem) ? this.blocks.profile.decoratedElem : ''}
         ${this.decorateLogo()}
@@ -351,7 +351,9 @@ class Gnav {
 
   decorateLocalNav = () => {
     const isLocalNav = this.elements.navWrapper.querySelector('.feds-nav').querySelectorAll('.feds-navItem.feds-navItem--section')?.length === 1;
-    if (!isLocalNav) return null;
+    const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
+
+    if (!isLocalNav || !useNewNav) return null;
 
     const localNav = toFragment`<div class="feds-localnav"><button class="feds-navLink--hoverCaret feds-localnav-title"></button><div class="feds-localnav-items"></div></div>`;
     const localNavitems = this.elements.navWrapper.querySelector('.feds-nav').querySelectorAll('.feds-navItem:not(.feds-navItem--section)');
@@ -375,7 +377,6 @@ class Gnav {
         ${this.elements.topnav}
         ${this.decorateLocalNav()}
         ${breadcrumbs}
-        ${!isDesktop.matches ? this.elements.navWrapper : ''}
       </div>`;
 
     this.block.append(this.elements.curtain, this.elements.aside, this.elements.topnavWrapper);
@@ -396,6 +397,8 @@ class Gnav {
           && this.elements.breadcrumbsWrapper instanceof HTMLElement) {
           this.elements.topnav.after(this.elements.breadcrumbsWrapper);
         }
+
+        this.elements.navWrapper.classList.remove('new-nav');
       } else {
         // On mobile, nav is after search
         if (this.elements.mainNav instanceof HTMLElement
@@ -408,6 +411,8 @@ class Gnav {
           && this.elements.breadcrumbsWrapper instanceof HTMLElement) {
           this.elements.navWrapper.prepend(this.elements.breadcrumbsWrapper);
         }
+        const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
+        if (useNewNav) this.elements.navWrapper.classList.add('new-nav');
       }
     });
 
@@ -862,7 +867,8 @@ class Gnav {
     }
     const useNewNav = new URLSearchParams(window.location.search).get('use-newnav') || '';
     if (useNewNav) {
-      this.elements.navWrapper.classList.add('new-nav');
+      if (!isDesktop.matches) this.elements.navWrapper.classList.add('new-nav');
+
       performance.mark('decorateMainNav-start')
       const toggle = toFragment`<button
       class="feds-toggle"

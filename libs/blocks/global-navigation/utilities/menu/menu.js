@@ -42,7 +42,6 @@ const decorateHeadline = (elem, index) => {
 
   headline.addEventListener('click', (e) => {
     if (isDesktop.matches) return;
-    debugger
     trigger({ element: headline, event: e, type: 'headline' });
     setActiveDropdown(headline);
   });

@@ -87,6 +87,7 @@ header.global-navigation {
 .new-nav.feds-nav-wrapper--expanded {
   transform: translateX(0);
   opacity: 1;
+  z-index: 1;
 }
 
 .feds-nav {
@@ -866,6 +867,10 @@ header.global-navigation {
   .feds-nav-wrapper {
     border-top: 1px solid var(--feds-borderColor--light);
     background-color: var(--feds-background-nav--light);
+  }
+
+  .feds-localnav {
+    display: none;
   }
 }
 
