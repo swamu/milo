@@ -360,6 +360,7 @@ function modifySelectorTerm(termParam) {
     'secondary-cta': 'em a',
     'action-area': '*:has(> em a, > strong a)',
     'any-marquee': '[class*="marquee"]',
+    'any-marquee-section': 'div:has([class*="marquee"]',
     'any-header': ':is(h1, h2, h3, h4, h5, h6)',
   };
   const otherSelectors = ['row', 'col'];
