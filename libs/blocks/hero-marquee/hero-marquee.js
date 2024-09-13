@@ -162,6 +162,7 @@ function loadBreakpointThemes() {
 }
 
 export default async function init(el) {
+  el.classList.add('promo-marquee');
   el.classList.add('con-block');
   let rows = el.querySelectorAll(':scope > div');
   if (rows.length > 1 && rows[0].textContent !== '') {
