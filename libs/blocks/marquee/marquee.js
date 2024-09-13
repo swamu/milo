@@ -104,6 +104,7 @@ function decorateSplit(el, foreground, media) {
 }
 
 export default async function init(el) {
+  el.classList.add('promo-marquee');
   const excDark = ['light', 'quiet'];
   if (!excDark.some((s) => el.classList.contains(s))) el.classList.add('dark');
   const children = el.querySelectorAll(':scope > div');
