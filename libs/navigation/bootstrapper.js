@@ -19,7 +19,7 @@ export default async function bootstrapBlock(miloLibs, blockConfig) {
     metaTags.forEach((tag) => {
       const { key } = tag;
       if (key === 'unavComponents') {
-        blockConfig[key] = 'profile,notifications,help,appswitcher'
+        blockConfig[key] = 'profile,notifications,help,appswitcher,jarvis'
       }
       if (blockConfig[key]) {
         const metaTag = createTag('meta', {
