@@ -644,7 +644,7 @@ const decorateCopyLink = (a, evt) => {
 };
 
 export function convertStageLinks({ anchors, config, hostname }) {
-  if (config.env?.name === 'prod' || !config.stageDomainsMap) return;
+  if (true || config.env?.name === 'prod' || !config.stageDomainsMap) return;
   const matchedRules = Object.entries(config.stageDomainsMap)
     .find(([domain]) => hostname.includes(domain));
   if (!matchedRules) return;
