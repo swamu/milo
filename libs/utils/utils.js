@@ -610,7 +610,8 @@ export function decorateAutoBlock(a) {
       // Modals
       if (url.hash !== '' && !isInlineFrag) {
         a.dataset.modalPath = url.pathname;
-        a.dataset.modalHash = url.hash;
+        const match = url.hash.match(/([^#_]+)/);
+        a.dataset.modalHash = match ? match[0] : "";
         a.href = url.hash;
         a.className = `modal link-block ${[...a.classList].join(' ')}`;
         return true;
