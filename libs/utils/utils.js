@@ -610,7 +610,7 @@ export function decorateAutoBlock(a) {
       // Modals
       if (url.hash !== '' && !isInlineFrag) {
         a.dataset.modalPath = url.pathname;
-        const match = url.toString().match(/#([^#_]+)/g);
+        const match = url.href.match(/#([^#_]+)/g);
         const validHashes = matches ? matches.filter(hash => !hash.startsWith('#_')) : [];
         a.dataset.modalHash = validHashes.length > 0 ? validHashes[0] : null;
         a.href = url.hash;
