@@ -3,6 +3,7 @@ import { html, css } from 'lit';
 import { CSS } from './ccd-slice.css.js';
 
 const AEM_FRAGMENT_MAPPING = {
+    mnemonics: { size: 'm' },
     backgroundImage: { tag: 'div', slot: 'image' },
     description: { tag: 'div', slot: 'body-s' },
     ctas: { size: 's' },
@@ -35,11 +36,13 @@ export class CCDSlice extends VariantLayout {
     static variantStyle = css`
         :host([variant='ccd-slice']) {
             width: var(--consonant-merch-card-ccd-slice-single-width);
+            max-width: var(--consonant-merch-card-ccd-slice-single-width);
             background-color: var(
               --spectrum-gray-50, #fff);
             border-radius: 4px;
             display: flex;
             flex-flow: wrap;
+            max-height: 153px;
         }
 
         :host([variant='ccd-slice']) ::slotted([slot='body-s']) {
@@ -49,6 +52,7 @@ export class CCDSlice extends VariantLayout {
 
         :host([variant='ccd-slice'][size='wide']) {
             width: var(--consonant-merch-card-ccd-slice-wide-width);
+            max-width: var(--consonant-merch-card-ccd-slice-wide-width);
         }
 
         :host([variant='ccd-slice']) .content {
@@ -94,8 +98,13 @@ export class CCDSlice extends VariantLayout {
         }
 
         :host([variant='ccd-slice']) div[class$='-badge'] {
+            font-size: var(--consonant-merch-card-body-xxs-font-size);
             position: static;
             border-radius: 4px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+            padding: 4px 9px;
         }
 
         :host([variant='ccd-slice']) .top-section {
