@@ -109,6 +109,7 @@ export class CCDSlice extends VariantLayout {
 
         :host([variant='ccd-slice']) .top-section {
             align-items: center;
+            gap: 8px;
         }
     `;
 }

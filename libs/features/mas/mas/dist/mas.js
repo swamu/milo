@@ -1566,6 +1566,7 @@ merch-card[variant="ccd-slice"] [slot='body-s'] a:not(.con-button) {
 
         :host([variant='ccd-slice']) .top-section {
             align-items: center;
+            gap: 8px;
         }
     `);var wi=(e,t=!1)=>{switch(e.variant){case"catalog":return new st(e);case"ccd-action":return new ct(e);case"image":return new kr(e);case"inline-heading":return new Or(e);case"mini-compare-chart":return new lt(e);case"plans":return new ht(e);case"product":return new De(e);case"segment":return new dt(e);case"special-offers":return new ut(e);case"twp":return new mt(e);case"ccd-suggested":return new pt(e);case"ccd-slice":return new ft(e);default:return t?void 0:new De(e)}},ts=()=>{let e=[];return e.push(st.variantStyle),e.push(ct.variantStyle),e.push(lt.variantStyle),e.push(De.variantStyle),e.push(ht.variantStyle),e.push(dt.variantStyle),e.push(ut.variantStyle),e.push(mt.variantStyle),e.push(pt.variantStyle),e.push(ft.variantStyle),e};var rs=document.createElement("style");rs.innerHTML=`
 :root {
