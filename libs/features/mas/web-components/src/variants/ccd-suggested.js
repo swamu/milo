@@ -54,7 +54,6 @@ export class CCDSuggested extends VariantLayout {
       border-radius: 4px;
       display: flex;
       flex-flow: wrap;
-      max-height: 205px;
       overflow: hidden;
     }
 
