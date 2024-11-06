@@ -1408,7 +1408,6 @@ merch-card[variant="ccd-suggested"] [slot="cta"] a {
       border-radius: 4px;
       display: flex;
       flex-flow: wrap;
-      max-height: 205px;
       overflow: hidden;
     }
 
