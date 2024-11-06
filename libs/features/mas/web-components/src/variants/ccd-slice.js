@@ -42,7 +42,6 @@ export class CCDSlice extends VariantLayout {
             border-radius: 4px;
             display: flex;
             flex-flow: wrap;
-            max-height: 154px;
         }
 
         :host([variant='ccd-slice']) ::slotted([slot='body-s']) {

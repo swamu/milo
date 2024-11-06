@@ -1499,7 +1499,6 @@ merch-card[variant="ccd-slice"] [slot='body-s'] a:not(.con-button) {
             border-radius: 4px;
             display: flex;
             flex-flow: wrap;
-            max-height: 154px;
         }
 
         :host([variant='ccd-slice']) ::slotted([slot='body-s']) {
