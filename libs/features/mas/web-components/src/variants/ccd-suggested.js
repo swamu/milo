@@ -3,6 +3,7 @@ import { VariantLayout } from './variant-layout';
 import { CSS } from './ccd-suggested.css.js';
 
 const AEM_FRAGMENT_MAPPING = {
+  mnemonics: { size: 'l' },
   subtitle: { tag: 'h4', slot: 'detail-s' },
   title: { tag: 'h3', slot: 'heading-xs' },
   prices: { tag: 'p', slot: 'price' },
@@ -48,10 +49,13 @@ export class CCDSuggested extends VariantLayout {
       background-color: var(
         --spectrum-gray-50, #fff);
       width: var(--merch-card-ccd-suggested-width);
+      max-width: var(--merch-card-ccd-suggested-width);
       min-height: var(--merch-card-ccd-suggested-height);
       border-radius: 4px;
       display: flex;
       flex-flow: wrap;
+      max-height: 205px;
+      overflow: hidden;
     }
 
     :host([variant='ccd-suggested']) .body {
