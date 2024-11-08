@@ -5,6 +5,7 @@ import {
   decorateTextOverrides,
   decorateButtons,
   handleObjectFit,
+  loadCDT,
 } from '../../utils/decorate.js';
 import { createTag, loadStyle, getConfig } from '../../utils/utils.js';
 
@@ -75,8 +76,12 @@ async function decorateLockupRow(el, classes) {
   await loadIconography();
   child?.classList.add('lockup-area');
   const iconSizeClass = classes?.find((c) => c.endsWith('-icon'));
-  if (iconSizeClass) el.classList.remove(iconSizeClass);
-  el.classList.add(`${iconSizeClass?.split('-')[0] || 'l'}-lockup`);
+  const lockupSizeClass = classes?.find((c) => c.endsWith('-lockup'));
+  const usedLockupClass = iconSizeClass || lockupSizeClass;
+  if (usedLockupClass) {
+    el.classList.remove(usedLockupClass);
+  }
+  el.classList.add(`${usedLockupClass?.split('-')[0] || 'l'}-lockup`);
 }
 
 function decorateBg(el) {
@@ -132,14 +137,14 @@ function parseKeyString(str) {
   return result;
 }
 
-function loadContentType(el, key, classes) {
+async function loadContentType(el, key, classes) {
   if (classes !== undefined && classes.length) el.classList.add(...classes);
   switch (key) {
     case 'bgcolor':
       decorateBg(el);
       break;
     case 'lockup':
-      decorateLockupRow(el, classes);
+      await decorateLockupRow(el, classes);
       break;
     case 'qrcode':
       decorateQr(el);
@@ -218,7 +223,12 @@ export default async function init(el) {
 
   const assetRow = allRows[0].classList.contains('asset');
   if (assetRow) el.classList.add('asset-left');
-  const mainCopy = createTag('div', { class: 'main-copy' });
+  const lockupClass = [...el.classList].find((c) => c.endsWith('-lockup'));
+  if (lockupClass) el.classList.remove(lockupClass);
+  const buttonClass = [...el.classList].find((c) => c.endsWith('-button'));
+  if (buttonClass) el.classList.remove(buttonClass);
+  const classes = `main-copy ${lockupClass || 'l-lockup'} ${buttonClass || 'l-button'}`;
+  const mainCopy = createTag('div', { class: classes });
   while (copy.childNodes.length > 0) {
     mainCopy.appendChild(copy.childNodes[0]);
   }
@@ -236,7 +246,7 @@ export default async function init(el) {
       copy.append(row);
     }
   });
-
+  const promiseArr = [];
   [...rows].forEach(async (row) => {
     const cols = row.querySelectorAll(':scope > div');
     const firstCol = cols[0];
@@ -248,7 +258,9 @@ export default async function init(el) {
       firstCol.parentElement.classList.add(`row-${parsed.key}`, 'con-block');
       firstCol.remove();
       cols[1].classList.add('row-wrapper');
-      if (contentTypes.includes(parsed.key)) loadContentType(row, parsed.key, parsed.classes);
+      if (contentTypes.includes(parsed.key)) {
+        promiseArr.push(loadContentType(row, parsed.key, parsed.classes));
+      }
     } else {
       row.classList.add('norm');
       decorateBlockHrs(row);
@@ -256,4 +268,10 @@ export default async function init(el) {
     }
   });
   decorateTextOverrides(el, ['-heading', '-body', '-detail'], mainCopy);
+
+  if (el.classList.contains('countdown-timer')) {
+    promiseArr.push(loadCDT(copy, el.classList));
+  }
+
+  await Promise.all(promiseArr);
 }

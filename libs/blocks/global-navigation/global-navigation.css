@@ -61,7 +61,7 @@ header.global-navigation {
   right: 20px; /* hamburger menu gutter */
   display: none;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 100% - 1px);
   border-top: 1px solid var(--feds-borderColor);
   background-color: var(--feds-background-nav);
 }
@@ -136,10 +136,20 @@ header.global-navigation {
   flex-shrink: 0;
 }
 
+.feds-brand-image.brand-image-only {
+  height: 36px;
+  width: auto;
+}
+
 .feds-brand-image picture, .feds-brand-image img, .feds-brand-image svg,
 .feds-logo-image picture, .feds-logo-image img, .feds-logo-image svg {
   width: 100%;
   display: block;
+}
+
+.feds-brand-image.brand-image-only picture, .feds-brand-image.brand-image-only img, .feds-brand-image.brand-image-only svg {
+  width: auto;
+  height: 100%;
 }
 
 .feds-brand-label,
@@ -560,6 +570,10 @@ header.global-navigation {
   /* Nav Links */
   .feds-navItem {
     flex-direction: initial;
+  }
+
+  .feds-navItem--mobile-only {
+    display: none;
   }
 
   .feds-navItem--megaMenu {

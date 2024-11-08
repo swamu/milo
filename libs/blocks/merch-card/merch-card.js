@@ -155,7 +155,7 @@ const parseTwpContent = async (el, merchCard) => {
 };
 
 const appendPaymentDetails = (element, merchCard) => {
-  if (element.firstChild.nodeType !== Node.TEXT_NODE) return;
+  if (element.firstChild?.nodeType !== Node.TEXT_NODE) return;
   const paymentDetails = createTag('div', { class: 'payment-details' }, element.innerHTML);
   const headingM = merchCard.querySelector('h4[slot="heading-m"]');
   headingM?.append(paymentDetails);
@@ -204,6 +204,7 @@ const appendCalloutContent = (element, merchCard) => {
 const parseContent = async (el, merchCard) => {
   let bodySlotName = `body-${merchCard.variant !== MINI_COMPARE_CHART ? 'xs' : 'm'}`;
   let headingMCount = 0;
+  let headingXsCount = 0;
 
   if (merchCard.variant === MINI_COMPARE_CHART) {
     bodySlotName = 'body-m';
@@ -229,6 +230,7 @@ const parseContent = async (el, merchCard) => {
       let slotName = SLOT_MAP[merchCard.variant]?.[tagName] || SLOT_MAP_DEFAULT[tagName];
       if (slotName) {
         if (['H2', 'H3', 'H4', 'H5'].includes(tagName)) {
+          if (tagName === 'H3') headingXsCount += 1;
           element.classList.add('card-heading');
           if (merchCard.badgeText) {
             element.closest('div[role="tabpanel"')?.classList.add('badge-merch-cards');
@@ -247,6 +249,8 @@ const parseContent = async (el, merchCard) => {
           }
         }
         element.setAttribute('slot', slotName);
+        tagName = (headingXsCount === 1 && tagName === 'H3')
+        || (merchCard.variant === MINI_COMPARE_CHART && slotName === 'heading-m') ? 'h3' : 'p';
         const newElement = createTag(tagName);
         Array.from(element.attributes).forEach((attr) => {
           newElement.setAttribute(attr.name, attr.value);
@@ -359,6 +363,22 @@ const simplifyHrs = (el) => {
       hr.parentElement.replaceWith(hr);
     }
   });
+  if (el.variant === PRODUCT) {
+    const calloutContent = el.querySelector('div[slot="callout-content"]');
+    const bodySlot = el.querySelector('div[slot="body-xs"]');
+    if (calloutContent && bodySlot) {
+      const bodyLowerContent = createTag('div', { slot: 'body-lower' });
+      const elements = [...bodySlot.children];
+      elements.forEach((element) => {
+        if (element.tagName !== 'P') {
+          bodyLowerContent.append(element);
+        }
+      });
+      if (bodyLowerContent.childNodes.length > 0) {
+        calloutContent.parentElement.appendChild(bodyLowerContent);
+      }
+    }
+  }
 };
 
 const getMiniCompareChartFooterRows = (el) => {
@@ -420,7 +440,7 @@ const addStartingAt = async (styles, merchCard) => {
   if (styles.includes('starting-at')) {
     const { replaceKey } = await import('../../features/placeholders.js');
     await replaceKey('starting-at', getConfig()).then((key) => {
-      const startingAt = createTag('div', { slot: 'starting-at' }, key);
+      const startingAt = createTag('div', { class: 'starting-at' }, key);
       const price = merchCard.querySelector('span[is="inline-price"]');
       if (price) {
         price.parentNode.prepend(startingAt);
@@ -496,7 +516,7 @@ export default async function init(el) {
     }
   }
   let footerRows;
-  if ([MINI_COMPARE_CHART, PLANS, SEGMENT].includes(cardType)) {
+  if ([MINI_COMPARE_CHART, PLANS, SEGMENT, PRODUCT].includes(cardType)) {
     intersectionObserver.observe(merchCard);
   }
   if (cardType === MINI_COMPARE_CHART) {
@@ -526,7 +546,7 @@ export default async function init(el) {
     merchCard.append(
       createTag(
         'div',
-        { slot: 'action-menu-content' },
+        { slot: 'action-menu-content', tabindex: '0' },
         actionMenuContent.innerHTML,
       ),
     );

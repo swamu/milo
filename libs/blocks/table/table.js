@@ -1,11 +1,13 @@
 /* eslint-disable no-plusplus */
 import { createTag, MILO_EVENTS } from '../../utils/utils.js';
 import { decorateButtons } from '../../utils/decorate.js';
+import { debounce } from '../../utils/action.js';
 
 const DESKTOP_SIZE = 900;
 const MOBILE_SIZE = 768;
 const tableHighlightLoadedEvent = new Event('milo:table:highlight:loaded');
 let tableIndex = 0;
+const isMobileLandscape = () => (window.matchMedia('(orientation: landscape)').matches && window.innerHeight <= MOBILE_SIZE);
 function defineDeviceByScreenSize() {
   const screenWidth = window.innerWidth;
   if (screenWidth >= DESKTOP_SIZE) {
@@ -15,6 +17,12 @@ function defineDeviceByScreenSize() {
     return 'MOBILE';
   }
   return 'TABLET';
+}
+
+function isStickyHeader(el) {
+  return el.classList.contains('sticky')
+    || (el.classList.contains('sticky-desktop-up') && defineDeviceByScreenSize() === 'DESKTOP')
+    || (el.classList.contains('sticky-tablet-up') && defineDeviceByScreenSize() !== 'MOBILE' && !isMobileLandscape());
 }
 
 function handleHeading(table, headingCols) {
@@ -90,6 +98,60 @@ function handleHeading(table, headingCols) {
   });
 }
 
+function handleEqualHeight(table, tag) {
+  const height = [];
+  const element = table.querySelector(tag);
+  const columns = [...element.children];
+  columns.forEach(({ children }) => {
+    [...children].forEach((row, i) => {
+      row.style.height = 'auto';
+      if (!height[i] || row.offsetHeight > height[i]) {
+        height[i] = row.offsetHeight;
+      }
+    });
+  });
+  columns.forEach(({ children }) => {
+    [...children].forEach((row, i) => {
+      row.style.height = height[i] > 0 ? `${height[i]}px` : 'auto';
+    });
+  });
+}
+
+function handleAddOnContent(table) {
+  const addOnKey = 'ADDON';
+  const addOns = [...table.querySelectorAll('.section-row-title')]
+    .filter((row) => row.innerText.toUpperCase().includes(addOnKey));
+  if (!addOns.length) return;
+  table.classList.add('has-addon');
+  addOns.forEach((addOn) => {
+    const addOnRow = addOn.parentElement;
+    addOnRow.remove();
+    const [position, order, style] = addOn.innerText.split('-')
+      .filter((key) => key.toUpperCase() !== addOnKey).map((key) => key.toLowerCase());
+    if (!position || !order) return;
+    const dataIndex = 'data-col-index';
+    [...table.querySelector('.row-heading').children].forEach((headCol) => {
+      headCol.querySelector('.heading-content')?.classList.add('content');
+      const colIndex = headCol.getAttribute(dataIndex);
+      if (colIndex <= 1) return; // skip the key column
+      const tagName = `${position}-${order}`;
+      const column = [...addOnRow.children].find((el) => el.getAttribute(dataIndex) === colIndex);
+      let content = column.childNodes;
+      const icon = column.querySelector('.icon');
+      if (style === 'label' && icon) {
+        const text = [...content].filter((node) => !node.classList?.contains('icon'));
+        content = [createTag('span', null, text), icon];
+      }
+      const tag = createTag('div', { class: tagName }, [...content].map((node) => node));
+      if (style) tag.classList.add(`addon-${style}`);
+      const el = headCol.querySelector(`.${position}`);
+      el?.classList.add(`has-${tagName}`);
+      el?.insertAdjacentElement(order === 'before' ? 'beforebegin' : 'afterend', tag);
+    });
+  });
+  setTimeout(() => handleEqualHeight(table, '.row-heading'), 0);
+}
+
 function handleHighlight(table) {
   const isHighlightTable = table.classList.contains('highlight');
   const firstRow = table.querySelector('.row-1');
@@ -118,6 +180,7 @@ function handleHighlight(table) {
   }
 
   handleHeading(table, headingCols);
+  handleAddOnContent(table);
   table.dispatchEvent(tableHighlightLoadedEvent);
 }
 
@@ -382,7 +445,7 @@ function applyStylesBasedOnScreenSize(table, originTable) {
     }
 
     if ((!isMerch && !table.querySelector('.col-3'))
-    || (isMerch && !table.querySelector('.col-2'))) return;
+      || (isMerch && !table.querySelector('.col-2'))) return;
 
     const filterChangeEvent = () => {
       table.innerHTML = originTable.innerHTML;
@@ -501,10 +564,6 @@ export default function init(el) {
     expandSection = handleSection(sectionParams);
   });
 
-  const isStickyHeader = el.classList.contains('sticky')
-    || (el.classList.contains('sticky-desktop-up') && defineDeviceByScreenSize() === 'DESKTOP')
-    || (el.classList.contains('sticky-tablet-up') && defineDeviceByScreenSize() !== 'MOBILE');
-
   handleHighlight(el);
   if (isMerch) formatMerchTable(el);
 
@@ -525,12 +584,15 @@ export default function init(el) {
 
     const handleResize = () => {
       applyStylesBasedOnScreenSize(el, originTable);
-      if (isStickyHeader) handleScrollEffect(el);
+      if (isStickyHeader(el)) handleScrollEffect(el);
     };
     handleResize();
 
     let deviceBySize = defineDeviceByScreenSize();
     window.addEventListener('resize', () => {
+      if (el.classList.contains('has-addon')) {
+        debounce(handleEqualHeight(el, '.row-heading'), 300);
+      }
       if (deviceBySize === defineDeviceByScreenSize()) return;
       deviceBySize = defineDeviceByScreenSize();
       handleResize();

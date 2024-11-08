@@ -1,5 +1,5 @@
 import { css, unsafeCSS } from 'lit';
-import { DESKTOP_UP, LARGE_DESKTOP, TABLET_UP, TABLET_DOWN } from './media.js';
+import { DESKTOP_UP, TABLET_UP } from './media.js';
 
 export const styles = css`
     :host {
@@ -7,10 +7,10 @@ export const styles = css`
         display: flex;
         flex-direction: column;
         text-align: start;
-        background-color: var(--consonant-merch-card-background-color);
+        background-color: var(--merch-card-background-color);
         grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
-        background-color: var(--consonant-merch-card-background-color);
-        font-family: var(--body-font-family, 'Adobe Clean');
+        background-color: var(--merch-card-background-color);
+        font-family: var(--merch-body-font-family, 'Adobe Clean');
         border-radius: var(--consonant-merch-spacing-xs);
         border: 1px solid var(--consonant-merch-card-border-color);
         box-sizing: border-box;
@@ -18,26 +18,6 @@ export const styles = css`
 
     :host(.placeholder) {
         visibility: hidden;
-    }
-
-    :host([variant='special-offers']) {
-        min-height: 439px;
-    }
-
-    :host([variant='catalog']) {
-        min-height: 330px;
-    }
-
-    :host([variant='plans']) {
-        min-height: 348px;
-    }
-
-    :host([variant='segment']) {
-        min-height: 214px;
-    }
-
-    :host([variant='ccd-action']:not([size])) {
-        width: var(--consonant-merch-card-ccd-action-width);
     }
 
     :host([aria-selected]) {
@@ -50,7 +30,9 @@ export const styles = css`
         visibility: hidden;
     }
 
-    :host(:hover) .invisible {
+    :host(:hover) .invisible,
+    :host(:active) .invisible,
+    :host(:focus) .invisible {
         visibility: visible;
         background-image: var(--ellipsis-icon);
         cursor: pointer;
@@ -59,10 +41,7 @@ export const styles = css`
     .action-menu.always-visible {
         visibility: visible;
         background-image: var(--ellipsis-icon);
-    }
-
-    :host([variant='mini-compare-chart']) > slot:not([name='icons']) {
-        display: block;
+        cursor: pointer;
     }
 
     .top-section {
@@ -99,7 +78,7 @@ export const styles = css`
     }
 
     hr {
-        background-color: var(--color-gray-200);
+        background-color: var(--merch-color-grey-200);
         border: none;
         height: 1px;
         width: auto;
@@ -129,19 +108,6 @@ export const styles = css`
         border-radius: 0 5px 5px 0;
     }
 
-    .body .catalog-badge {
-        display: flex;
-        height: fit-content;
-        flex-direction: column;
-        width: fit-content;
-        max-width: 140px;
-        border-radius: 5px;
-        position: relative;
-        top: 0;
-        margin-left: var(--consonant-merch-spacing-xxs);
-        box-sizing: border-box;
-    }
-
     .detail-bg-container {
         right: 0;
         padding: var(--consonant-merch-spacing-xs);
@@ -161,6 +127,7 @@ export const styles = css`
         background-repeat: no-repeat;
         background-position: center;
         background-size: 16px 16px;
+        font-size: 0;
     }
     .hidden {
         visibility: hidden;
@@ -170,7 +137,7 @@ export const styles = css`
     .secure-transaction-label {
         font-size: var(--consonant-merch-card-body-xxs-font-size);
         line-height: 1.3;
-        color: var(--color-gray-600);
+        color: var(--merch-color-grey-600);
     }
 
     #stock-checkbox {
@@ -205,6 +172,7 @@ export const styles = css`
         align-items: center;
         flex: 1;
         line-height: normal;
+        align-self: center;
     }
 
     .secure-transaction-label::before {
@@ -245,127 +213,9 @@ export const styles = css`
         margin-top: 2px;
     }
 
-    .twp-badge {
-        padding: 4px 10px 5px 10px;
-    }
-
-    :host([aria-selected]) .twp-badge {
-        margin-inline-end: 2px;
-        padding-inline-end: 9px;
-    }
-
-    :host([variant='twp']) {
-        padding: 4px 10px 5px 10px;
-    }
-
     slot[name='icons'] {
         display: flex;
         gap: 8px;
-    }
-
-    :host([variant='twp']) ::slotted(merch-offer-select) {
-        display: none;
-    }
-
-    :host([variant='twp']) .top-section {
-        flex: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        height: 100%;
-        gap: var(--consonant-merch-spacing-xxs);
-        padding: var(--consonant-merch-spacing-xs)
-            var(--consonant-merch-spacing-xs) var(--consonant-merch-spacing-xs)
-            var(--consonant-merch-spacing-xs);
-        align-items: flex-start;
-    }
-
-    :host([variant='twp']) .body {
-        padding: 0 var(--consonant-merch-spacing-xs);
-    }
-
-    :host([variant='twp']) footer {
-        gap: var(--consonant-merch-spacing-xxs);
-        flex-direction: column;
-        align-self: flex-start;
-    }
-
-    :host([variant='special-offers'].center) {
-        text-align: center;
-    }
-
-    /* plans */
-    :host([variant='plans']) {
-        min-height: 348px;
-    }
-
-    :host([variant='mini-compare-chart']) footer {
-        min-height: var(--consonant-merch-card-mini-compare-footer-height);
-        padding: var(--consonant-merch-spacing-xs);
-    }
-
-    /* mini-compare card  */
-    :host([variant='mini-compare-chart']) .top-section {
-        padding-top: var(--consonant-merch-spacing-s);
-        padding-inline-start: var(--consonant-merch-spacing-s);
-        height: var(--consonant-merch-card-mini-compare-top-section-height);
-    }
-
-    @media screen and ${unsafeCSS(TABLET_DOWN)} {
-        [class*'-merch-cards'] :host([variant='mini-compare-chart']) footer {
-            flex-direction: column;
-            align-items: stretch;
-            text-align: center;
-        }
-    }
-
-    @media screen and ${unsafeCSS(DESKTOP_UP)} {
-        :host([variant='mini-compare-chart']) footer {
-            padding: var(--consonant-merch-spacing-xs)
-                var(--consonant-merch-spacing-s)
-                var(--consonant-merch-spacing-s)
-                var(--consonant-merch-spacing-s);
-        }
-    }
-
-    :host([variant='mini-compare-chart']) slot[name='footer-rows'] {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: end;
-    }
-    /* mini-compare card heights for the slots: heading-m, body-m, heading-m-price, price-commitment, offers, promo-text, footer */
-    :host([variant='mini-compare-chart']) slot[name='heading-m'] {
-        min-height: var(--consonant-merch-card-mini-compare-heading-m-height);
-    }
-    :host([variant='mini-compare-chart']) slot[name='body-m'] {
-        min-height: var(--consonant-merch-card-mini-compare-body-m-height);
-    }
-    :host([variant='mini-compare-chart']) slot[name='heading-m-price'] {
-        min-height: var(
-            --consonant-merch-card-mini-compare-heading-m-price-height
-        );
-    }
-    :host([variant='mini-compare-chart']) slot[name='price-commitment'] {
-        min-height: var(
-            --consonant-merch-card-mini-compare-price-commitment-height
-        );
-    }
-    :host([variant='mini-compare-chart']) slot[name='offers'] {
-        min-height: var(--consonant-merch-card-mini-compare-offers-height);
-    }
-    :host([variant='mini-compare-chart']) slot[name='promo-text'] {
-        min-height: var(--consonant-merch-card-mini-compare-promo-text-height);
-    }
-    :host([variant='mini-compare-chart']) slot[name='callout-content'] {
-        min-height: var(
-            --consonant-merch-card-mini-compare-callout-content-height
-        );
-    }
-
-    :host([variant='plans']) ::slotted([slot='heading-xs']),
-    :host([variant='segment']) ::slotted([slot='heading-xs']) {
-        max-width: var(--consonant-merch-card-heading-xs-max-width, 100%);
     }
 `;
 
@@ -376,28 +226,18 @@ export const sizeStyles = () => {
         @media screen and ${unsafeCSS(TABLET_UP)} {
             :host([size='wide']),
             :host([size='super-wide']) {
-                grid-column: span 3;
                 width: 100%;
-                max-width: var(--consonant-merch-card-tablet-wide-width);
-                margin: 0 auto;
+                grid-column: 1 / -1;
             }
         }
 
         /* Laptop */
         @media screen and ${unsafeCSS(DESKTOP_UP)} {
-            :host([size='super-wide']) {
-                grid-column: span 3;
+            :host([size='wide']) {
+                grid-column: span 2;
             }
         `,
     ];
 
-    styles.push(css`
-        /* Large desktop */
-        @media screen and ${unsafeCSS(LARGE_DESKTOP)} {
-            :host([size='super-wide']) {
-                grid-column: span 4;
-            }
-        }
-    `);
     return styles;
 };

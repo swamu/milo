@@ -1,41 +1,44 @@
-import { html, LitElement, nothing } from 'lit';
+import { LitElement } from 'lit';
 import { sizeStyles, styles } from './merch-card.css.js';
-import { isMobile, isMobileOrTablet } from './utils.js';
+import { getVariantLayout, getVariantStyles } from './variants/variants.js';
 
 import './global.css.js';
 import {
+    EVENT_AEM_LOAD,
     EVENT_MERCH_CARD_READY,
     EVENT_MERCH_OFFER_SELECT_READY,
     EVENT_MERCH_QUANTITY_SELECTOR_CHANGE,
     EVENT_MERCH_STORAGE_CHANGE,
-    EVENT_MERCH_CARD_ACTION_MENU_TOGGLE,
+    EVENT_MAS_READY,
+    EVENT_AEM_ERROR,
+    EVENT_MAS_ERROR,
 } from './constants.js';
+import { VariantLayout } from './variants/variant-layout.js';
+import { hydrate } from './hydrate.js';
 
 export const MERCH_CARD_NODE_NAME = 'MERCH-CARD';
 export const MERCH_CARD = 'merch-card';
 
-const FOOTER_ROW_MIN_HEIGHT = 32; // as per the XD.
-
-const MINI_COMPARE_CHART = 'mini-compare-chart';
-
-const getRowMinHeightPropertyName = (index) =>
-    `--consonant-merch-card-footer-row-${index}-min-height`;
+// if merch cards does not initialise in 2s, it will dispatch mas:error event
+const MERCH_CARD_LOAD_TIMEOUT = 2000;
 
 export class MerchCard extends LitElement {
     static properties = {
         name: { type: String, attribute: 'name', reflect: true },
         variant: { type: String, reflect: true },
         size: { type: String, attribute: 'size', reflect: true },
-        badgeColor: { type: String, attribute: 'badge-color' },
-        borderColor: { type: String, attribute: 'border-color' },
+        badgeColor: { type: String, attribute: 'badge-color', reflect: true },
+        borderColor: { type: String, attribute: 'border-color', reflect: true },
         badgeBackgroundColor: {
             type: String,
             attribute: 'badge-background-color',
+            reflect: true,
         },
+        backgroundImage: { type: String, attribute: 'background-image', reflect: true },
         badgeText: { type: String, attribute: 'badge-text' },
         actionMenu: { type: Boolean, attribute: 'action-menu' },
-        actionMenuContent: { type: String, attribute: 'action-menu-content' },
         customHr: { type: Boolean, attribute: 'custom-hr' },
+        consonant: { type: Boolean, attribute: 'consonant' },
         detailBg: { type: String, attribute: 'detail-bg' },
         secureLabel: { type: String, attribute: 'secure-label' },
         checkboxLabel: { type: String, attribute: 'checkbox-label' },
@@ -89,19 +92,39 @@ export class MerchCard extends LitElement {
         merchOffer: { type: Object },
     };
 
-    static styles = [styles, ...sizeStyles()];
+    static styles = [styles, getVariantStyles(), ...sizeStyles()];
 
     customerSegment;
     marketSegment;
+    /**
+     * @type {VariantLayout>}
+     */
+    variantLayout;
+
+    #ready = false;
 
     constructor() {
         super();
         this.filters = {};
         this.types = '';
         this.selected = false;
+        this.handleAemFragmentEvents = this.handleAemFragmentEvents.bind(this);
     }
 
-    #container;
+    firstUpdated() {
+        this.variantLayout = getVariantLayout(this, false);
+        this.variantLayout?.connectedCallbackHook();
+        this.aemFragment?.updateComplete.catch(() => {
+            this.style.display = 'none';
+        });
+    }
+
+    willUpdate(changedProperties) {
+        if (changedProperties.has('variant') || !this.variantLayout) {
+            this.variantLayout = getVariantLayout(this);
+            this.variantLayout.connectedCallbackHook();
+        }
+    }
 
     updated(changedProperties) {
         if (
@@ -110,27 +133,31 @@ export class MerchCard extends LitElement {
         ) {
             this.style.border = this.computedBorderStyle;
         }
-        this.updateComplete.then(async () => {
-            const allPrices = Array.from(
-                this.querySelectorAll('span[is="inline-price"][data-wcs-osi]'),
-            );
-            // Filter out prices within the callout-content slot
-            const prices = allPrices.filter(
-                (price) => !price.closest('[slot="callout-content"]'),
-            );
-            await Promise.all(prices.map((price) => price.onceSettled()));
-            this.adjustTitleWidth();
-            if (!isMobile()) {
-              this.adjustMiniCompareBodySlots();
-              this.adjustMiniCompareFooterRows();
-            } else {
-              this.removeEmptyRows();
-            }
-        });
+        this.variantLayout?.postCardUpdateHook(this);
+    }
+
+    get theme() {
+        return this.closest('sp-theme');
+    }
+
+    get prices() {
+        return Array.from(
+            this.querySelectorAll('span[is="inline-price"][data-wcs-osi]'),
+        );
+    }
+
+    render() {
+        if (
+            !this.isConnected ||
+            !this.variantLayout ||
+            this.style.display === 'none'
+        )
+            return;
+        return this.variantLayout.renderLayout();
     }
 
     get computedBorderStyle() {
-        if (this.variant !== 'twp') {
+        if (!['twp', 'ccd-slice', 'ccd-suggested'].includes(this.variant)) {
             return `1px solid ${
                 this.borderColor ? this.borderColor : this.badgeBackgroundColor
             }`;
@@ -138,74 +165,8 @@ export class MerchCard extends LitElement {
         return '';
     }
 
-    get evergreen() {
-        return this.classList.contains('intro-pricing');
-    }
-
-    get stockCheckbox() {
-        return this.checkboxLabel
-            ? html`<label id="stock-checkbox">
-                    <input type="checkbox" @change=${this.toggleStockOffer}></input>
-                    <span></span>
-                    ${this.checkboxLabel}
-                </label>`
-            : '';
-    }
-
-    get cardImage() {
-        return html` <div class="image">
-            <slot name="bg-image"></slot>
-            ${this.badge}
-        </div>`;
-    }
-
-    get secureLabelFooter() {
-        const secureLabel = this.secureLabel
-            ? html`<span class="secure-transaction-label"
-                  >${this.secureLabel}</span
-              >`
-            : '';
-        return html`<footer>${secureLabel}<slot name="footer"></slot></footer>`;
-    }
-
-    get miniCompareFooter() {
-        const secureLabel = this.secureLabel
-            ? html`<slot name="secure-transaction-label">
-                  <span class="secure-transaction-label"
-                      >${this.secureLabel}</span
-                  ></slot
-              >`
-            : html`<slot name="secure-transaction-label"></slot>`;
-        return html`<footer>${secureLabel}<slot name="footer"></slot></footer>`;
-    }
-
-    get badge() {
-        let additionalStyles;
-        if (!this.badgeBackgroundColor || !this.badgeColor || !this.badgeText) {
-            return;
-        }
-        if (this.evergreen) {
-            additionalStyles = `border: 1px solid ${this.badgeBackgroundColor}; border-right: none;`;
-        }
-        return html`
-            <div
-                id="badge"
-                class="${this.variant}-badge"
-                style="background-color: ${this.badgeBackgroundColor};
-                    color: ${this.badgeColor};
-                    ${additionalStyles}"
-            >
-                ${this.badgeText}
-            </div>
-        `;
-    }
-
     get badgeElement() {
         return this.shadowRoot.getElementById('badge');
-    }
-
-    getContainer() {
-        return this.closest('[class*="-merch-cards"]') ?? this.parentElement;
     }
 
     get headingmMSlot() {
@@ -252,27 +213,6 @@ export class MerchCard extends LitElement {
         }
     }
 
-    toggleActionMenu(e) {
-        const retract = e?.type === 'mouseleave' ? true : undefined;
-        const actionMenuContentSlot = this.shadowRoot.querySelector(
-            'slot[name="action-menu-content"]',
-        );
-        if (!actionMenuContentSlot) return;
-        if (!retract) {
-            this.dispatchEvent(
-                new CustomEvent(EVENT_MERCH_CARD_ACTION_MENU_TOGGLE, {
-                    bubbles: true,
-                    composed: true,
-                    detail: {
-                        card: this.name,
-                        type: 'action-menu',
-                    },
-                }),
-            );
-        }
-        actionMenuContentSlot.classList.toggle('hidden', retract);
-    }
-
     handleQuantitySelection(event) {
         const elements = this.checkoutLinks;
         for (const element of elements) {
@@ -281,17 +221,16 @@ export class MerchCard extends LitElement {
     }
 
     get titleElement() {
-        const heading =
-            this.variant === 'special-offers'
-                ? this.querySelector('[slot="detail-m"]')
-                : this.querySelector('[slot="heading-xs"]');
-        return heading;
+        return this.querySelector(
+            this.variantLayout?.headingSelector || '.card-heading',
+        );
     }
 
     get title() {
         return this.titleElement?.textContent?.trim();
     }
 
+    /* c8 ignore next 3 */
     get description() {
         return this.querySelector('[slot="body-xs"]')?.textContent?.trim();
     }
@@ -317,229 +256,14 @@ export class MerchCard extends LitElement {
         this.filters = newFilters;
     }
 
+    /* c8 ignore next 3 */
     includes(text) {
         return this.textContent.match(new RegExp(text, 'i')) !== null;
     }
 
-    render() {
-        if (!this.isConnected || this.style.display === 'none') return;
-        switch (this.variant) {
-            case 'special-offers':
-                return this.renderSpecialOffer();
-            case 'segment':
-                return this.renderSegment();
-            case 'plans':
-                return this.renderPlans();
-            case 'catalog':
-                return this.renderCatalog();
-            case 'image':
-                return this.renderImage();
-            case 'product':
-                return this.renderProduct();
-            case 'inline-heading':
-                return this.renderInlineHeading();
-            case MINI_COMPARE_CHART:
-                return this.renderMiniCompareChart();
-            case 'ccd-action':
-                return this.renderCcdAction();
-            case 'twp':
-                return this.renderTwp();
-            default:
-                // this line should never hit, to check.
-                return this.renderProduct();
-        }
-    }
-
-    renderSpecialOffer() {
-        return html`${this.cardImage}
-            <div class="body">
-                <slot name="detail-m"></slot>
-                <slot name="heading-xs"></slot>
-                <slot name="body-xs"></slot>
-            </div>
-            ${this.evergreen
-                ? html`
-                      <div
-                          class="detail-bg-container"
-                          style="background: ${this['detailBg']}"
-                      >
-                          <slot name="detail-bg"></slot>
-                      </div>
-                  `
-                : html`
-                      <hr />
-                      ${this.secureLabelFooter}
-                  `}
-                  <slot></slot>`;
-    }
-
-    get promoBottom() {
-      return this.classList.contains('promo-bottom');
-    }
-
-    get startingAt() {
-      return this.classList.contains('starting-at');
-    }
-
-    renderSegment() {
-        return html` ${this.badge}
-            <div class="body">
-                <slot name="heading-xs"></slot>
-                <slot name="body-xxs"></slot>
-                ${!this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot>` : ''}
-                <slot name="body-xs"></slot>
-                ${this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot>` : ''}
-            </div>
-            <hr />
-            ${this.secureLabelFooter}`;
-    }
-
-    renderPlans() {
-        return html` ${this.badge}
-            <div class="body">
-                <slot name="icons"></slot>
-                <slot name="heading-xs"></slot>
-                <slot name="heading-m"></slot>
-                <slot name="body-xxs"></slot>
-                ${!this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot> ` : ''}
-                <slot name="body-xs"></slot>
-                ${this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot> ` : ''}  
-                ${this.stockCheckbox}
-            </div>
-            <slot name="quantity-select"></slot>
-            ${this.secureLabelFooter}`;
-    }
-
-    renderCatalog() {
-        return html` <div class="body">
-                <div class="top-section">
-                    <slot name="icons"></slot> ${this.badge}
-                    <div
-                        class="action-menu
-                        ${isMobileOrTablet() && this.actionMenu
-                            ? 'always-visible'
-                            : ''}
-                        ${!this.actionMenu ? 'hidden' : 'invisible'}"
-                        @click="${this.toggleActionMenu}"
-                    ></div>
-                </div>
-                <slot
-                    name="action-menu-content"
-                    class="action-menu-content
-                    ${!this.actionMenuContent ? 'hidden' : ''}"
-                    >${this.actionMenuContent}</slot
-                >
-                <slot name="heading-xs"></slot>
-                <slot name="heading-m"></slot>
-                <slot name="body-xxs"></slot>
-                ${!this.promoBottom
-                    ? html`<slot name="promo-text"></slot
-                          ><slot name="callout-content"></slot>`
-                    : ''}
-                <slot name="body-xs"></slot>
-                ${this.promoBottom
-                    ? html`<slot name="promo-text"></slot
-                          ><slot name="callout-content"></slot>`
-                    : ''}
-            </div>
-            ${this.secureLabelFooter}`;
-    }
-
-    renderImage() {
-        return html`${this.cardImage}
-            <div class="body">
-                <slot name="icons"></slot>
-                <slot name="heading-xs"></slot>
-                <slot name="body-xxs"></slot>
-                ${this.promoBottom ? html`<slot name="body-xs"></slot><slot name="promo-text"></slot>` : html`<slot name="promo-text"></slot><slot name="body-xs"></slot>`}
-            </div>
-            ${this.evergreen
-                ? html`
-                      <div
-                          class="detail-bg-container"
-                          style="background: ${this['detailBg']}"
-                      >
-                          <slot name="detail-bg"></slot>
-                      </div>
-                  `
-                : html`
-                      <hr />
-                      ${this.secureLabelFooter}
-                  `}`;
-    }
-
-    renderInlineHeading() {
-        return html` ${this.badge}
-            <div class="body">
-                <div class="top-section">
-                    <slot name="icons"></slot>
-                    <slot name="heading-xs"></slot>
-                </div>
-                <slot name="body-xs"></slot>
-            </div>
-            ${!this.customHr ? html`<hr />` : ''} ${this.secureLabelFooter}`;
-    }
-
-    renderProduct() {
-        return html` ${this.badge}
-            <div class="body">
-                <slot name="icons"></slot>
-                <slot name="heading-xs"></slot>
-                <slot name="body-xxs"></slot>
-                ${!this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot>` : ''}
-                <slot name="body-xs"></slot>
-                ${this.promoBottom ? html`<slot name="promo-text"></slot><slot name="callout-content"></slot>` : ''}
-            </div>
-            ${this.secureLabelFooter}`;
-    }
-
-    renderMiniCompareChart() {
-        // Define the HTML structure for the 'mini-compare-chart' variant here
-        const { badge } = this;
-        return html` <div class="top-section${badge ? ' badge' : ''}">
-                <slot name="icons"></slot> ${badge}
-            </div>
-            <slot name="heading-m"></slot>
-            <slot name="body-m"></slot>
-            <slot name="heading-m-price"></slot>
-            <slot name="body-xxs"></slot>
-            <slot name="price-commitment"></slot>
-            <slot name="offers"></slot>
-            <slot name="promo-text"></slot>
-            <slot name="callout-content"></slot>
-            ${this.miniCompareFooter}
-            <slot name="footer-rows"><slot name="body-s"></slot></slot>`;
-    }
-
-    renderTwp() {
-        return html`${this.badge}
-            <div class="top-section">
-                <slot name="icons"></slot>
-                <slot name="heading-xs"></slot>
-                <slot name="body-xs-top"></slot>
-            </div>
-            <div class="body">
-                <slot name="body-xs"></slot>
-            </div>
-            <footer><slot name="footer"></slot></footer>`;
-    }
-
-    renderCcdAction() {
-        return html` <div class="body">
-            <slot name="icons"></slot> ${this.badge}
-            <slot name="heading-xs"></slot>
-            <slot name="heading-m"></slot>
-            ${this.promoBottom ? html`<slot name="body-xs"></slot><slot name="promo-text"></slot>` : html`<slot name="promo-text"></slot><slot name="body-xs"></slot>`}
-            <footer><slot name="footer"></slot></footer>
-            <slot></slot>
-        </div>`;
-    }
-
     connectedCallback() {
         super.connectedCallback();
-        this.#container = this.getContainer();
         this.setAttribute('tabindex', this.getAttribute('tabindex') ?? '0');
-        this.addEventListener('mouseleave', this.toggleActionMenu);
         this.addEventListener(
             EVENT_MERCH_QUANTITY_SELECTOR_CHANGE,
             this.handleQuantitySelection,
@@ -556,10 +280,19 @@ export class MerchCard extends LitElement {
             'change',
             this.handleStorageChange,
         );
+
+        // aem-fragment logic
+        this.addEventListener(EVENT_AEM_ERROR, this.handleAemFragmentEvents);
+        this.addEventListener(EVENT_AEM_LOAD, this.handleAemFragmentEvents);
+
+        if (!this.aemFragment) {
+          setTimeout(() => this.checkReady(), 0);
+        }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.variantLayout.disconnectedCallbackHook();
 
         this.removeEventListener(
             EVENT_MERCH_QUANTITY_SELECTOR_CHANGE,
@@ -569,124 +302,71 @@ export class MerchCard extends LitElement {
             EVENT_MERCH_STORAGE_CHANGE,
             this.handleStorageChange,
         );
+        this.removeEventListener(EVENT_AEM_ERROR, this.handleAemFragmentEvents);
+        this.removeEventListener(EVENT_AEM_LOAD, this.handleAemFragmentEvents);
     }
 
     // custom methods
-
-    updateMiniCompareElementMinHeight(el, name) {
-        const elMinHeightPropertyName = `--consonant-merch-card-mini-compare-${name}-height`;
-        const height = Math.max(
-            0,
-            parseInt(window.getComputedStyle(el).height) || 0,
-        );
-        const maxMinHeight =
-            parseInt(
-                this.#container.style.getPropertyValue(elMinHeightPropertyName),
-            ) || 0;
-        if (height > maxMinHeight) {
-            this.#container.style.setProperty(
-                elMinHeightPropertyName,
-                `${height}px`,
-            );
+    async handleAemFragmentEvents(e) {
+        if (e.type === EVENT_AEM_ERROR) {
+            this.#fail('AEM fragment cannot be loaded');
+        }
+        if (e.type === EVENT_AEM_LOAD) {
+            if (e.target.nodeName === 'AEM-FRAGMENT') {
+                const fragment = e.detail;
+                await hydrate(fragment, this);
+                this.checkReady();
+            }
         }
     }
 
-    async adjustTitleWidth() {
-        if (!['segment', 'plans'].includes(this.variant)) return;
-        const cardWidth = this.getBoundingClientRect().width;
-        const badgeWidth =
-            this.badgeElement?.getBoundingClientRect().width || 0;
-        if (cardWidth === 0 || badgeWidth === 0) return;
-        this.style.setProperty(
-            '--consonant-merch-card-heading-xs-max-width',
-            `${Math.round(cardWidth - badgeWidth - 16)}px`, // consonant-merch-spacing-xs
+    #fail(error) {
+        this.dispatchEvent(
+            new CustomEvent(EVENT_MAS_ERROR, {
+                detail: error,
+                bubbles: true,
+                composed: true,
+            }),
         );
     }
 
-    async adjustMiniCompareBodySlots() {
-        if (this.variant !== MINI_COMPARE_CHART) return;
-        if (this.getBoundingClientRect().width === 0) return;
-
-        this.updateMiniCompareElementMinHeight(
-            this.shadowRoot.querySelector('.top-section'),
-            'top-section',
-        );
-
-        const slots = [
-            'heading-m',
-            'body-m',
-            'heading-m-price',
-            'price-commitment',
-            'offers',
-            'promo-text',
-            'callout-content',
-            'secure-transaction-label',
-        ];
-
-        slots.forEach((slot) =>
-            this.updateMiniCompareElementMinHeight(
-                this.shadowRoot.querySelector(`slot[name="${slot}"]`),
-                slot,
+    async checkReady() {
+        const successPromise = Promise.all(
+            [
+                ...this.querySelectorAll(
+                    'span[is="inline-price"][data-wcs-osi],a[is="checkout-link"][data-wcs-osi]',
+                ),
+            ].map((element) => element.onceSettled().catch(() => element)),
+        ).then((elements) =>
+            elements.every((el) =>
+                el.classList.contains('placeholder-resolved'),
             ),
         );
-        this.updateMiniCompareElementMinHeight(
-            this.shadowRoot.querySelector('footer'),
-            'footer',
+        const timeoutPromise = new Promise((resolve) =>
+            setTimeout(() => resolve(false), MERCH_CARD_LOAD_TIMEOUT),
         );
-
-        const badge = this.shadowRoot.querySelector(
-            '.mini-compare-chart-badge',
-        );
-        if (badge && badge.textContent !== '') {
-            this.#container.style.setProperty(
-                '--consonant-merch-card-mini-compare-top-section-mobile-height',
-                '32px',
+        const success = await Promise.race([successPromise, timeoutPromise]);
+        if (success === true) {
+            this.dispatchEvent(
+                new CustomEvent(EVENT_MAS_READY, {
+                    bubbles: true,
+                    composed: true,
+                }),
             );
+            return;
         }
+        this.#fail('Contains unresolved offers');
     }
 
-    adjustMiniCompareFooterRows() {
-        if (this.variant !== MINI_COMPARE_CHART) return;
-        if (this.getBoundingClientRect().width === 0) return;
-        const footerRows = this.querySelector('[slot="footer-rows"]');
-        [...footerRows.children].forEach((el, index) => {
-            const height = Math.max(
-                FOOTER_ROW_MIN_HEIGHT,
-                parseInt(window.getComputedStyle(el).height) || 0,
-            );
-            const maxMinHeight =
-                parseInt(
-                    this.#container.style.getPropertyValue(
-                        getRowMinHeightPropertyName(index + 1),
-                    ),
-                ) || 0;
-            if (height > maxMinHeight) {
-                this.#container.style.setProperty(
-                    getRowMinHeightPropertyName(index + 1),
-                    `${height}px`,
-                );
-            }
-        });
+    get aemFragment() {
+        return this.querySelector('aem-fragment');
     }
-
-    removeEmptyRows() {
-      if (this.variant !== MINI_COMPARE_CHART) return;
-      const footerRows = this.querySelectorAll('.footer-row-cell');
-      footerRows.forEach((row) => {
-          const rowDescription = row.querySelector('.footer-row-cell-description');
-          if (rowDescription) {
-              const isEmpty = !rowDescription.textContent.trim();
-              if (isEmpty) {
-                  row.remove();
-              }
-          }
-      });
-  }
 
     get storageOptions() {
         return this.querySelector('sp-radio-group#storage');
     }
 
+    /* c8 ignore next 9 */
     get storageSpecificOfferSelect() {
         const storageOption = this.storageOptions?.selected;
         if (storageOption) {
@@ -704,6 +384,7 @@ export class MerchCard extends LitElement {
             : this.querySelector('merch-offer-select');
     }
 
+    /* c8 ignore next 3 */
     get quantitySelect() {
         return this.querySelector('merch-quantity-select');
     }
@@ -730,6 +411,7 @@ export class MerchCard extends LitElement {
         );
     }
 
+    /* c8 ignore next 3 */
     get dynamicPrice() {
         return this.querySelector('[slot="price"]');
     }

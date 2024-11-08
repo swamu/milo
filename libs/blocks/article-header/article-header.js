@@ -32,14 +32,15 @@ function openPopup(e) {
 }
 
 async function buildAuthorInfo(authorEl, bylineContainer) {
-  const { href, textContent } = authorEl;
+  const { textContent } = authorEl;
+  const link = authorEl.href || authorEl.dataset.authorPage;
   const config = getConfig();
   const base = config.miloLibs || config.codeRoot;
   const authorImg = createTag('div', { class: 'article-author-image' });
   authorImg.style.backgroundImage = `url(${base}/blocks/article-header/adobe-logo.svg)`;
   bylineContainer.prepend(authorImg);
 
-  const doc = await validateAuthorUrl(href);
+  const doc = await validateAuthorUrl(link);
   if (!doc) {
     const p = createTag('p', null, textContent);
     authorEl.replaceWith(p);
@@ -48,7 +49,7 @@ async function buildAuthorInfo(authorEl, bylineContainer) {
 
   const img = doc.querySelector('img');
   if (img) {
-    img.setAttribute('alt', authorEl.textContent);
+    img.setAttribute('alt', textContent);
     authorImg.append(img);
     if (!img.complete) {
       img.addEventListener('load', () => {
@@ -107,20 +108,24 @@ async function buildSharing() {
     twitter: {
       'data-href': `https://www.twitter.com/share?&url=${url}&text=${title}`,
       'aria-label': 'share twitter',
+      tabindex: '0',
     },
     linkedin: {
       'data-type': 'LinkedIn',
       'data-href': `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}&summary=${description || ''}`,
       'aria-label': 'share linkedin',
+      tabindex: '0',
     },
     facebook: {
       'data-type': 'Facebook',
       'data-href': `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       'aria-label': 'share facebook',
+      tabindex: '0',
     },
     link: {
       id: 'copy-to-clipboard',
       'aria-label': 'copy to clipboard',
+      tabindex: '0',
     },
   };
 
@@ -197,7 +202,7 @@ export default async function init(blockEl) {
   bylineContainer.firstElementChild.classList.add('article-byline-info');
 
   const authorContainer = bylineContainer.firstElementChild.firstElementChild;
-  const authorEl = authorContainer.querySelector('a');
+  const authorEl = authorContainer.firstElementChild;
   authorContainer.classList.add('article-author');
 
   buildAuthorInfo(authorEl, bylineContainer);
