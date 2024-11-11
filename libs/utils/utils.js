@@ -197,7 +197,7 @@ export function getMetadata(name, doc = document) {
 
 const handleEntitlements = (() => {
   const { martech } = Object.fromEntries(PAGE_URL.searchParams);
-  if (martech === 'off') return () => { };
+  if (martech === 'off') return () => {};
   let entResolve;
   const entPromise = new Promise((resolve) => {
     entResolve = resolve;
@@ -311,7 +311,7 @@ export function localizeLink(
     const isLocalizedLink = path.startsWith(`/${LANGSTORE}`)
       || path.startsWith(`/${PREVIEW}`)
       || Object.keys(locales).some((loc) => loc !== '' && (path.startsWith(`/${loc}/`)
-        || path.endsWith(`/${loc}`)));
+      || path.endsWith(`/${loc}`)));
     if (isLocalizedLink) return processedHref;
     const urlPath = `${locale.prefix}${path}${url.search}${hash}`;
     return relative ? urlPath : `${url.origin}${urlPath}`;
@@ -646,27 +646,21 @@ const decorateCopyLink = (a, evt) => {
 };
 
 export function convertStageLinks({ anchors, config, hostname, href }) {
-  const { env, stageDomainsMap, locale } = config;
-  if (env?.name === 'prod' || !stageDomainsMap) return;
-  const matchedRules = Object.entries(stageDomainsMap)
+  if (config.env?.name === 'prod' || !config.stageDomainsMap) return;
+  const matchedRules = Object.entries(config.stageDomainsMap)
     .find(([domain]) => (new RegExp(domain)).test(href));
   if (!matchedRules) return;
   const [, domainsMap] = matchedRules;
   [...anchors].forEach((a) => {
-    const hasLocalePrefix = a.pathname.startsWith(locale.prefix);
-    const noLocaleLink = hasLocalePrefix ? a.href.replace(locale.prefix, '') : a.href;
     const matchedDomain = Object.keys(domainsMap)
-      .find((domain) => (new RegExp(domain)).test(noLocaleLink));
+      .find((domain) => (new RegExp(domain)).test(a.href));
     if (!matchedDomain) return;
-    const convertedLink = noLocaleLink.replace(
+    a.href = a.href.replace(
       new RegExp(matchedDomain),
       domainsMap[matchedDomain] === 'origin'
         ? `${matchedDomain.includes('https') ? 'https://' : ''}${hostname}`
         : domainsMap[matchedDomain],
     );
-    const convertedUrl = new URL(convertedLink);
-    convertedUrl.pathname = `${hasLocalePrefix ? locale.prefix : ''}${convertedUrl.pathname}`;
-    a.href = convertedUrl.toString();
     if (/(\.page|\.live).*\.html(?=[?#]|$)/.test(a.href)) a.href = a.href.replace(/\.html(?=[?#]|$)/, '');
   });
 }
@@ -762,7 +756,7 @@ function decorateHeader() {
   }
   header.className = headerMeta || 'global-navigation';
   const metadataConfig = getMetadata('breadcrumbs')?.toLowerCase()
-    || getConfig().breadcrumbs;
+  || getConfig().breadcrumbs;
   if (metadataConfig === 'off') return;
   const baseBreadcrumbs = getMetadata('breadcrumbs-base')?.length;
 
@@ -824,8 +818,8 @@ async function decoratePlaceholders(area, config) {
   area.dataset.hasPlaceholders = 'true';
   const placeholderPath = `${config.locale?.contentRoot}/placeholders.json`;
   placeholderRequest = placeholderRequest
-    || customFetch({ resource: placeholderPath, withCacheRules: true })
-      .catch(() => ({}));
+  || customFetch({ resource: placeholderPath, withCacheRules: true })
+    .catch(() => ({}));
   const { decoratePlaceholderArea } = await import('../features/placeholders.js');
   await decoratePlaceholderArea({ placeholderPath, placeholderRequest, nodes });
 }
@@ -1004,13 +998,6 @@ export async function loadIms() {
   return imsLoaded;
 }
 
-const getPageNameForAnalytics = () => {
-  const { host, pathname } = new URL(window.location.href);
-  const { locale } = getConfig();
-  const [modifiedPath, _] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.'); // eslint-disable-line
-  return host.replace('www.', '').concat(':').concat(modifiedPath);
-};
-
 export async function loadMartech({
   persEnabled = false,
   persManifests = [],
@@ -1030,124 +1017,9 @@ export async function loadMartech({
   window.targetGlobalSettings = { bodyHidingEnabled: false };
   loadIms().catch(() => {});
 
-  // const { default: initMartech } = await import('../martech/martech.js');
-  // await initMartech({ persEnabled, persManifests, postLCP });
+  const { default: initMartech } = await import('../martech/martech.js');
+  await initMartech({ persEnabled, persManifests, postLCP });
 
-  // return true;
-
-  // Using default values for now; we'll write out the business logic later
-  const dataStreamId = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
-  const reportsuiteId = ['adbadobenonacdcprod', 'adbadobeprototype'];
-  const atPropertyVal = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
-
-  const pageName = getPageNameForAnalytics();
-
-  const edgeConfigOverrides = {
-    com_adobe_analytics: { reportSuites: reportsuiteId },
-    com_adobe_target: { propertyToken: atPropertyVal },
-  };
-
-  // const isLoggedIn = window.performance.getEntriesByType('navigation')?.[0]
-  //   ?.serverTiming
-  //   ?.find((entry) => entry.name === 'sis')
-  //   ?.description === '1';
-
-  const secidCookie = document.cookie
-    .split(';')
-    .map((x) => x.trim().split('='))
-    .find(([key, _]) => key === 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg'); // eslint-ignore-line
-
-  const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
-
-  const getEcid = async () => {
-    try {
-      const resp = await fetch('https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2');
-      const data = await resp.json();
-      return data?.d_mid;
-    } catch {
-      return null;
-    }
-  };
-  const ecid = clean?.[0]?.replace('MCMID|', '') ?? await getEcid() ?? '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
-
-  const getMarctechCookies = () => {
-    const entries = [];
-    const filteredKeys = (key) => key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity' || key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster';
-    document.cookie
-      .split(';')
-      .map((x) => x.trim().split('='))
-      .filter(([key, _]) => filteredKeys(key))
-      .forEach((d) => entries.push({
-        key: d[0], value: d[1]
-      }));
-      
-      return entries;
-  }
-
-  const body = {
-    meta: { configOverrides: edgeConfigOverrides },
-    event: {
-      xdm: {
-        identityMap: {
-          adobeGUID: [
-            {
-              id: ecid,
-              primary: true,
-            },
-          ],
-        },
-        web: {
-          webPageDetails: {
-            URL: window.location.href,
-            siteSection: 'www.adobe.com',
-            server: 'www.adobe.com',
-            isErrorPage: false,
-            isHomePage: false,
-            name: pageName,
-            pageViews: { value: 1 },
-          },
-          webReferrer: { URL: document.referrer },
-        },
-        timestamp: new Date().toISOString(),
-        eventType: 'web.webpagedetails.pageViews',
-      },
-    },
-    query: {
-      identity: {
-        fetch: [
-          "ECID"
-        ]
-      },
-      personalization: {
-        schemas: [
-          "https://ns.adobe.com/personalization/default-content-item",
-          "https://ns.adobe.com/personalization/html-content-item",
-          "https://ns.adobe.com/personalization/json-content-item",
-          "https://ns.adobe.com/personalization/redirect-item",
-          "https://ns.adobe.com/personalization/dom-action"
-        ],
-        decisionScopes: [
-          "__view__"
-        ]
-      }
-    },
-    meta:{
-      state:{
-         domain:"localhost",
-         cookiesEnabled:true,
-         entries: getMarctechCookies()
-      }
-   }
-
-  };
-
-  const targetResp = await fetch(`https://sstats.adobe.com/ee/v2/interact?dataStreamId=${dataStreamId}`, {
-    method: 'POST',
-    // headers: { 'x-gw-ims-org-id': '9E1005A551ED61CA0A490D45@AdobeOrg' },
-    body: JSON.stringify(body),
-  });
-
-  console.log(targetResp);
   return true;
 }
 

@@ -194,7 +194,7 @@ const loadMartechFiles = async (config) => {
         .then(() => {
           if (window.adobeIMS.isSignedInUser()) setupEntitlementCallback();
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     setDeep(
@@ -209,10 +209,10 @@ const loadMartechFiles = async (config) => {
         ? '/marketingtech'
         : 'https://assets.adobedtm.com'
     ) + (
-      config.env.name === 'prod'
-        ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
-        : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
-    );
+        config.env.name === 'prod'
+          ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
+          : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
+      );
     loadLink(launchUrl, { as: 'script', rel: 'preload' });
 
     window.marketingtech = {
@@ -245,10 +245,10 @@ const loadMartechFiles = async (config) => {
         ? ''
         : 'https://www.adobe.com'
     ) + (
-      config.env.name === 'prod'
-        ? '/marketingtech/main.standard.min.js'
-        : '/marketingtech/main.standard.qa.min.js'
-    ));
+        config.env.name === 'prod'
+          ? '/marketingtech/main.standard.min.js'
+          : '/marketingtech/main.standard.qa.min.js'
+      ));
     // eslint-disable-next-line no-underscore-dangle
     window._satellite.track('pageload');
   };
@@ -257,8 +257,127 @@ const loadMartechFiles = async (config) => {
   return filesLoadedPromise;
 };
 
+const getPageNameForAnalytics = () => {
+  const { host, pathname } = new URL(window.location.href);
+  const { locale } = getConfig();
+  const [modifiedPath, _] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.'); // eslint-disable-line
+  return host.replace('www.', '').concat(':').concat(modifiedPath);
+};
+
+const getMarctechCookies = () => {
+  const entries = [];
+  const filteredKeys = (key) => key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity' || key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster';
+  document.cookie
+    .split(';')
+    .map((x) => x.trim().split('='))
+    .filter(([key, _]) => filteredKeys(key))
+    .forEach((d) => entries.push({
+      key: d[0], value: d[1]
+    }));
+
+  return entries;
+}
+
+export async function loadInteractCall() {
+  const dataStreamId = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
+  const reportsuiteId = ['adbadobenonacdcprod', 'adbadobeprototype'];
+  const atPropertyVal = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
+
+  const secidCookie = document.cookie
+    .split(';')
+    .map((x) => x.trim().split('='))
+    .find(([key, _]) => key === 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg'); // eslint-ignore-line
+
+  const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
+
+  const getEcid = async () => {
+    try {
+      const resp = await fetch('https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2');
+      const data = await resp.json();
+      return data?.d_mid;
+    } catch {
+      return null;
+    }
+  };
+  const ecid = clean?.[0]?.replace('MCMID|', '') ?? await getEcid() ?? '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+
+  const pageName = getPageNameForAnalytics();
+
+  const edgeConfigOverrides = {
+    com_adobe_analytics: { reportSuites: reportsuiteId },
+    com_adobe_target: { propertyToken: atPropertyVal },
+  };
+
+  const body = {
+    meta: { configOverrides: edgeConfigOverrides },
+    event: {
+      xdm: {
+        identityMap: {
+          adobeGUID: [
+            {
+              id: ecid,
+              primary: true,
+            },
+          ],
+        },
+        web: {
+          webPageDetails: {
+            URL: window.location.href,
+            siteSection: 'www.adobe.com',
+            server: 'www.adobe.com',
+            isErrorPage: false,
+            isHomePage: false,
+            name: pageName,
+            pageViews: { value: 1 },
+          },
+          webReferrer: { URL: document.referrer },
+        },
+        timestamp: new Date().toISOString(),
+        eventType: 'web.webpagedetails.pageViews',
+      },
+    },
+    query: {
+      identity: {
+        fetch: [
+          "ECID"
+        ]
+      },
+      personalization: {
+        schemas: [
+          "https://ns.adobe.com/personalization/default-content-item",
+          "https://ns.adobe.com/personalization/html-content-item",
+          "https://ns.adobe.com/personalization/json-content-item",
+          "https://ns.adobe.com/personalization/redirect-item",
+          "https://ns.adobe.com/personalization/dom-action"
+        ],
+        decisionScopes: [
+          "__view__"
+        ]
+      }
+    },
+    meta: {
+      state: {
+        domain: "localhost",
+        cookiesEnabled: true,
+        entries: getMarctechCookies()
+      }
+    }
+
+  };
+  const targetResp = await fetch(`https://sstats.adobe.com/ee/v2/interact?dataStreamId=${dataStreamId}`, {
+    method: 'POST',
+    // headers: { 'x-gw-ims-org-id': '9E1005A551ED61CA0A490D45@AdobeOrg' },
+    body: JSON.stringify(body),
+  });
+
+  console.log(targetResp);
+  return true;
+}
+
 export default async function init() {
   const config = getConfig();
+  await loadInteractCall();
+
   const martechPromise = loadMartechFiles(config);
   return martechPromise;
 }
