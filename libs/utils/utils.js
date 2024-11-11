@@ -197,7 +197,7 @@ export function getMetadata(name, doc = document) {
 
 const handleEntitlements = (() => {
   const { martech } = Object.fromEntries(PAGE_URL.searchParams);
-  if (martech === 'off') return () => {};
+  if (martech === 'off') return () => { };
   let entResolve;
   const entPromise = new Promise((resolve) => {
     entResolve = resolve;
@@ -775,6 +775,16 @@ function decorateHeader() {
   if (promo?.length) header.classList.add('has-promo');
 }
 
+async function decorateIcons(area, config) {
+  const icons = area.querySelectorAll('span.icon');
+  if (icons.length === 0) return;
+  const { base } = config;
+  loadStyle(`${base}/features/icons/icons.css`);
+  loadLink(`${base}/img/icons/icons.svg`, { rel: 'preload', as: 'fetch', crossorigin: 'anonymous' });
+  const { default: loadIcons } = await import('../features/icons/icons.js');
+  await loadIcons(icons, config);
+}
+
 export async function customFetch({ resource, withCacheRules }) {
   const options = {};
   if (withCacheRules) {
@@ -994,6 +1004,13 @@ export async function loadIms() {
   return imsLoaded;
 }
 
+const getPageNameForAnalytics = () => {
+  const { host, pathname } = new URL(window.location.href);
+  const { locale } = getConfig();
+  const [modifiedPath, _] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.'); // eslint-disable-line
+  return host.replace('www.', '').concat(':').concat(modifiedPath);
+};
+
 export async function loadMartech({
   persEnabled = false,
   persManifests = [],
@@ -1013,9 +1030,124 @@ export async function loadMartech({
   window.targetGlobalSettings = { bodyHidingEnabled: false };
   loadIms().catch(() => {});
 
-  const { default: initMartech } = await import('../martech/martech.js');
-  await initMartech({ persEnabled, persManifests, postLCP });
+  // const { default: initMartech } = await import('../martech/martech.js');
+  // await initMartech({ persEnabled, persManifests, postLCP });
 
+  // return true;
+
+  // Using default values for now; we'll write out the business logic later
+  const dataStreamId = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
+  const reportsuiteId = ['adbadobenonacdcprod', 'adbadobeprototype'];
+  const atPropertyVal = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
+
+  const pageName = getPageNameForAnalytics();
+
+  const edgeConfigOverrides = {
+    com_adobe_analytics: { reportSuites: reportsuiteId },
+    com_adobe_target: { propertyToken: atPropertyVal },
+  };
+
+  // const isLoggedIn = window.performance.getEntriesByType('navigation')?.[0]
+  //   ?.serverTiming
+  //   ?.find((entry) => entry.name === 'sis')
+  //   ?.description === '1';
+
+  const secidCookie = document.cookie
+    .split(';')
+    .map((x) => x.trim().split('='))
+    .find(([key, _]) => key === 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg'); // eslint-ignore-line
+
+  const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
+
+  const getEcid = async () => {
+    try {
+      const resp = await fetch('https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2');
+      const data = await resp.json();
+      return data?.d_mid;
+    } catch {
+      return null;
+    }
+  };
+  const ecid = clean?.[0]?.replace('MCMID|', '') ?? await getEcid() ?? '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+
+  const getMarctechCookies = () => {
+    const entries = [];
+    const filteredKeys = (key) => key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity' || key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster';
+    document.cookie
+      .split(';')
+      .map((x) => x.trim().split('='))
+      .filter(([key, _]) => filteredKeys(key))
+      .forEach((d) => entries.push({
+        key: d[0], value: d[1]
+      }));
+      
+      return entries;
+  }
+
+  const body = {
+    meta: { configOverrides: edgeConfigOverrides },
+    event: {
+      xdm: {
+        identityMap: {
+          adobeGUID: [
+            {
+              id: ecid,
+              primary: true,
+            },
+          ],
+        },
+        web: {
+          webPageDetails: {
+            URL: window.location.href,
+            siteSection: 'www.adobe.com',
+            server: 'www.adobe.com',
+            isErrorPage: false,
+            isHomePage: false,
+            name: pageName,
+            pageViews: { value: 1 },
+          },
+          webReferrer: { URL: document.referrer },
+        },
+        timestamp: new Date().toISOString(),
+        eventType: 'web.webpagedetails.pageViews',
+      },
+    },
+    query: {
+      identity: {
+        fetch: [
+          "ECID"
+        ]
+      },
+      personalization: {
+        schemas: [
+          "https://ns.adobe.com/personalization/default-content-item",
+          "https://ns.adobe.com/personalization/html-content-item",
+          "https://ns.adobe.com/personalization/json-content-item",
+          "https://ns.adobe.com/personalization/redirect-item",
+          "https://ns.adobe.com/personalization/dom-action"
+        ],
+        decisionScopes: [
+          "__view__"
+        ]
+      }
+    },
+    meta:{
+      state:{
+         domain:"localhost",
+         cookiesEnabled:true,
+         entries: getMarctechCookies()
+      }
+   }
+
+  };
+
+  const targetResp = await fetch(`https://sstats.adobe.com/ee/v2/interact?dataStreamId=${dataStreamId}`, {
+    method: 'POST',
+    // headers: { 'x-gw-ims-org-id': '9E1005A551ED61CA0A490D45@AdobeOrg' },
+    body: JSON.stringify(body),
+  });
+
+  console.log(targetResp);
   return true;
 }
 
@@ -1185,8 +1317,9 @@ function decorateDocumentExtras() {
   decorateHeader();
 }
 
-async function documentPostSectionLoading(area, config) {
+async function documentPostSectionLoading(config) {
   decorateFooterPromo();
+
   const appendage = getMetadata('title-append');
   if (appendage) {
     import('../features/title-append/title-append.js').then((module) => module.default(appendage));
@@ -1250,18 +1383,6 @@ async function resolveInlineFrags(section) {
   section.preloadLinks = newlyDecoratedSection.preloadLinks;
 }
 
-export function setIconsIndexClass(icons) {
-  [...icons].forEach((icon) => {
-    const parent = icon.parentNode;
-    const children = parent.childNodes;
-    const nodeIndex = [...children].indexOf.call(children, icon);
-    let indexClass = (nodeIndex === children.length - 1) ? 'last' : 'middle';
-    if (nodeIndex === 0) indexClass = 'first';
-    if (children.length === 1) indexClass = 'only';
-    icon.classList.add(`node-index-${indexClass}`);
-  });
-}
-
 async function processSection(section, config, isDoc) {
   await resolveInlineFrags(section);
   const firstSection = section.el.dataset.idx === '0';
@@ -1269,6 +1390,7 @@ async function processSection(section, config, isDoc) {
   preloadBlockResources(section.preloadLinks);
   await Promise.all([
     decoratePlaceholders(section.el, config),
+    decorateIcons(section.el, config),
   ]);
   const loadBlocks = [...stylePromises];
   if (section.preloadLinks.length) {
@@ -1301,11 +1423,6 @@ export async function loadArea(area = document) {
     decorateDocumentExtras();
   }
 
-  const allIcons = area.querySelectorAll('span.icon');
-  if (allIcons.length) {
-    setIconsIndexClass(allIcons);
-  }
-
   const sections = decorateSections(area, isDoc);
 
   const areaBlocks = [];
@@ -1318,20 +1435,13 @@ export async function loadArea(area = document) {
     });
   }
 
-  if (allIcons.length) {
-    const { default: loadIcons, decorateIcons } = await import('../features/icons/icons.js');
-    await decorateIcons(area, allIcons, config);
-    await loadIcons(allIcons);
-  }
-
   const currentHash = window.location.hash;
   if (currentHash) {
     scrollToHashedElement(currentHash);
   }
 
-  if (isDoc) {
-    await documentPostSectionLoading(area, config);
-  }
+  if (isDoc) await documentPostSectionLoading(config);
+
   await loadDeferred(area, areaBlocks, config);
 }
 
