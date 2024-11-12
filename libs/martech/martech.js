@@ -467,15 +467,20 @@ export async function loadInteractCall(config) {
   });
 
   const json = await targetResp.json();
+  const resultPayload = a1.find(d => d.type === 'personalization:decisions')?.payload;
+  console.log(resultPayload);
+
+
 
   window.dispatchEvent(new CustomEvent(ALLOY_SEND_EVENT, {
     detail: {
       type: 'propositionFetch',
-      result: json,
+      result: {
+        propositions: resultPayload
+      },
     }
   }));
 
-  console.log(json);
 
 
   return true;
