@@ -261,107 +261,114 @@ const loadMartechFiles = async (config) => {
   return filesLoadedPromise;
 };
 
-const getPageNameForAnalytics = () => {
-  const { host, pathname } = new URL(window.location.href);
-  const { locale } = getConfig();
-  const [modifiedPath, _] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.'); // eslint-disable-line
-  return host.replace('www.', '').concat(':').concat(modifiedPath);
-};
+export async function loadAnalyticsAndInteractionData(config) {
+  // Constants for URLs and Configurations
+  const DATA_STREAM_ID = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
+  const REPORT_SUITES_ID = ['adbadobenonacdcprod', 'adbadobeprototype'];
+  const AT_PROPERTY_VAL = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
+  const ECID_URL = 'https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2';
+  const TARGET_API_URL = 'https://sstats.adobe.com/ee/v2/interact';
 
-const getMarctechCookies = () => {
-  const entries = [];
-  const filteredKeys = (key) => key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity' || key === 'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster';
-  document.cookie
-    .split(';')
-    .map((x) => x.trim().split('='))
-    .filter(([key, _]) => filteredKeys(key))
-    .forEach((d) => entries.push({
-      key: d[0], value: d[1]
-    }));
+  // Cookie names
+  const AMCV_COOKIE_NAME = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
+  const KNDCTR_COOKIE_KEYS = [
+    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
+    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster'
+  ];
 
-  return entries;
-}
+  // Screen and Viewport Constants
+  const SCREEN_WIDTH = window.screen.width;
+  const SCREEN_HEIGHT = window.screen.height;
+  const SCREEN_ORIENTATION = (window.innerWidth > window.innerHeight) ? "landscape" : "portrait";
+  const VIEWPORT_WIDTH = window.innerWidth;
+  const VIEWPORT_HEIGHT = window.innerHeight;
 
-export async function loadInteractCall(config) {
+  // Date and Time Constants
+  const CURRENT_DATE = new Date();
+  const LOCAL_TIME = CURRENT_DATE.toISOString();
+  const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
+
+  // Utility function to parse cookies by key
+  const getCookieValue = (key) => {
+    const cookie = document.cookie.split(';').map(x => x.trim().split('=')).find(([k]) => k === key);
+    return cookie ? cookie[1] : null;
+  };
+
+  // Function to parse the MarTech cookies
+  const getMarctechCookies = () => {
+    return document.cookie
+      .split(';')
+      .map(x => x.trim().split('='))
+      .filter(([key]) => KNDCTR_COOKIE_KEYS.includes(key))
+      .map(([key, value]) => ({ key, value }));
+  };
+
+  // Function to get ECID from the URL or cookies
+  const getEcid = async () => {
+    const secidCookie = getCookieValue(AMCV_COOKIE_NAME);
+    const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
+    if (clean) return clean[0].replace('MCMID|', '');
+
+    try {
+      const resp = await fetch(ECID_URL);
+      const data = await resp.json();
+      return data?.d_mid || '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+    } catch {
+      return '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+    }
+  };
+
+  // Function to get page name for analytics
+  const getPageNameForAnalytics = () => {
+    const { host, pathname } = new URL(window.location.href);
+    const { locale } = getConfig();
+    const [modifiedPath] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.');
+    return host.replace('www.', '') + ':' + modifiedPath;
+  };
+
+  // Main function logic for loading analytics and interaction data
   const isLoggedIn = window.performance.getEntriesByType('navigation')?.[0]
     ?.serverTiming
     ?.find((entry) => entry.name === 'sis')
     ?.description === '1';
 
-  const dataStreamId = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
-  const reportsuiteId = ['adbadobenonacdcprod', 'adbadobeprototype'];
-  const atPropertyVal = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
-
-  const secidCookie = document.cookie
-    .split(';')
-    .map((x) => x.trim().split('='))
-    .find(([key, _]) => key === 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg'); // eslint-ignore-line
-
-  const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
-
-  const getEcid = async () => {
-    try {
-      const resp = await fetch('https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2');
-      const data = await resp.json();
-      return data?.d_mid;
-    } catch {
-      return null;
-    }
-  };
-  const ecid = clean?.[0]?.replace('MCMID|', '') ?? await getEcid() ?? '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
-
   const pageName = getPageNameForAnalytics();
+  const ecid = await getEcid();
 
   const edgeConfigOverrides = {
-    com_adobe_analytics: { reportSuites: reportsuiteId },
-    com_adobe_target: { propertyToken: atPropertyVal },
+    com_adobe_analytics: { reportSuites: REPORT_SUITES_ID },
+    com_adobe_target: { propertyToken: AT_PROPERTY_VAL },
   };
 
-  // const prevpageName = document.cookies('gpv') || '';
+  const updatedContext = {
+    device: {
+      screenHeight: SCREEN_HEIGHT,
+      screenWidth: SCREEN_WIDTH,
+      screenOrientation: SCREEN_ORIENTATION,
+    },
+    environment: {
+      type: "browser",
+      browserDetails: {
+        viewportWidth: VIEWPORT_WIDTH,
+        viewportHeight: VIEWPORT_HEIGHT,
+      },
+    },
+    placeContext: {
+      localTime: LOCAL_TIME,
+      localTimezoneOffset: LOCAL_TIMEZONE_OFFSET,
+    },
+  };
 
+  const prevPageName = getCookieValue('gpv');
 
-  // const prevPageName = document.cookie
-  //   .split(';')
-  //   .map((x) => x.trim().split('='))
-  //   .find(([key, _]) => key === 'gpv');
-
-  // setTimeout(function () {
-  //   const t = new Date();
-  //   t.setTime(t.getTime() + 1800000);
-  // const cookies  = document.cookie + ;
-  // cookie.set('gpv', pageName, {
-  //   expires: t,
-  //   domain: '.adobe.com',
-  //   path: '/',
-  // });
-  // }, 500);
+  console.log('updatedContext', updatedContext);
 
   const body = {
     event: {
       xdm: {
-        device: {
-          screenHeight: 1440,
-          screenWidth: 3440,
-          screenOrientation: "landscape",
-        },
-        environment: {
-          type: "browser",
-          browserDetails: {
-            viewportWidth: 3440,
-            viewportHeight: 1440,
-          },
-        },
-        placeContext: {
-          localTime: "2022-03-22T22:45:21.193-06:00",
-          localTimezoneOffset: 360,
-        },
+        ...updatedContext,
         identityMap: {
-          ECID: [
-            {
-              id: ecid,
-              primary: true,
-            },
-          ],
+          ECID: [{ id: ecid, primary: true }],
         },
         web: {
           webPageDetails: {
@@ -376,9 +383,7 @@ export async function loadInteractCall(config) {
           webInteraction: {
             name: "Martech-API",
             type: "other",
-            linkClicks: {
-              value: 1
-            }
+            linkClicks: { value: 1 },
           },
           webReferrer: { URL: document.referrer },
         },
@@ -389,45 +394,27 @@ export async function loadInteractCall(config) {
         _adobe_corpnew: {
           marketingtech: {
             adobe: {
-              alloy: {
-                edgeConfigIdLaunch: "",
-                approach: "martech-API",
-                edgeConfigId: ",",
-              },
+              alloy: { approach: "martech-API" },
             },
           },
           __adobe: {
             target: {
               is404: false,
               authState: "loggedOut",
-              hitType: "pageView",
+              hitType: "propositionFetch",
               isMilo: true,
               adobeLocale: config.locale.ietf,
               hasGnav: true,
             },
           },
           digitalData: {
-            page: {
-              pageInfo: {
-                language: config.locale.ietf,
-              },
-            },
-            diagnostic: {
-              franklin: {
-                implementation: "milo",
-              },
-            },
-            previousPage: {
-              pageInfo: {
-                pageName: '',
-              },
-            },
+            page: { pageInfo: { language: config.locale.ietf } },
+            diagnostic: { franklin: { implementation: "milo" } },
+            previousPage: { pageInfo: { pageName: prevPageName } },
             primaryUser: {
               primaryProfile: {
                 profileInfo: {
                   authState: isLoggedIn ? "authenticated" : "loggedOut",
-                  entitlementCreativeCloud: "unknown",
-                  entitlementStatusCreativeCloud: "unknown",
                   returningStatus: "Repeat",
                 },
               },
@@ -437,9 +424,7 @@ export async function loadInteractCall(config) {
       },
     },
     query: {
-      identity: {
-        fetch: ["ECID"],
-      },
+      identity: { fetch: ["ECID"] },
       personalization: {
         schemas: [
           "https://ns.adobe.com/personalization/default-content-item",
@@ -460,9 +445,9 @@ export async function loadInteractCall(config) {
       },
     },
   };
-  const targetResp = await fetch(`https://sstats.adobe.com/ee/v2/interact?dataStreamId=${dataStreamId}`, {
+
+  const targetResp = await fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
     method: 'POST',
-    // headers: { 'x-gw-ims-org-id': '9E1005A551ED61CA0A490D45@AdobeOrg' },
     body: JSON.stringify(body),
   });
 
@@ -470,25 +455,21 @@ export async function loadInteractCall(config) {
   const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
   console.log('resultPayload', resultPayload);
 
-
-
   window.dispatchEvent(new CustomEvent(ALLOY_SEND_EVENT, {
     detail: {
       type: 'propositionFetch',
       result: {
-        propositions: resultPayload
+        propositions: resultPayload,
       },
-    }
+    },
   }));
-
-
 
   return true;
 }
 
 export default async function init() {
   const config = getConfig();
-  await loadInteractCall(config);
+  await loadAnalyticsAndInteractionData(config);
 
   const martechPromise = loadMartechFiles(config);
   return martechPromise;
