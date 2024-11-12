@@ -383,7 +383,7 @@ export async function loadInteractCall(config) {
           webReferrer: { URL: document.referrer },
         },
         timestamp: new Date().toISOString(),
-        eventType: "web.webpagedetails.pageViews",
+        eventType: "decisioning.propositionFetch",
       },
       data: {
         _adobe_corpnew: {
@@ -466,9 +466,9 @@ export async function loadInteractCall(config) {
     body: JSON.stringify(body),
   });
 
-  const json = await targetResp.json();
-  const resultPayload = json?.handle.find(d => d.type === 'personalization:decisions')?.payload;
-  console.log(resultPayload);
+  const targetRespJson = await targetResp.json();
+  const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
+  console.log('resultPayload', resultPayload);
 
 
 
