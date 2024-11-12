@@ -202,7 +202,10 @@ const loadMartechFiles = async (config) => {
       'alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language',
       { locale: config.locale.prefix.replace('/', ''), langCode: config.locale.ietf },
     );
+
     setDeep(window, 'digitalData.diagnostic.franklin.implementation', 'milo');
+
+    // console.log(window)
 
     const launchUrl = config.env.consumer?.marTechUrl || (
       isProxied()
@@ -211,8 +214,9 @@ const loadMartechFiles = async (config) => {
     ) + (
         config.env.name === 'prod'
           ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
-          : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
+          : '/d4d114c60e50/a0e989131fd5/launch-0f4ac335f569-development.min.js'
       );
+    // : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
     loadLink(launchUrl, { as: 'script', rel: 'preload' });
 
     window.marketingtech = {
@@ -278,7 +282,12 @@ const getMarctechCookies = () => {
   return entries;
 }
 
-export async function loadInteractCall() {
+export async function loadInteractCall(config) {
+  const isLoggedIn = window.performance.getEntriesByType('navigation')?.[0]
+    ?.serverTiming
+    ?.find((entry) => entry.name === 'sis')
+    ?.description === '1';
+
   const dataStreamId = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
   const reportsuiteId = ['adbadobenonacdcprod', 'adbadobeprototype'];
   const atPropertyVal = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
@@ -308,9 +317,44 @@ export async function loadInteractCall() {
     com_adobe_target: { propertyToken: atPropertyVal },
   };
 
+  // const prevpageName = document.cookies('gpv') || '';
+
+
+  const prevPageName = document.cookie
+    .split(';')
+    .map((x) => x.trim().split('='))
+    .find(([key, _]) => key === 'gpv');
+
+  setTimeout(function () {
+    const t = new Date();
+    t.setTime(t.getTime() + 1800000);
+    // const cookies  = document.cookie + ;
+    // cookie.set('gpv', pageName, {
+    //   expires: t,
+    //   domain: '.adobe.com',
+    //   path: '/',
+    // });
+  }, 500);
+
   const body = {
     event: {
       xdm: {
+        device: {
+          screenHeight: 1440,
+          screenWidth: 3440,
+          screenOrientation: "landscape",
+        },
+        environment: {
+          type: "browser",
+          browserDetails: {
+            viewportWidth: 3440,
+            viewportHeight: 1440,
+          },
+        },
+        placeContext: {
+          localTime: "2022-03-22T22:45:21.193-06:00",
+          localTimezoneOffset: 360,
+        },
         identityMap: {
           ECID: [
             {
@@ -351,14 +395,14 @@ export async function loadInteractCall() {
               authState: "loggedOut",
               hitType: "pageView",
               isMilo: true,
-              adobeLocale: "en-IN",
+              adobeLocale: config.locale.ietf,
               hasGnav: true,
             },
           },
           digitalData: {
             page: {
               pageInfo: {
-                language: "",
+                language: config.locale.ietf,
               },
             },
             diagnostic: {
@@ -368,13 +412,13 @@ export async function loadInteractCall() {
             },
             previousPage: {
               pageInfo: {
-                pageName: "",
+                pageName: prevPageName,
               },
             },
             primaryUser: {
               primaryProfile: {
                 profileInfo: {
-                  authState: "loggedOut",
+                  authState: isLoggedIn ? "authenticated" :"loggedOut",
                   entitlementCreativeCloud: "unknown",
                   entitlementStatusCreativeCloud: "unknown",
                   returningStatus: "Repeat",
@@ -415,13 +459,22 @@ export async function loadInteractCall() {
     body: JSON.stringify(body),
   });
 
+  window.dispatchEvent(new CustomEvent('alloy_sendEvent', {
+    detail: {
+      type: 'pageView',
+      result: targetResp,
+    }
+  }));
+
   console.log(targetResp);
+
+
   return true;
 }
 
 export default async function init() {
   const config = getConfig();
-  await loadInteractCall();
+  await loadInteractCall(config);
 
   const martechPromise = loadMartechFiles(config);
   return martechPromise;
