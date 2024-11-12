@@ -320,21 +320,21 @@ export async function loadInteractCall(config) {
   // const prevpageName = document.cookies('gpv') || '';
 
 
-  const prevPageName = document.cookie
-    .split(';')
-    .map((x) => x.trim().split('='))
-    .find(([key, _]) => key === 'gpv');
+  // const prevPageName = document.cookie
+  //   .split(';')
+  //   .map((x) => x.trim().split('='))
+  //   .find(([key, _]) => key === 'gpv');
 
-  setTimeout(function () {
-    const t = new Date();
-    t.setTime(t.getTime() + 1800000);
+  // setTimeout(function () {
+  //   const t = new Date();
+  //   t.setTime(t.getTime() + 1800000);
     // const cookies  = document.cookie + ;
     // cookie.set('gpv', pageName, {
     //   expires: t,
     //   domain: '.adobe.com',
     //   path: '/',
     // });
-  }, 500);
+  // }, 500);
 
   const body = {
     event: {
@@ -371,7 +371,7 @@ export async function loadInteractCall(config) {
             isErrorPage: false,
             isHomePage: false,
             name: pageName,
-            pageViews: { value: 1 },
+            pageViews: { value: 0 },
           },
           webReferrer: { URL: document.referrer },
         },
@@ -412,7 +412,7 @@ export async function loadInteractCall(config) {
             },
             previousPage: {
               pageInfo: {
-                pageName: prevPageName,
+                pageName: '',
               },
             },
             primaryUser: {
@@ -459,14 +459,16 @@ export async function loadInteractCall(config) {
     body: JSON.stringify(body),
   });
 
-  window.dispatchEvent(new CustomEvent('alloy_sendEvent', {
+  const json = await targetResp.json();
+
+  window.dispatchEvent(new CustomEvent(ALLOY_SEND_EVENT, {
     detail: {
-      type: 'pageView',
-      result: targetResp,
+      type: 'propositionFetch',
+      result: json,
     }
   }));
 
-  console.log(targetResp);
+  console.log(json);
 
 
   return true;
