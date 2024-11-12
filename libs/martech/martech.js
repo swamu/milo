@@ -328,12 +328,12 @@ export async function loadInteractCall(config) {
   // setTimeout(function () {
   //   const t = new Date();
   //   t.setTime(t.getTime() + 1800000);
-    // const cookies  = document.cookie + ;
-    // cookie.set('gpv', pageName, {
-    //   expires: t,
-    //   domain: '.adobe.com',
-    //   path: '/',
-    // });
+  // const cookies  = document.cookie + ;
+  // cookie.set('gpv', pageName, {
+  //   expires: t,
+  //   domain: '.adobe.com',
+  //   path: '/',
+  // });
   // }, 500);
 
   const body = {
@@ -372,6 +372,13 @@ export async function loadInteractCall(config) {
             isHomePage: false,
             name: pageName,
             pageViews: { value: 0 },
+          },
+          webInteraction: {
+            name: "Martech-API",
+            type: "other",
+            linkClicks: {
+              value: 1
+            }
           },
           webReferrer: { URL: document.referrer },
         },
@@ -418,7 +425,7 @@ export async function loadInteractCall(config) {
             primaryUser: {
               primaryProfile: {
                 profileInfo: {
-                  authState: isLoggedIn ? "authenticated" :"loggedOut",
+                  authState: isLoggedIn ? "authenticated" : "loggedOut",
                   entitlementCreativeCloud: "unknown",
                   entitlementStatusCreativeCloud: "unknown",
                   returningStatus: "Repeat",
