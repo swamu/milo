@@ -309,11 +309,10 @@ export async function loadInteractCall() {
   };
 
   const body = {
-    meta: { configOverrides: edgeConfigOverrides },
     event: {
       xdm: {
         identityMap: {
-          adobeGUID: [
+          ECID: [
             {
               id: ecid,
               primary: true,
@@ -323,8 +322,8 @@ export async function loadInteractCall() {
         web: {
           webPageDetails: {
             URL: window.location.href,
-            siteSection: 'www.adobe.com',
-            server: 'www.adobe.com',
+            siteSection: "www.adobe.com",
+            server: "www.adobe.com",
             isErrorPage: false,
             isHomePage: false,
             name: pageName,
@@ -333,14 +332,62 @@ export async function loadInteractCall() {
           webReferrer: { URL: document.referrer },
         },
         timestamp: new Date().toISOString(),
-        eventType: 'web.webpagedetails.pageViews',
+        eventType: "web.webpagedetails.pageViews",
+      },
+      data: {
+        _adobe_corpnew: {
+          marketingtech: {
+            adobe: {
+              alloy: {
+                edgeConfigIdLaunch: "",
+                approach: "martech-API",
+                edgeConfigId: ",",
+              },
+            },
+          },
+          __adobe: {
+            target: {
+              is404: false,
+              authState: "loggedOut",
+              hitType: "pageView",
+              isMilo: true,
+              adobeLocale: "en-IN",
+              hasGnav: true,
+            },
+          },
+          digitalData: {
+            page: {
+              pageInfo: {
+                language: "",
+              },
+            },
+            diagnostic: {
+              franklin: {
+                implementation: "milo",
+              },
+            },
+            previousPage: {
+              pageInfo: {
+                pageName: "",
+              },
+            },
+            primaryUser: {
+              primaryProfile: {
+                profileInfo: {
+                  authState: "loggedOut",
+                  entitlementCreativeCloud: "unknown",
+                  entitlementStatusCreativeCloud: "unknown",
+                  returningStatus: "Repeat",
+                },
+              },
+            },
+          },
+        },
       },
     },
     query: {
       identity: {
-        fetch: [
-          "ECID"
-        ]
+        fetch: ["ECID"],
       },
       personalization: {
         schemas: [
@@ -348,21 +395,19 @@ export async function loadInteractCall() {
           "https://ns.adobe.com/personalization/html-content-item",
           "https://ns.adobe.com/personalization/json-content-item",
           "https://ns.adobe.com/personalization/redirect-item",
-          "https://ns.adobe.com/personalization/dom-action"
+          "https://ns.adobe.com/personalization/dom-action",
         ],
-        decisionScopes: [
-          "__view__"
-        ]
-      }
+        decisionScopes: ["__view__"],
+      },
     },
     meta: {
+      configOverrides: edgeConfigOverrides,
       state: {
         domain: "localhost",
         cookiesEnabled: true,
-        entries: getMarctechCookies()
-      }
-    }
-
+        entries: getMarctechCookies(),
+      },
+    },
   };
   const targetResp = await fetch(`https://sstats.adobe.com/ee/v2/interact?dataStreamId=${dataStreamId}`, {
     method: 'POST',
