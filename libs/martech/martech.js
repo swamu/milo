@@ -467,7 +467,7 @@ export async function loadInteractCall(config) {
   });
 
   const json = await targetResp.json();
-  const resultPayload = a1.find(d => d.type === 'personalization:decisions')?.payload;
+  const resultPayload = json.find(d => d.type === 'personalization:decisions')?.payload;
   console.log(resultPayload);
 
 
