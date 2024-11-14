@@ -1231,9 +1231,9 @@ export async function loadMartech({
   return true;
 }
 
-export function delayMartech(){
+export async function delayMartech(){
   if(delayed){
-    loadMartech();
+    await loadMartech();
   }
 }
 
@@ -1275,6 +1275,7 @@ async function checkForPageMods() {
 }
 
 async function loadPostLCP(config) {
+  delayMartech();
   await decoratePlaceholders(document.body.querySelector('header'), config);
   const sk = document.querySelector('helix-sidekick');
   if (sk) import('./sidekick-decorate.js').then((mod) => { mod.default(sk); });

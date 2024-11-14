@@ -1161,16 +1161,11 @@ export async function init(enablements = {}) {
     if (!config.mep.targetManifests) await awaitMartech();
     manifests = config.mep.targetManifests;
   }
-  if (!manifests || !manifests.length) {
-    delayMartech();
-    return;
-  }
+  if (!manifests || !manifests.length) return;
   try {
     await applyPers(manifests);
   } catch (e) {
     log(`MEP Error: ${e.toString()}`);
     window.lana?.log(`MEP Error: ${e.toString()}`);
-  } finally {
-    delayMartech();
   }
 }
