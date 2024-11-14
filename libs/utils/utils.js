@@ -1001,17 +1001,17 @@ export async function loadIms() {
 }
 export async function loadAnalyticsAndInteractionData(config) {
   const { locale } = getConfig();
+  // const ECID_URL = 'https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2';
+  // const AMCV_COOKIE_NAME = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
 
   // Constants for URLs and Configurations
   const DATA_STREAM_ID = 'a44f0037-2ada-441f-a012-243832ce5ff9';
-  const REPORT_SUITES_ID = ['adbadobenonacdcprod', 'adbadobeprototype'];
+  const REPORT_SUITES_ID = ['adbadobenonacdcqa'];
   const AT_PROPERTY_VAL = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
-  const ECID_URL = 'https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2';
-  const TARGET_API_URL = 'https://www.adobe.com/experienceedge/jpn3/v2/interact';
+  const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
   const ECID = '25563065453217907610445789087022183797';
 
   // Cookie names
-  const AMCV_COOKIE_NAME = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
   const KNDCTR_COOKIE_KEYS = [
     'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
     'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster'
