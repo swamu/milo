@@ -1194,7 +1194,7 @@ export async function loadAnalyticsAndInteractionData(config) {
   const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
   console.log('resultPayload', resultPayload);
 
-  window.dispatchEvent(new CustomEvent(ALLOY_SEND_EVENT, {
+  window.dispatchEvent(new CustomEvent('alloy_sendEvent', {
     detail: {
       type: 'propositionFetch',
       result: {
