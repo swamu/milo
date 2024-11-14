@@ -1000,6 +1000,8 @@ export async function loadIms() {
   return imsLoaded;
 }
 export async function loadAnalyticsAndInteractionData(config) {
+  const { locale } = getConfig();
+
   // Constants for URLs and Configurations
   const DATA_STREAM_ID = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
   const REPORT_SUITES_ID = ['adbadobenonacdcprod', 'adbadobeprototype'];
@@ -1059,7 +1061,6 @@ export async function loadAnalyticsAndInteractionData(config) {
   // Function to get page name for analytics
   const getPageNameForAnalytics = () => {
     const { host, pathname } = new URL(window.location.href);
-    const { locale } = getConfig();
     const [modifiedPath] = pathname.split('/').filter((x) => x !== locale.prefix).join(':').split('.');
     return host.replace('www.', '') + ':' + modifiedPath;
   };
