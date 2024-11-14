@@ -1141,12 +1141,12 @@ export async function loadAnalyticsAndInteractionData(config) {
               authState: "loggedOut",
               hitType: "propositionFetch",
               isMilo: true,
-              adobeLocale: config.locale.ietf,
+              adobeLocale: locale.ietf,
               hasGnav: true,
             },
           },
           digitalData: {
-            page: { pageInfo: { language: config.locale.ietf } },
+            page: { pageInfo: { language: locale.ietf } },
             diagnostic: { franklin: { implementation: "milo" } },
             previousPage: { pageInfo: { pageName: prevPageName } },
             primaryUser: {
