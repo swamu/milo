@@ -1003,11 +1003,12 @@ export async function loadAnalyticsAndInteractionData(config) {
   const { locale } = getConfig();
 
   // Constants for URLs and Configurations
-  const DATA_STREAM_ID = 'e065836d-be57-47ef-b8d1-999e1657e8fd';
+  const DATA_STREAM_ID = 'a44f0037-2ada-441f-a012-243832ce5ff9';
   const REPORT_SUITES_ID = ['adbadobenonacdcprod', 'adbadobeprototype'];
   const AT_PROPERTY_VAL = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
   const ECID_URL = 'https://dpm.demdex.net/id?d_orgid=9E1005A551ED61CA0A490D45&d_ver=2';
-  const TARGET_API_URL = 'https://sstats.adobe.com/ee/v2/interact';
+  const TARGET_API_URL = 'https://www.adobe.com/experienceedge/jpn3/v2/interact';
+  const ECID = '25563065453217907610445789087022183797';
 
   // Cookie names
   const AMCV_COOKIE_NAME = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
@@ -1044,19 +1045,19 @@ export async function loadAnalyticsAndInteractionData(config) {
   };
 
   // Function to get ECID from the URL or cookies
-  const getEcid = async () => {
-    const secidCookie = getCookieValue(AMCV_COOKIE_NAME);
-    const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
-    if (clean) return clean[0].replace('MCMID|', '');
+  // const getEcid = async () => {
+  //   const secidCookie = getCookieValue(AMCV_COOKIE_NAME);
+  //   const clean = /MCMID\|\d+/.exec(decodeURIComponent(secidCookie));
+  //   if (clean) return clean[0].replace('MCMID|', '');
 
-    try {
-      const resp = await fetch(ECID_URL);
-      const data = await resp.json();
-      return data?.d_mid || '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
-    } catch {
-      return '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
-    }
-  };
+  //   try {
+  //     const resp = await fetch(ECID_URL);
+  //     const data = await resp.json();
+  //     return data?.d_mid || '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+  //   } catch {
+  //     return '7A702A466437E6F50A495C83@86071f62631c0cc0495e71.e';
+  //   }
+  // };
 
   // Function to get page name for analytics
   const getPageNameForAnalytics = () => {
@@ -1072,7 +1073,6 @@ export async function loadAnalyticsAndInteractionData(config) {
     ?.description === '1';
 
   const pageName = getPageNameForAnalytics();
-  const ecid = await getEcid();
 
   const edgeConfigOverrides = {
     com_adobe_analytics: { reportSuites: REPORT_SUITES_ID },
@@ -1107,7 +1107,7 @@ export async function loadAnalyticsAndInteractionData(config) {
       xdm: {
         ...updatedContext,
         identityMap: {
-          ECID: [{ id: ecid, primary: true }],
+          ECID: [{ id: ECID, primary: true }],
         },
         web: {
           webPageDetails: {
