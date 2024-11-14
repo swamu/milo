@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 
-import { createTag, getConfig, loadLink, loadScript, localizeLink } from '../../utils/utils.js';
+import { createTag, delayMartech, getConfig, loadLink, loadScript, localizeLink } from '../../utils/utils.js';
 import { getFederatedUrl } from '../../utils/federated.js';
 
 /* c8 ignore start */
@@ -1160,11 +1160,16 @@ export async function init(enablements = {}) {
     if (!config.mep.targetManifests) await awaitMartech();
     manifests = config.mep.targetManifests;
   }
-  if (!manifests || !manifests.length) return;
+  if (!manifests || !manifests.length) {
+    delayMartech();
+    return;
+  }
   try {
     await applyPers(manifests);
   } catch (e) {
     log(`MEP Error: ${e.toString()}`);
     window.lana?.log(`MEP Error: ${e.toString()}`);
+  } finally {
+    delayMartech();
   }
 }
