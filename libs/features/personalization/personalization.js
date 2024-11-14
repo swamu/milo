@@ -770,7 +770,8 @@ async function getPersonalizationVariant(manifestPath, variantNames = [], varian
 
   let userEntitlements = [];
   if (hasEntitlementTag) {
-    userEntitlements = await config.entitlements();
+    // userEntitlements = await config.entitlements();
+    userEntitlements = [];
   }
 
   const hasMatch = (name) => {
