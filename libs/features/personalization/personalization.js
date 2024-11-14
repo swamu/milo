@@ -1029,6 +1029,7 @@ export async function applyPers(manifests) {
   if (!manifests?.length) return;
   let experiments = manifests;
   const config = getConfig();
+
   for (let i = 0; i < experiments.length; i += 1) {
     experiments[i] = await getManifestConfig(experiments[i], config.mep?.variantOverride);
   }
@@ -1156,7 +1157,7 @@ export async function init(enablements = {}) {
   }
 
   if (target === true) manifests = manifests.concat(await callMartech(config));
-  if (target === 'postlcp') callMartech(config);
+  if (target === 'postlcp') await callMartech(config);
   if (postLCP) {
     if (!config.mep.targetManifests) await awaitMartech();
     manifests = config.mep.targetManifests;
