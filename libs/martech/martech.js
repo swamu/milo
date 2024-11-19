@@ -108,7 +108,7 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-function checkPromiseResolution(delay = TARGET_TIMEOUT_MS, responseStart) {
+function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
   if (typeof window === 'undefined') {
     console.error('window is undefined, unable to proceed.');
     return;
