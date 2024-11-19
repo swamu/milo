@@ -108,8 +108,51 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
+function checkPromiseResolution(delay = TARGET_TIMEOUT_MS, responseStart) {
+  if (typeof window === 'undefined') {
+    console.error('window is undefined, unable to proceed.');
+    return;
+  }
+
+  let attempts = 0;
+  let maxRetries = 1;
+  let targetManifests = [];
+  let targetPropositions = [];
+
+  // Define the check function
+  function check() {
+    attempts++;
+
+    if (window.eventPromise && window.eventPromise instanceof Promise) {
+      window.eventPromise
+        .then(response => {
+          sendTargetResponseAnalytics(false, responseStart, timeout);
+          targetManifests = handleAlloyResponse(response.result);
+          targetPropositions = response.result?.propositions || [];
+        })
+        .catch(error => ({ error }));
+    } else {
+      console.log(`Attempt ${attempts}: Promise not found or not attached to window object.`);
+
+      if (attempts >= maxRetries) {
+        console.log('Max retries reached. Exiting...');
+        return; // Exit the function after reaching max retries
+      }
+
+      // Retry after a delay
+      setTimeout(check, delay);
+    }
+  }
+
+  // Start checking
+  check();
+  return { targetManifests, targetPropositions };
+}
+
+
 export const getTargetPersonalization = async () => {
   const params = new URL(window.location.href).searchParams;
+  const TESTING_FLAG = true;
 
   const timeout = parseInt(params.get('target-timeout'), 10)
     || parseInt(getMetadata('target-timeout'), 10)
@@ -128,8 +171,12 @@ export const getTargetPersonalization = async () => {
 
   let targetManifests = [];
   let targetPropositions = [];
-  // const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
-  const response = await window.testP;
+  if (TESTING_FLAG) {
+    return checkPromiseResolution(timeout,responseStart);
+  }
+
+  const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
+
   if (response.error) {
     try {
       window.lana.log('target response time: ad blocker', { tags: 'martech', errorType: 'i' });
@@ -139,14 +186,14 @@ export const getTargetPersonalization = async () => {
     }
     return { targetManifests, targetPropositions };
   }
-  // if (response.timeout) {
-  //   waitForEventOrTimeout(ALLOY_SEND_EVENT, 7100 - timeout)
-  //     .then(() => sendTargetResponseAnalytics(true, responseStart, timeout));
-  // } else {
+  if (response.timeout) {
+    waitForEventOrTimeout(ALLOY_SEND_EVENT, 7100 - timeout)
+      .then(() => sendTargetResponseAnalytics(true, responseStart, timeout));
+  } else {
     sendTargetResponseAnalytics(false, responseStart, timeout);
     targetManifests = handleAlloyResponse(response.result);
     targetPropositions = response.result?.propositions || [];
-  // }
+  }
 
   return { targetManifests, targetPropositions };
 };

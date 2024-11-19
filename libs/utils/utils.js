@@ -1197,7 +1197,7 @@ export async function loadAnalyticsAndInteractionData(config) {
   console.log('resultPayload', resultPayload);
 
 
-  window.testP = new Promise((resolve, reject) => {
+  window.eventPromise = new Promise((resolve, reject) => {
     if (resultPayload.length > 0) {
       resolve({
         type: 'propositionFetch',
