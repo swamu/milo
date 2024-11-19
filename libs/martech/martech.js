@@ -146,7 +146,7 @@ function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
   }
 
   // Start checking
-  check();
+  return check();
 }
 
 
@@ -172,8 +172,7 @@ export const getTargetPersonalization = async () => {
   let targetManifests = [];
   let targetPropositions = [];
   if (TESTING_FLAG) {
-    ({ targetManifests, targetPropositions } = checkPromiseResolution(timeout,responseStart));
-    return { targetManifests, targetPropositions };
+    return checkPromiseResolution(timeout,responseStart);
   }
 
   const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
