@@ -129,6 +129,7 @@ function checkPromiseResolution(delay = TARGET_TIMEOUT_MS, responseStart) {
           sendTargetResponseAnalytics(false, responseStart, timeout);
           targetManifests = handleAlloyResponse(response.result);
           targetPropositions = response.result?.propositions || [];
+          return { targetManifests, targetPropositions };
         })
         .catch(error => ({ error }));
     } else {
@@ -136,7 +137,7 @@ function checkPromiseResolution(delay = TARGET_TIMEOUT_MS, responseStart) {
 
       if (attempts >= maxRetries) {
         console.log('Max retries reached. Exiting...');
-        return; // Exit the function after reaching max retries
+        return { targetManifests, targetPropositions };
       }
 
       // Retry after a delay
@@ -146,7 +147,6 @@ function checkPromiseResolution(delay = TARGET_TIMEOUT_MS, responseStart) {
 
   // Start checking
   check();
-  return { targetManifests, targetPropositions };
 }
 
 
