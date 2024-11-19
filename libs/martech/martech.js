@@ -141,7 +141,7 @@ async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart
       }
 
       // Retry after a delay
-      setTimeout(check, delay);
+      setTimeout(check, timeout);
     }
   }
 
