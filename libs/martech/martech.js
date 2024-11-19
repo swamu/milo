@@ -108,7 +108,7 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
+async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
   if (typeof window === 'undefined') {
     console.error('window is undefined, unable to proceed.');
     return;
@@ -120,7 +120,7 @@ function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
   let targetPropositions = [];
 
   // Define the check function
-  function check() {
+  async function check() {
     attempts++;
 
     if (window.eventPromise && window.eventPromise instanceof Promise) {
@@ -129,15 +129,15 @@ function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
           sendTargetResponseAnalytics(false, responseStart, timeout);
           targetManifests = handleAlloyResponse(response.result);
           targetPropositions = response.result?.propositions || [];
-          return { targetManifests, targetPropositions };
         })
-        .catch(error => ({ error }));
+        .catch(error => {
+          console.log('error', error)
+        })        
     } else {
       console.log(`Attempt ${attempts}: Promise not found or not attached to window object.`);
 
       if (attempts >= maxRetries) {
         console.log('Max retries reached. Exiting...');
-        return { targetManifests, targetPropositions };
       }
 
       // Retry after a delay
@@ -145,8 +145,9 @@ function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
     }
   }
 
-  // Start checking
-  return check();
+  await check();
+  return { targetManifests, targetPropositions }
+
 }
 
 
