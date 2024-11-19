@@ -128,7 +128,8 @@ export const getTargetPersonalization = async () => {
 
   let targetManifests = [];
   let targetPropositions = [];
-  const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
+  // const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
+  const response = await window.testP;
   if (response.error) {
     try {
       window.lana.log('target response time: ad blocker', { tags: 'martech', errorType: 'i' });
@@ -138,14 +139,14 @@ export const getTargetPersonalization = async () => {
     }
     return { targetManifests, targetPropositions };
   }
-  if (response.timeout) {
-    waitForEventOrTimeout(ALLOY_SEND_EVENT, 5100 - timeout)
-      .then(() => sendTargetResponseAnalytics(true, responseStart, timeout));
-  } else {
+  // if (response.timeout) {
+  //   waitForEventOrTimeout(ALLOY_SEND_EVENT, 7100 - timeout)
+  //     .then(() => sendTargetResponseAnalytics(true, responseStart, timeout));
+  // } else {
     sendTargetResponseAnalytics(false, responseStart, timeout);
     targetManifests = handleAlloyResponse(response.result);
     targetPropositions = response.result?.propositions || [];
-  }
+  // }
 
   return { targetManifests, targetPropositions };
 };

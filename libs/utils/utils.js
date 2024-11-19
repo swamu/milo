@@ -1196,16 +1196,29 @@ export async function loadAnalyticsAndInteractionData(config) {
   const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
   console.log('resultPayload', resultPayload);
 
-  window.dispatchEvent(new CustomEvent('alloy_sendEvent', {
-    detail: {
-      type: 'propositionFetch',
-      result: {
-        propositions: resultPayload,
-      },
-    },
-  }));
 
-  return true;
+  window.testP = new Promise((resolve, reject) => {
+    if (resultPayload.length > 0) {
+      resolve({
+        type: 'propositionFetch',
+        result: {
+          propositions: resultPayload,
+        },
+      });
+    } else {
+      reject(new Error('No propositions found'));
+    }
+  });
+
+  // window.dispatchEvent(new CustomEvent(ALLOY_SEND_EVENT, {
+  //   detail: {
+  //     type: 'propositionFetch',
+  //     result: {
+  //       propositions: resultPayload,
+  //     },
+  //   },
+  // }));
+
 }
 
 export async function loadMartech({
