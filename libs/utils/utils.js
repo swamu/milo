@@ -1267,7 +1267,7 @@ async function checkForPageMods() {
   if (!(pzn || target || promo || mepParam
     || mepHighlight || mepButton || mepParam === '' || xlg)) return;
   if (target || xlg) {
-    loadAnalyticsAndInteractionData();
+    await loadAnalyticsAndInteractionData();
     delayed = true;
     // loadMartech();
   } else if (pzn && martech !== 'off') {
@@ -1275,9 +1275,9 @@ async function checkForPageMods() {
       .then(() => {
         /* c8 ignore next */
         if (window.adobeIMS?.isSignedInUser()) {
-          loadAnalyticsAndInteractionData();
-          delayed = true;
-          // loadMartech()
+          // await loadAnalyticsAndInteractionData();
+          // delayed = true;
+          loadMartech()
         };
       })
       .catch((e) => { console.log('Unable to load IMS:', e); });
