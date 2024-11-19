@@ -172,7 +172,8 @@ export const getTargetPersonalization = async () => {
   let targetManifests = [];
   let targetPropositions = [];
   if (TESTING_FLAG) {
-    return checkPromiseResolution(timeout,responseStart);
+    ({ targetManifests, targetPropositions } = checkPromiseResolution(timeout,responseStart));
+    return { targetManifests, targetPropositions };
   }
 
   const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
