@@ -3,6 +3,7 @@
 
 import { createTag, getConfig, loadLink, loadScript, localizeLink } from '../../utils/utils.js';
 import { getFederatedUrl } from '../../utils/federated.js';
+import { enablePersonalisationV2 } from '../../martech/helpers.js';
 
 /* c8 ignore start */
 const PHONE_SIZE = window.screen.width < 550 || window.screen.height < 550;
@@ -773,7 +774,12 @@ async function getPersonalizationVariant(manifestPath, variantNames = [], varian
 
   let userEntitlements = [];
   if (hasEntitlementTag) {
-    userEntitlements = await config.entitlements();
+    //TODO: what to do here?
+    if(enablePersonalisationV2()){
+      userEntitlements = [];
+    } else {
+      userEntitlements = await config.entitlements();
+    }
   }
 
   const hasMatch = (name) => {
@@ -1158,7 +1164,13 @@ export async function init(enablements = {}) {
   }
 
   if (target === true) manifests = manifests.concat(await callMartech(config));
-  if (target === 'postlcp') callMartech(config);
+  if (target === 'postlcp') {
+    if(enablePersonalisationV2()){
+      await callMartech(config);
+    } else {
+      callMartech(config);
+    }
+  }
   if (postLCP) {
     if (!config.mep.targetManifests) await awaitMartech();
     manifests = config.mep.targetManifests;

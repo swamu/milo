@@ -1,6 +1,7 @@
 import {
   getConfig, getMetadata, loadIms, loadLink, loadScript, getMepEnablement,
 } from '../utils/utils.js';
+import { enablePersonalisationV2 } from './helpers.js';
 
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
 const ALLOY_SEND_EVENT_ERROR = 'alloy_sendEvent_error';
@@ -108,6 +109,45 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
+export async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
+  if (typeof window === 'undefined') {
+    console.error('window is undefined, unable to proceed.');
+    return;
+  }
+
+  let attempts = 0;
+  let maxRetries = 1;
+  let targetManifests = [];
+  let targetPropositions = [];
+
+  // Define the check function
+  async function check() {
+    attempts++;
+
+    if (window.eventPromise && window.eventPromise instanceof Promise) {
+      window.eventPromise
+        .then(response => {
+          sendTargetResponseAnalytics(false, responseStart, timeout);
+          targetManifests = handleAlloyResponse(response.result);
+          targetPropositions = response.result?.propositions || [];
+        })
+        .catch(error => {
+          console.log('error', error)
+        })        
+    } else {
+      console.log(`Attempt ${attempts}: Promise not found or not attached to window object.`);
+
+      if (attempts < maxRetries) {
+        console.log('Max retries reached. Exiting...');
+        setTimeout(check, timeout);
+      }
+    }
+  }
+
+  await check();
+  return { targetManifests, targetPropositions }
+}
+
 export const getTargetPersonalization = async () => {
   const params = new URL(window.location.href).searchParams;
 
@@ -128,6 +168,11 @@ export const getTargetPersonalization = async () => {
 
   let targetManifests = [];
   let targetPropositions = [];
+
+  if (enablePersonalisationV2()) {
+    return checkPromiseResolution(timeout,responseStart);
+  }
+
   const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
   if (response.error) {
     try {
@@ -211,7 +256,7 @@ const loadMartechFiles = async (config) => {
     ) + (
       config.env.name === 'prod'
         ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
-        : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
+        : '/d4d114c60e50/a0e989131fd5/launch-0f4ac335f569-development.min.js'
     );
     loadLink(launchUrl, { as: 'script', rel: 'preload' });
 
