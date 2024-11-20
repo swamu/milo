@@ -267,7 +267,7 @@ export function isSignedOut(){
   const isSignedOutOnStagingOrProd = serverTiming && serverTiming.sis === '0';
 
   // check if its dev
-  return !serverTiming || isSignedOutOnStagingOrProd;
+  return !Object.keys(serverTiming||{}).length() || isSignedOutOnStagingOrProd;
 }
 
 export function enablePersonalisationV2 (){
