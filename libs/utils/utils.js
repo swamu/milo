@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { enablePersonalisationV2, loadAnalyticsAndInteractionData } from '../martech/helpers.js';
+import { enablePersonalizationV2, loadAnalyticsAndInteractionData } from '../martech/helpers.js';
 
 const MILO_TEMPLATES = [
   '404',
@@ -1046,7 +1046,7 @@ async function checkForPageMods() {
   const promo = getMepEnablement('manifestnames', PROMO_PARAM);
   const target = martech === 'off' ? false : getMepEnablement('target');
   const xlg = martech === 'off' ? false : getMepEnablement('xlg');
-  const enablePersV2 = enablePersonalisationV2();
+  const enablePersV2 = enablePersonalizationV2();
 
   if (!(pzn || target || promo || mepParam
     || mepHighlight || mepButton || mepParam === '' || xlg)) return;

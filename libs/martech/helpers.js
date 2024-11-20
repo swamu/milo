@@ -270,7 +270,7 @@ export function isSignedOut(){
   return !Object.keys(serverTiming||{}).length || isSignedOutOnStagingOrProd;
 }
 
-export function enablePersonalisationV2 (){
+export function enablePersonalizationV2 (){
   //TODO: add meta-logic
   const enablePersV2 = true;
 
