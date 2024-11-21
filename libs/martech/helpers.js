@@ -15,7 +15,7 @@ export function generateUUID() { // Public Domain/MIT
 }
 
 export async function loadAnalyticsAndInteractionData({locale}) {
-  const DATA_STREAM_ID = 'a44f0037-2ada-441f-a012-243832ce5ff9';
+  const DATA_STREAM_ID = '87f9b644-5fd3-4015-81d5-f68ad81c3561';
   const REPORT_SUITES_ID = ['adbadobenonacdcqa'];
   const AT_PROPERTY_VAL = 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231';
   const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
