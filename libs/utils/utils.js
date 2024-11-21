@@ -1079,7 +1079,10 @@ async function delayMartech(){
 }
 
 async function loadPostLCP(config) {
-  delayMartech(delayedMartech);
+  const enablePersV2 = enablePersonalizationV2();
+  if(enablePersV2){
+    delayMartech(delayedMartech);
+  }
   await decoratePlaceholders(document.body.querySelector('header'), config);
   const sk = document.querySelector('aem-sidekick, helix-sidekick');
   if (sk) import('./sidekick-decorate.js').then((mod) => { mod.default(sk); });
@@ -1089,7 +1092,9 @@ async function loadPostLCP(config) {
     await init({ postLCP: true });
   } else {
     //TODO: there will be cases where martech is loading the second time
-    loadMartech();
+    if(!enablePersV2) {
+      loadMartech();
+    }
   }
 
   const georouting = getMetadata('georouting') || config.geoRouting;

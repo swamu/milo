@@ -1,3 +1,5 @@
+import { getMetadata } from "../utils/utils";
+
 export function generateUUID() { // Public Domain/MIT
   var d = new Date().getTime();//Timestamp
   var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
@@ -121,10 +123,6 @@ export async function loadAnalyticsAndInteractionData({locale}) {
   };
 
   const prevPageName = getCookie('gpv');
-
-  console.log('updatedContext', updatedContext);
-
-  // console.log(await getECID());
 
   const body = {
     event: {
@@ -271,8 +269,7 @@ export function isSignedOut(){
 }
 
 export function enablePersonalizationV2 (){
-  //TODO: add meta-logic
-  const enablePersV2 = true;
+  const enablePersV2 = getMetadata('personalization-v2');
 
   return enablePersV2 && isSignedOut();
 }
