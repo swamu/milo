@@ -1164,7 +1164,16 @@ export async function init(enablements = {}, targetInteractionData) {
     if (pzn) loadLink(getXLGListURL(config), { as: 'fetch', crossorigin: 'anonymous', rel: 'preload' });
   }
 
-  if (target === true) manifests = manifests.concat(await callMartech(config));
+  if (target === true) {
+    let localManifests = [];
+    if(enablePersonalizationV2()){
+      localManifests = await callMartech(config, targetInteractionData);
+    } else {
+      localManifests = await callMartech(config);
+    }
+    manifests = manifests.concat(localManifests);
+  }
+
   if (target === 'postlcp') {
     if(enablePersonalizationV2()){
       await callMartech(config, targetInteractionData);
