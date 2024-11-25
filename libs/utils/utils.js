@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 
-import { enablePersonalizationV2, loadAnalyticsAndInteractionData } from '../martech/helpers.js';
+import { enablePersonalizationV2, loadAnalyticsAndInteractionData, getEnv, getMetadata } from '../martech/helpers.js';
+
+export { getMetadata };
 
 const MILO_TEMPLATES = [
   '404',
@@ -116,31 +118,6 @@ const DO_NOT_INLINE = [
   'z-pattern',
 ];
 
-const ENVS = {
-  stage: {
-    name: 'stage',
-    ims: 'stg1',
-    adobeIO: 'cc-collab-stage.adobe.io',
-    adminconsole: 'stage.adminconsole.adobe.com',
-    account: 'stage.account.adobe.com',
-    edgeConfigId: '8d2805dd-85bf-4748-82eb-f99fdad117a6',
-    pdfViewerClientId: '600a4521c23d4c7eb9c7b039bee534a0',
-  },
-  prod: {
-    name: 'prod',
-    ims: 'prod',
-    adobeIO: 'cc-collab.adobe.io',
-    adminconsole: 'adminconsole.adobe.com',
-    account: 'account.adobe.com',
-    edgeConfigId: '2cba807b-7430-41ae-9aac-db2b0da742d5',
-    pdfViewerClientId: '3c0a5ddf2cc04d3198d9e48efc390fa9',
-  },
-};
-ENVS.local = {
-  ...ENVS.stage,
-  name: 'local',
-};
-
 export const MILO_EVENTS = { DEFERRED: 'milo:deferred' };
 
 const LANGSTORE = 'langstore';
@@ -150,28 +127,6 @@ export const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
 
 const PROMO_PARAM = 'promo';
 let delayedMartech = false;
-
-export function getEnv(conf) {
-  const { host } = window.location;
-  const query = PAGE_URL.searchParams.get('env');
-
-  if (query) return { ...ENVS[query], consumer: conf[query] };
-
-  const { clientEnv } = conf;
-  if (clientEnv) return { ...ENVS[clientEnv], consumer: conf[clientEnv] };
-
-  if (host.includes('localhost')) return { ...ENVS.local, consumer: conf.local };
-  /* c8 ignore start */
-  if (host.includes(`${SLD}.page`)
-    || host.includes(`${SLD}.live`)
-    || host.includes('stage.adobe')
-    || host.includes('corp.adobe')
-    || host.includes('graybox.adobe')) {
-    return { ...ENVS.stage, consumer: conf.stage };
-  }
-  return { ...ENVS.prod, consumer: conf.prod };
-  /* c8 ignore stop */
-}
 
 export function getLocale(locales, pathname = window.location.pathname) {
   if (!locales) {
@@ -190,12 +145,6 @@ export function getLocale(locales, pathname = window.location.pathname) {
   locale.prefix = isUS ? '' : `/${localeString}`;
   locale.region = isUS ? 'us' : localeString.split('_')[0];
   return locale;
-}
-
-export function getMetadata(name, doc = document) {
-  const attr = name && name.includes(':') ? 'property' : 'name';
-  const meta = doc.head.querySelector(`meta[${attr}="${name}"]`);
-  return meta && meta.content;
 }
 
 const handleEntitlements = (() => {
@@ -1041,6 +990,7 @@ async function checkForPageMods() {
     mepButton,
     martech,
   } = Object.fromEntries(PAGE_URL.searchParams);
+  let targetInteractionData = null;
   if (mepParam === 'off') return;
   const pzn = getMepEnablement('personalization');
   const promo = getMepEnablement('manifestnames', PROMO_PARAM);
@@ -1053,7 +1003,11 @@ async function checkForPageMods() {
 
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    await loadAnalyticsAndInteractionData({ locale });
+    try{
+      targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
+    } catch (err){
+      console.log('Interact Call didnt go through', err);
+    }
     delayedMartech = true;
   } else if (target || xlg) {
     loadMartech();
@@ -1069,19 +1023,13 @@ async function checkForPageMods() {
   const { init } = await import('../features/personalization/personalization.js');
   await init({
     mepParam, mepHighlight, mepButton, pzn, promo, target,
-  });
-}
-
-async function delayMartech(){
-  if(delayedMartech){
-    await loadMartech();
-  }
+  }, targetInteractionData);
 }
 
 async function loadPostLCP(config) {
   const enablePersV2 = enablePersonalizationV2();
-  if(enablePersV2){
-    delayMartech(delayedMartech);
+  if(enablePersV2 && delayedMartech){
+    await loadMartech();
   }
   await decoratePlaceholders(document.body.querySelector('header'), config);
   const sk = document.querySelector('aem-sidekick, helix-sidekick');
