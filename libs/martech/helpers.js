@@ -216,6 +216,18 @@ function getUpdatedContext({
 }
 
 /**
+   * Retrieves specific MarTech cookies by their keys.
+   * 
+   * @returns {Array} List of MarTech cookies with key and value.
+   */
+const getMarctechCookies = () => {
+  return document.cookie.split(';')
+    .map(x => x.trim().split('='))
+    .filter(([key]) => KNDCTR_COOKIE_KEYS.includes(key))
+    .map(([key, value]) => ({ key, value }));
+};
+
+/**
  * Creates the request payload for Adobe Analytics and Target.
  * 
  * @param {Object} params - Parameters required to create the payload.
@@ -223,7 +235,7 @@ function getUpdatedContext({
  */
 function createRequestPayload({ updatedContext, fpidCookie, pageName, locale, env }) {
   const prevPageName = getCookie('gpv');
-  
+
   const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
   let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion();
 
