@@ -1007,7 +1007,7 @@ async function checkForPageMods() {
 
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    targetInteractionPromise = await loadAnalyticsAndInteractionData({ locale });
+    targetInteractionPromise = loadAnalyticsAndInteractionData({ locale });
     delayedMartech = true;
   } else if (target || xlg) {
     loadMartech();
