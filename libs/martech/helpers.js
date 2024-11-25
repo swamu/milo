@@ -1,5 +1,6 @@
 
 export function getEnv(conf) {
+  const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
   const PAGE_URL = new URL(window.location.href);
   const ENVS = {
     stage: {
