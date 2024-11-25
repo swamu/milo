@@ -145,12 +145,13 @@ function getCookie(key) {
  * @param {Object} [options={}] - Optional settings for cookie properties.
  */
 function setCookie(key, value, options = {}) {
-  const existingValue = getCookie(key);
-  if (existingValue) {
-    console.log(`The cookie ${key} already exists. Updating it.`);
-  } else {
-    console.log(`The cookie ${key} does not exist. Adding a new one.`);
-  }
+  // Default expiration (24 months)
+  const expires = options.expires || 730;
+  const date = new Date();
+  date.setTime(date.getTime() + expires * 24 * 60 * 60 * 1000);
+  const expiresString = `expires=${date.toUTCString()}`;
+
+  document.cookie = `${key}=${value}; ${expiresString}; path=/`;
 }
 
 /**
