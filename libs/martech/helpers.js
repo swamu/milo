@@ -335,7 +335,7 @@ function updateAMCVCookie(ECID) {
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
 export async function loadAnalyticsAndInteractionData({ locale }) {
-  const env = getEnv()?.name;  // Get the current environment (prod, dev, etc.)
+  const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
   let targetProperty = getTargetPropertyBasedOnPageRegion();
 
   // Define constants based on environment
