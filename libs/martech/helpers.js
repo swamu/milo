@@ -1,3 +1,8 @@
+const TARGET_TIMEOUT_MS = 4000;
+const params = new URL(window.location.href).searchParams;
+export const timeout = parseInt(params.get('target-timeout'), 10)
+    || parseInt(getMetadata('target-timeout'), 10)
+    || TARGET_TIMEOUT_MS;
 
 export function getEnv(conf) {
   const PAGE_URL = new URL(window.location.href);
@@ -354,7 +359,7 @@ function updateAMCVCookie(ECID) {
  * 
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
-export async function loadAnalyticsAndInteractionData({ locale }) {
+export async function loadAnalyticsAndInteractionData({ locale}) {
   const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
   // Define constants based on environment
@@ -386,10 +391,21 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
   });
 
   try {
-    const targetResp = await fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-    });
+    const params = new URL(window.location.href).searchParams;
+
+  const timeout = parseInt(params.get('target-timeout'), 10)
+    || parseInt(getMetadata('target-timeout'), 10)
+    || TARGET_TIMEOUT_MS;
+
+    const targetResp = await Promise.race([
+      fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), timeout)
+      ),
+    ]);
 
     if(!targetResp.ok){
       throw new Error('Failed to fetch interact call');
@@ -412,12 +428,11 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
           },
         });
       } else {
-        reject(new Error('No propositions found'));
+        reject('No propositions found');
       }
     });
   } catch (err) {
-    console.log('Error during API call:', err);
-    return Promise.reject(new Error('No propositions found'));
+    return Promise.reject(err);
   }
 }
 

@@ -1,11 +1,10 @@
 import {
   getConfig, getMetadata, loadIms, loadLink, loadScript, getMepEnablement,
 } from '../utils/utils.js';
-import { enablePersonalizationV2 } from './helpers.js';
+import { enablePersonalizationV2, TARGET_TIMEOUT_MS, timeout } from './helpers.js';
 
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
 const ALLOY_SEND_EVENT_ERROR = 'alloy_sendEvent_error';
-const TARGET_TIMEOUT_MS = 4000;
 const ENTITLEMENT_TIMEOUT = 3000;
 
 const setDeep = (obj, path, value) => {
@@ -110,12 +109,6 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
 }
 
 export const getTargetPersonalization = async (targetInteractionData) => {
-  const params = new URL(window.location.href).searchParams;
-
-  const timeout = parseInt(params.get('target-timeout'), 10)
-    || parseInt(getMetadata('target-timeout'), 10)
-    || TARGET_TIMEOUT_MS;
-
   const responseStart = Date.now();
   window.addEventListener(ALLOY_SEND_EVENT, () => {
     const responseTime = calculateResponseTime(responseStart);
