@@ -1,4 +1,8 @@
-import { getEnv } from "../utils/utils";
+// import { getEnv } from "../utils/utils";
+
+function getEnv() {
+  return 'stage';
+}
 
 /**
  * Generates a unique UUID based on timestamp and random values.
