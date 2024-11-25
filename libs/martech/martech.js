@@ -109,7 +109,7 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-export const getTargetPersonalization = async (targetInteractionPromise) => {
+export const getTargetPersonalization = async (targetInteractionData) => {
   const params = new URL(window.location.href).searchParams;
 
   const timeout = parseInt(params.get('target-timeout'), 10)
@@ -130,17 +130,12 @@ export const getTargetPersonalization = async (targetInteractionPromise) => {
   let targetManifests = [];
   let targetPropositions = [];
 
-  if (enablePersonalizationV2() && targetInteractionPromise) {
-    targetInteractionPromise
-      .then(response => {
-        sendTargetResponseAnalytics(false, responseStart, timeout);
-        targetManifests = handleAlloyResponse(response.result);
-        targetPropositions = response.result?.propositions || [];
-      })
-      .catch(error => {
-        console.log('Error while handling the event promise:', error);
-      });
-      return { targetManifests, targetPropositions };
+  if (enablePersonalizationV2() && targetInteractionData) {
+    sendTargetResponseAnalytics(false, responseStart, timeout);
+    return {
+      targetManifests: handleAlloyResponse(response.result),
+      targetPropositions: response.result?.propositions || []
+    };
   }
 
   const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);

@@ -994,7 +994,7 @@ async function checkForPageMods() {
     mepButton,
     martech,
   } = Object.fromEntries(PAGE_URL.searchParams);
-  let targetInteractionPromise = null;
+  let targetInteractionData = null;
   if (mepParam === 'off') return;
   const pzn = getMepEnablement('personalization');
   const promo = getMepEnablement('manifestnames', PROMO_PARAM);
@@ -1007,7 +1007,11 @@ async function checkForPageMods() {
 
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    targetInteractionPromise = loadAnalyticsAndInteractionData({ locale });
+    try{
+      targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
+    } catch (err){
+      console.log('Interact Call didnt go through', err);
+    }
     delayedMartech = true;
   } else if (target || xlg) {
     loadMartech();
@@ -1023,7 +1027,7 @@ async function checkForPageMods() {
   const { init } = await import('../features/personalization/personalization.js');
   await init({
     mepParam, mepHighlight, mepButton, pzn, promo, target,
-  }, targetInteractionPromise);
+  }, targetInteractionData);
 }
 
 async function loadPostLCP(config) {
