@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { enablePersonalizationV2, loadAnalyticsAndInteractionData } from '../martech/helpers.js';
+import { enablePersonalizationV2, loadAnalyticsAndInteractionData, getEnv } from '../martech/helpers.js';
 
 const MILO_TEMPLATES = [
   '404',
@@ -150,28 +150,6 @@ export const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
 
 const PROMO_PARAM = 'promo';
 let delayedMartech = false;
-
-export function getEnv(conf) {
-  const { host } = window.location;
-  const query = PAGE_URL.searchParams.get('env');
-
-  if (query) return { ...ENVS[query], consumer: conf[query] };
-
-  const { clientEnv } = conf;
-  if (clientEnv) return { ...ENVS[clientEnv], consumer: conf[clientEnv] };
-
-  if (host.includes('localhost')) return { ...ENVS.local, consumer: conf.local };
-  /* c8 ignore start */
-  if (host.includes(`${SLD}.page`)
-    || host.includes(`${SLD}.live`)
-    || host.includes('stage.adobe')
-    || host.includes('corp.adobe')
-    || host.includes('graybox.adobe')) {
-    return { ...ENVS.stage, consumer: conf.stage };
-  }
-  return { ...ENVS.prod, consumer: conf.prod };
-  /* c8 ignore stop */
-}
 
 export function getLocale(locales, pathname = window.location.pathname) {
   if (!locales) {

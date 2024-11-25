@@ -1,7 +1,24 @@
-// import { getEnv } from "../utils/utils";
 
-function getEnv() {
-  return 'stage';
+export function getEnv(conf) {
+  const { host } = window.location;
+  const query = PAGE_URL.searchParams.get('env');
+
+  if (query) return { ...ENVS[query], consumer: conf[query] };
+
+  const { clientEnv } = conf;
+  if (clientEnv) return { ...ENVS[clientEnv], consumer: conf[clientEnv] };
+
+  if (host.includes('localhost')) return { ...ENVS.local, consumer: conf.local };
+  /* c8 ignore start */
+  if (host.includes(`${SLD}.page`)
+    || host.includes(`${SLD}.live`)
+    || host.includes('stage.adobe')
+    || host.includes('corp.adobe')
+    || host.includes('graybox.adobe')) {
+    return { ...ENVS.stage, consumer: conf.stage };
+  }
+  return { ...ENVS.prod, consumer: conf.prod };
+  /* c8 ignore stop */
 }
 
 /**
@@ -81,6 +98,35 @@ function getDeviceInfo() {
 }
 
 /**
+   * Retrieves the value of a specific cookie by its key.
+   * 
+   * @param {string} key - The cookie key.
+   * @returns {string|null} The cookie value or null if the cookie doesn't exist.
+   */
+function getCookie(key) {
+  const cookie = document.cookie.split(';')
+    .map(x => x.trim().split('='))
+    .find(([k]) => k === key);
+  return cookie ? cookie[1] : null;
+}
+
+/**
+ * Sets a cookie with a specified expiration time (default 730 days).
+ * 
+ * @param {string} key - The cookie key.
+ * @param {string} value - The cookie value.
+ * @param {Object} [options={}] - Optional settings for cookie properties.
+ */
+function setCookie(key, value, options = {}) {
+  const existingValue = getCookie(key);
+  if (existingValue) {
+    console.log(`The cookie ${key} already exists. Updating it.`);
+  } else {
+    console.log(`The cookie ${key} does not exist. Adding a new one.`);
+  }
+}
+
+/**
  * Checks for the presence of the FPID cookie, or generates and sets a new one.
  * 
  * @returns {string} The FPID cookie value.
@@ -119,7 +165,9 @@ function getPageNameForAnalytics({ locale }) {
  * @param {number} timezoneOffset - The timezone offset.
  * @returns {Object} The updated context for the request payload.
  */
-function getUpdatedContext(screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, localTime, timezoneOffset) {
+function getUpdatedContext({
+  screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, localTime, timezoneOffset
+}) {
   return {
     device: {
       screenHeight,
@@ -146,9 +194,9 @@ function getUpdatedContext(screenWidth, screenHeight, screenOrientation, viewpor
  * @param {Object} params - Parameters required to create the payload.
  * @returns {Object} The request payload.
  */
-function createRequestPayload({ updatedContext, fpidCookie, pageName, locale, env }) {
+function createRequestPayload({ updatedContext, fpidCookie, pageName, locale }) {
   const prevPageName = getCookie('gpv');
-  
+
   return {
     event: {
       xdm: {
@@ -289,7 +337,9 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
     com_adobe_target: { propertyToken: targetProperty },
   };
 
-  const updatedContext = getUpdatedContext(screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET);
+  const updatedContext = getUpdatedContext({
+    screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
+  });
 
   // Prepare the body for the request
   const requestBody = createRequestPayload({
@@ -331,4 +381,36 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
     console.log('Error during API call:', err);
     return Promise.reject(new Error('No propositions found'));
   }
+}
+
+/**
+ * Checks if the user is signed out based on the server timing and navigation performance.
+ * 
+ * @returns {boolean} True if the user is signed out, otherwise false.
+ */
+export function isSignedOut() {
+  let w = window, perf = w.performance, serverTiming = {};
+
+  if (perf && perf.getEntriesByType) {
+    serverTiming = Object.fromEntries(
+      perf.getEntriesByType("navigation")?.[0]?.serverTiming?.map?.(
+        ({ name, description }) => ([name, description])
+      ) ?? []
+    );
+  }
+
+  const isSignedOutOnStagingOrProd = serverTiming && serverTiming.sis === '0';
+
+  // Return true if it's a dev environment or signed out on staging/prod
+  return !Object.keys(serverTiming || {}).length || isSignedOutOnStagingOrProd;
+}
+
+/**
+ * Enables personalization (V2) for the page.
+ * 
+ * @returns {boolean} True if personalization is enabled, otherwise false.
+ */
+export function enablePersonalizationV2() {
+  const enablePersV2 = document.head.querySelector(meta[name = "personalization-v2"]);
+  return enablePersV2 && isSignedOut();
 }
