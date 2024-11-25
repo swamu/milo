@@ -391,6 +391,9 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
       body: JSON.stringify(requestBody),
     });
 
+    if(!targetResp.ok){
+      throw new Error('Failed to fetch interact call');
+    }
     const targetRespJson = await targetResp.json();
     const ECID = extractECID(targetRespJson);
 
