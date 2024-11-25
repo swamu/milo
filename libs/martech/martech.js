@@ -109,34 +109,51 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-export async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
+/**
+ * Checks the resolution of the `window.eventPromise` with retries.
+ * This function waits for the promise to resolve and then processes the result.
+ * 
+ * @param {number} [timeout=TARGET_TIMEOUT_MS] - The timeout interval between retries (in milliseconds).
+ * @param {number} responseStart - The timestamp when the request started, used for analytics.
+ * @returns {Promise<Object>} An object containing `targetManifests` and `targetPropositions` from the resolved promise.
+ */
+async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
+  // Ensure the function is running in the browser environment
   if (typeof window === 'undefined') {
     console.error('window is undefined, unable to proceed.');
     return;
   }
 
-  let attempts = 0;
-  let maxRetries = 1;
-  let targetManifests = [];
-  let targetPropositions = [];
+  let attempts = 0; // Number of attempts made to resolve the promise
+  const maxRetries = 1; // Maximum number of retries before giving up
+  let targetManifests = []; // Holds target manifests extracted from the resolved promise
+  let targetPropositions = []; // Holds target propositions extracted from the resolved promise
 
-  // Define the check function
+  /**
+   * Function to check if the promise has resolved.
+   * It retries until either the promise resolves or maxRetries is reached.
+   */
   async function check() {
     attempts++;
 
+    // Check if `window.eventPromise` exists and is a Promise
     if (window.eventPromise && window.eventPromise instanceof Promise) {
       window.eventPromise
         .then(response => {
+          // Handle the successful resolution of the promise
           sendTargetResponseAnalytics(false, responseStart, timeout);
           targetManifests = handleAlloyResponse(response.result);
           targetPropositions = response.result?.propositions || [];
         })
         .catch(error => {
-          console.log('error', error)
-        })        
+          // Log any errors that occur while handling the promise
+          console.log('Error while handling the event promise:', error);
+        });
     } else {
+      // Log if the promise is not found or is not attached to the window object
       console.log(`Attempt ${attempts}: Promise not found or not attached to window object.`);
 
+      // Retry if the maxRetries has not been reached
       if (attempts < maxRetries) {
         console.log('Max retries reached. Exiting...');
         setTimeout(check, timeout);
@@ -144,8 +161,11 @@ export async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, respon
     }
   }
 
+  // Start the check process
   await check();
-  return { targetManifests, targetPropositions }
+
+  // Return the extracted target manifests and propositions
+  return { targetManifests, targetPropositions };
 }
 
 export const getTargetPersonalization = async () => {

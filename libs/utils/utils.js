@@ -151,7 +151,7 @@ export const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
 const PROMO_PARAM = 'promo';
 let delayedMartech = false;
 
-function getEnv(conf) {
+export function getEnv(conf) {
   const { host } = window.location;
   const query = PAGE_URL.searchParams.get('env');
 
