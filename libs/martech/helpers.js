@@ -4,6 +4,12 @@ export const timeout = parseInt(params.get('target-timeout'), 10)
     || parseInt(getMetadata('target-timeout'), 10)
     || TARGET_TIMEOUT_MS;
 
+export function getMetadata(name, doc = document) {
+  const attr = name && name.includes(':') ? 'property' : 'name';
+  const meta = doc.head.querySelector(`meta[${attr}="${name}"]`);
+  return meta && meta.content;
+}
+
 export function getEnv(conf) {
   const PAGE_URL = new URL(window.location.href);
   const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';

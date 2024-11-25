@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 
-import { enablePersonalizationV2, loadAnalyticsAndInteractionData, getEnv } from '../martech/helpers.js';
+import { enablePersonalizationV2, loadAnalyticsAndInteractionData, getEnv, getMetadata } from '../martech/helpers.js';
+
+export { getMetadata };
 
 const MILO_TEMPLATES = [
   '404',
@@ -143,12 +145,6 @@ export function getLocale(locales, pathname = window.location.pathname) {
   locale.prefix = isUS ? '' : `/${localeString}`;
   locale.region = isUS ? 'us' : localeString.split('_')[0];
   return locale;
-}
-
-export function getMetadata(name, doc = document) {
-  const attr = name && name.includes(':') ? 'property' : 'name';
-  const meta = doc.head.querySelector(`meta[${attr}="${name}"]`);
-  return meta && meta.content;
 }
 
 const handleEntitlements = (() => {
