@@ -92,18 +92,18 @@ function getTargetPropertyBasedOnPageRegion() {
       /(\/africa\/|\/be_en\/|\/be_fr\/|\/be_nl\/|\/cis_en\/|\/cy_en\/|\/dk\/|\/de\/|\/ee\/|\/es\/|\/fr\/|\/gr_en\/|\/ie\/|\/il_en\/|\/it\/|\/lv\/|\/lu_de\/|\/lu_en\/|\/lu_fr\/|\/hu\/|\/mt\/|\/mena_en\/|\/nl\/|\/no\/|\/pl\/|\/pt\/|\/ro\/|\/ch_de\/|\/si\/|\/sk\/|\/ch_fr\/|\/fi\/|\/se\/|\/ch_it\/|\/tr\/|\/uk\/|\/at\/|\/cz\/|\/bg\/|\/ru\/|\/cis_ru\/|\/ua\/|\/il_he\/|\/mena_ar\/|\/lt\/|\/sa_en\/|\/ae_en\/|\/ae_ar\/|\/sa_ar\/|\/ng\/|\/za\/|\/qa_ar\/|\/eg_en\/|\/eg_ar\/|\/kw_ar\/|\/eg_ar\/|\/qa_en\/|\/kw_en\/|\/gr_el\/|\/br\/|\/cl\/|\/la\/|\/mx\/|\/co\/|\/ar\/|\/pe\/|\/gt\/|\/pr\/|\/ec\/|\/cr\/)/
     ) !== -1
   ) {
-    AT_PROPERTY_VAL = "488edf5f-3cbe-f410-0953-8c0c5c323772";
+    return "488edf5f-3cbe-f410-0953-8c0c5c323772";
   }
   else if (  //APAC
     pathname.search(
       /(\/au\/|\/hk_en\/|\/in\/|\/nz\/|\/sea\/|\/cn\/|\/hk_zh\/|\/tw\/|\/kr\/|\/sg\/|\/th_en\/|\/th_th\/|\/my_en\/|\/my_ms\/|\/ph_en\/|\/ph_fil\/|\/vn_en\/|\/vn_vi\/|\/in_hi\/|\/id_id\/|\/id_en\/)/
     ) !== -1
   ) {
-    AT_PROPERTY_VAL = "3de509ee-bbc7-58a3-0851-600d1c2e2918";
+    return "3de509ee-bbc7-58a3-0851-600d1c2e2918";
   }
   //JP
   else if (pathname.indexOf("/jp/") !== -1) {
-    AT_PROPERTY_VAL = "ba5bc9e8-8fb4-037a-12c8-682384720007";
+    return "ba5bc9e8-8fb4-037a-12c8-682384720007";
   }
 
   return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default
@@ -221,8 +221,11 @@ function getUpdatedContext({
  * @param {Object} params - Parameters required to create the payload.
  * @returns {Object} The request payload.
  */
-function createRequestPayload({ updatedContext, fpidCookie, pageName, locale }) {
+function createRequestPayload({ updatedContext, fpidCookie, pageName, locale, env }) {
   const prevPageName = getCookie('gpv');
+  
+  const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
+  let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion();
 
   return {
     event: {
@@ -336,17 +339,10 @@ function updateAMCVCookie(ECID) {
  */
 export async function loadAnalyticsAndInteractionData({ locale }) {
   const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
-  let targetProperty = getTargetPropertyBasedOnPageRegion();
 
   // Define constants based on environment
   const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
-  const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
   const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
-
-  const KNDCTR_COOKIE_KEYS = [
-    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
-    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster',
-  ];
 
   // Device and viewport information
   const { screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight } = getDeviceInfo();
@@ -358,11 +354,6 @@ export async function loadAnalyticsAndInteractionData({ locale }) {
 
   const fpidCookie = getOrCreateFPIDCookie();
   const pageName = getPageNameForAnalytics({ locale });
-
-  const edgeConfigOverrides = {
-    com_adobe_analytics: { reportSuites: REPORT_SUITES_ID },
-    com_adobe_target: { propertyToken: targetProperty },
-  };
 
   const updatedContext = getUpdatedContext({
     screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
