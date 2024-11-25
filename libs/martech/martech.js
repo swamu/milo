@@ -1,7 +1,7 @@
 import {
   getConfig, getMetadata, loadIms, loadLink, loadScript, getMepEnablement,
 } from '../utils/utils.js';
-import { enablePersonalizationV2, TARGET_TIMEOUT_MS, timeout } from './helpers.js';
+import { enablePersonalizationV2, timeout } from './helpers.js';
 
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
 const ALLOY_SEND_EVENT_ERROR = 'alloy_sendEvent_error';

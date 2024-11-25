@@ -391,12 +391,6 @@ export async function loadAnalyticsAndInteractionData({ locale}) {
   });
 
   try {
-    const params = new URL(window.location.href).searchParams;
-
-  const timeout = parseInt(params.get('target-timeout'), 10)
-    || parseInt(getMetadata('target-timeout'), 10)
-    || TARGET_TIMEOUT_MS;
-
     const targetResp = await Promise.race([
       fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
         method: 'POST',
