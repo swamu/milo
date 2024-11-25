@@ -133,8 +133,8 @@ export const getTargetPersonalization = async (targetInteractionData) => {
   if (enablePersonalizationV2() && targetInteractionData) {
     sendTargetResponseAnalytics(false, responseStart, timeout);
     return {
-      targetManifests: handleAlloyResponse(response.result),
-      targetPropositions: response.result?.propositions || []
+      targetManifests: handleAlloyResponse(targetInteractionData.result),
+      targetPropositions: targetInteractionData.result?.propositions || []
     };
   }
 
