@@ -82,7 +82,7 @@ export function generateUUID() {
  */
 function getTargetPropertyBasedOnPageRegion() {
   const { pathname } = window.location;
-  const env = getEnv()?.name;
+  const env = getEnv({})?.name;
 
   if (env !== 'prod') return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default for non-prod environments
 
