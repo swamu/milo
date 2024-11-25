@@ -221,6 +221,10 @@ function getUpdatedContext({
    * @returns {Array} List of MarTech cookies with key and value.
    */
 const getMarctechCookies = () => {
+  const KNDCTR_COOKIE_KEYS = [
+    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
+    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster',
+  ];
   return document.cookie.split(';')
     .map(x => x.trim().split('='))
     .filter(([key]) => KNDCTR_COOKIE_KEYS.includes(key))
