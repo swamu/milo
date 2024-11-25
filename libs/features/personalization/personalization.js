@@ -1117,9 +1117,9 @@ export const combineMepSources = async (persEnabled, promoEnabled, mepParam) => 
   return persManifests;
 };
 
-async function callMartech(config) {
+async function callMartech(config, targetInteractionPromise = null) {
   const { getTargetPersonalization } = await import('../../martech/martech.js');
-  const { targetManifests, targetPropositions } = await getTargetPersonalization();
+  const { targetManifests, targetPropositions } = await getTargetPersonalization(targetInteractionPromise);
   config.mep.targetManifests = targetManifests;
   if (targetPropositions?.length && window._satellite) {
     window._satellite.track('propositionDisplay', targetPropositions);
@@ -1130,12 +1130,13 @@ async function callMartech(config) {
   }
   return targetManifests;
 }
+
 const awaitMartech = () => new Promise((resolve) => {
   const listener = (event) => resolve(event.detail);
   window.addEventListener(MARTECH_RETURNED_EVENT, listener, { once: true });
 });
 
-export async function init(enablements = {}) {
+export async function init(enablements = {}, targetInteractionPromise) {
   let manifests = [];
   const {
     mepParam, mepHighlight, mepButton, pzn, promo, target, postLCP,
@@ -1166,7 +1167,7 @@ export async function init(enablements = {}) {
   if (target === true) manifests = manifests.concat(await callMartech(config));
   if (target === 'postlcp') {
     if(enablePersonalizationV2()){
-      await callMartech(config);
+      await callMartech(config, targetInteractionPromise);
     } else {
       callMartech(config);
     }

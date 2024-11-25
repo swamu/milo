@@ -109,66 +109,7 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-/**
- * Checks the resolution of the `window.eventPromise` with retries.
- * This function waits for the promise to resolve and then processes the result.
- * 
- * @param {number} [timeout=TARGET_TIMEOUT_MS] - The timeout interval between retries (in milliseconds).
- * @param {number} responseStart - The timestamp when the request started, used for analytics.
- * @returns {Promise<Object>} An object containing `targetManifests` and `targetPropositions` from the resolved promise.
- */
-async function checkPromiseResolution(timeout = TARGET_TIMEOUT_MS, responseStart) {
-  // Ensure the function is running in the browser environment
-  if (typeof window === 'undefined') {
-    console.error('window is undefined, unable to proceed.');
-    return;
-  }
-
-  let attempts = 0; // Number of attempts made to resolve the promise
-  const maxRetries = 1; // Maximum number of retries before giving up
-  let targetManifests = []; // Holds target manifests extracted from the resolved promise
-  let targetPropositions = []; // Holds target propositions extracted from the resolved promise
-
-  /**
-   * Function to check if the promise has resolved.
-   * It retries until either the promise resolves or maxRetries is reached.
-   */
-  async function check() {
-    attempts++;
-
-    // Check if `window.eventPromise` exists and is a Promise
-    if (window.eventPromise && window.eventPromise instanceof Promise) {
-      window.eventPromise
-        .then(response => {
-          // Handle the successful resolution of the promise
-          sendTargetResponseAnalytics(false, responseStart, timeout);
-          targetManifests = handleAlloyResponse(response.result);
-          targetPropositions = response.result?.propositions || [];
-        })
-        .catch(error => {
-          // Log any errors that occur while handling the promise
-          console.log('Error while handling the event promise:', error);
-        });
-    } else {
-      // Log if the promise is not found or is not attached to the window object
-      console.log(`Attempt ${attempts}: Promise not found or not attached to window object.`);
-
-      // Retry if the maxRetries has not been reached
-      if (attempts < maxRetries) {
-        console.log('Max retries reached. Exiting...');
-        setTimeout(check, timeout);
-      }
-    }
-  }
-
-  // Start the check process
-  await check();
-
-  // Return the extracted target manifests and propositions
-  return { targetManifests, targetPropositions };
-}
-
-export const getTargetPersonalization = async () => {
+export const getTargetPersonalization = async (targetInteractionPromise) => {
   const params = new URL(window.location.href).searchParams;
 
   const timeout = parseInt(params.get('target-timeout'), 10)
@@ -189,8 +130,17 @@ export const getTargetPersonalization = async () => {
   let targetManifests = [];
   let targetPropositions = [];
 
-  if (enablePersonalizationV2()) {
-    return checkPromiseResolution(timeout,responseStart);
+  if (enablePersonalizationV2() && targetInteractionPromise) {
+    targetInteractionPromise
+      .then(response => {
+        sendTargetResponseAnalytics(false, responseStart, timeout);
+        targetManifests = handleAlloyResponse(response.result);
+        targetPropositions = response.result?.propositions || [];
+      })
+      .catch(error => {
+        console.log('Error while handling the event promise:', error);
+      });
+      return { targetManifests, targetPropositions };
   }
 
   const response = await waitForEventOrTimeout(ALLOY_SEND_EVENT, timeout);
@@ -259,7 +209,7 @@ const loadMartechFiles = async (config) => {
         .then(() => {
           if (window.adobeIMS.isSignedInUser()) setupEntitlementCallback();
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     setDeep(
@@ -274,10 +224,10 @@ const loadMartechFiles = async (config) => {
         ? '/marketingtech'
         : 'https://assets.adobedtm.com'
     ) + (
-      config.env.name === 'prod'
-        ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
-        : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
-    );
+        config.env.name === 'prod'
+          ? '/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js'
+          : '/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js'
+      );
     loadLink(launchUrl, { as: 'script', rel: 'preload' });
 
     window.marketingtech = {
@@ -310,10 +260,10 @@ const loadMartechFiles = async (config) => {
         ? ''
         : 'https://www.adobe.com'
     ) + (
-      config.env.name === 'prod'
-        ? '/marketingtech/main.standard.min.js'
-        : '/marketingtech/main.standard.qa.min.js'
-    ));
+        config.env.name === 'prod'
+          ? '/marketingtech/main.standard.min.js'
+          : '/marketingtech/main.standard.qa.min.js'
+      ));
     // eslint-disable-next-line no-underscore-dangle
     window._satellite.track('pageload');
   };

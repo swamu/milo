@@ -1041,6 +1041,7 @@ async function checkForPageMods() {
     mepButton,
     martech,
   } = Object.fromEntries(PAGE_URL.searchParams);
+  let targetInteractionPromise = null;
   if (mepParam === 'off') return;
   const pzn = getMepEnablement('personalization');
   const promo = getMepEnablement('manifestnames', PROMO_PARAM);
@@ -1053,7 +1054,7 @@ async function checkForPageMods() {
 
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    await loadAnalyticsAndInteractionData({ locale });
+    targetInteractionPromise = loadAnalyticsAndInteractionData({ locale });
     delayedMartech = true;
   } else if (target || xlg) {
     loadMartech();
@@ -1069,19 +1070,13 @@ async function checkForPageMods() {
   const { init } = await import('../features/personalization/personalization.js');
   await init({
     mepParam, mepHighlight, mepButton, pzn, promo, target,
-  });
-}
-
-async function delayMartech(){
-  if(delayedMartech){
-    await loadMartech();
-  }
+  }, targetInteractionPromise);
 }
 
 async function loadPostLCP(config) {
   const enablePersV2 = enablePersonalizationV2();
-  if(enablePersV2){
-    delayMartech(delayedMartech);
+  if(enablePersV2 && delayedMartech){
+    await loadMartech();
   }
   await decoratePlaceholders(document.body.querySelector('header'), config);
   const sk = document.querySelector('aem-sidekick, helix-sidekick');
