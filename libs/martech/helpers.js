@@ -418,6 +418,9 @@ function updateAMCVCookie(ECID) {
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
 async function loadAnalyticsAndInteractionData({ locale }) {
+  if(getCookie('kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_consent') === 'general%3Dout')
+  return Promise.reject('Consent Cookie doesnt allow interact');
+
   const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
   // Define constants based on environment
