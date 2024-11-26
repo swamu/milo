@@ -60,38 +60,6 @@ function getEnv(conf) {
 }
 
 /**
- * Checks if the user is signed out based on the server timing and navigation performance.
- * 
- * @returns {boolean} True if the user is signed out, otherwise false.
- */
-function isSignedOut() {
-  let w = window, perf = w.performance, serverTiming = {};
-
-  if (perf && perf.getEntriesByType) {
-    serverTiming = Object.fromEntries(
-      perf.getEntriesByType("navigation")?.[0]?.serverTiming?.map?.(
-        ({ name, description }) => ([name, description])
-      ) ?? []
-    );
-  }
-
-  const isSignedOutOnStagingOrProd = serverTiming && serverTiming.sis === '0';
-
-  // Return true if it's a dev environment or signed out on staging/prod
-  return !Object.keys(serverTiming || {}).length || isSignedOutOnStagingOrProd;
-}
-
-/**
- * Enables personalization (V2) for the page.
- * 
- * @returns {boolean} True if personalization is enabled, otherwise false.
- */
-function enablePersonalizationV2() {
-  const enablePersV2 = document.head.querySelector(`meta[name="personalization-v2"]`);
-  return enablePersV2 && isSignedOut();
-}
-
-/**
  * Generates a unique UUID based on timestamp and random values.
  * Follows the UUIDv4 pattern.
  * 
