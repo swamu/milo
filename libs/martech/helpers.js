@@ -339,7 +339,7 @@ export const loadAnalyticsAndInteractionData = async ({ locale }) => {
     return Promise.reject('Consent Cookie doesnt allow interact');
   }
 
-  else return Promise.resolve('Consent Cookie  allow interact');
+  // else return Promise.resolve('Consent Cookie  allow interact');
 
   const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
