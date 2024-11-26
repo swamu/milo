@@ -1089,7 +1089,7 @@ async function checkForPageMods() {
       const { getTargetPersonalization } = await import('../martech/martech.js');
             // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
 
-      // const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
+      const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
       // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
     } catch (err){
       console.log('Interact Call didnt go through', err);
