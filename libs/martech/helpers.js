@@ -306,7 +306,7 @@ const getMarctechCookies = () => {
  * @param {Object} params - Parameters required to create the payload.
  * @returns {Object} The request payload.
  */
-function createRequestPayload({ updatedContext, fpidCookie, pageName, locale, env }) {
+function createRequestPayload({ updatedContext, pageName, locale, env }) {
   const prevPageName = getCookie('gpv');
 
   const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
@@ -432,7 +432,6 @@ async function loadAnalyticsAndInteractionData({ locale }) {
   const LOCAL_TIME = CURRENT_DATE.toISOString();
   const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
 
-  const fpidCookie = getOrCreateFPIDCookie();
   const pageName = getPageNameForAnalytics({ locale });
 
   const updatedContext = getUpdatedContext({
@@ -442,7 +441,6 @@ async function loadAnalyticsAndInteractionData({ locale }) {
   // Prepare the body for the request
   const requestBody = createRequestPayload({
     updatedContext,
-    fpidCookie,
     pageName,
     locale,
     env,
