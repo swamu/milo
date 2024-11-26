@@ -1086,8 +1086,11 @@ async function checkForPageMods() {
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
     try{
-      const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
-      targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
+      const { getTargetPersonalization } = await import('../martech/martech.js');
+            // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
+
+      // const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
+      // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
     } catch (err){
       console.log('Interact Call didnt go through', err);
     }
