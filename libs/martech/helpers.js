@@ -357,6 +357,7 @@ export const loadAnalyticsAndInteractionData = async ({ locale, env, timeoutMeta
   });
 
   try {
+    const TARGET_TIMEOUT_MS = 4000;
     const params = new URL(window.location.href).searchParams;
     const timeout = parseInt(params.get('target-timeout'), 10)
       || parseInt(timeoutMeta, 10)
