@@ -1072,7 +1072,7 @@ async function checkForPageMods() {
     mepButton,
     martech,
   } = Object.fromEntries(PAGE_URL.searchParams);
-  let targetInteractionData = null;
+  let targetInteractionPromise = null;
   if (mepParam === 'off') return;
   const pzn = getMepEnablement('personalization');
   const promo = getMepEnablement('manifestnames', PROMO_PARAM);
@@ -1086,12 +1086,8 @@ async function checkForPageMods() {
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
     try{
-      // const { getTargetPersonalization } = await import('../martech/martech.js');
-            // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
-      const x = await import('../martech/helpers.js');
-      console.log(x);
-      // const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
-      // targetInteractionData = await loadAnalyticsAndInteractionData({ locale });
+      const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
+      targetInteractionPromise = loadAnalyticsAndInteractionData({ locale, env: getEnv({})?.name, getMetadata });
     } catch (err){
       console.log('Interact Call didnt go through', err);
     }
@@ -1110,7 +1106,7 @@ async function checkForPageMods() {
   const { init } = await import('../features/personalization/personalization.js');
   await init({
     mepParam, mepHighlight, mepButton, pzn, promo, target,
-  }, targetInteractionData);
+  }, targetInteractionPromise);
 }
 
 async function loadPostLCP(config) {

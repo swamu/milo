@@ -1,64 +1,4 @@
-function getEnv(conf) {
-  const ENVS = {
-    stage: {
-      name: 'stage',
-      ims: 'stg1',
-      adobeIO: 'cc-collab-stage.adobe.io',
-      adminconsole: 'stage.adminconsole.adobe.com',
-      account: 'stage.account.adobe.com',
-      edgeConfigId: '8d2805dd-85bf-4748-82eb-f99fdad117a6',
-      pdfViewerClientId: '600a4521c23d4c7eb9c7b039bee534a0',
-    },
-    prod: {
-      name: 'prod',
-      ims: 'prod',
-      adobeIO: 'cc-collab.adobe.io',
-      adminconsole: 'adminconsole.adobe.com',
-      account: 'account.adobe.com',
-      edgeConfigId: '2cba807b-7430-41ae-9aac-db2b0da742d5',
-      pdfViewerClientId: '3c0a5ddf2cc04d3198d9e48efc390fa9',
-    },
-  };
-  ENVS.local = {
-    ...ENVS.stage,
-    name: 'local',
-  };
-  const PAGE_URL = new URL(window.location.href);
-  const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
-
-  const { host } = window.location;
-  const query = PAGE_URL.searchParams.get('env');
-
-  if (query) return { ...ENVS[query], consumer: conf[query] };
-
-  const { clientEnv } = conf;
-  if (clientEnv) return { ...ENVS[clientEnv], consumer: conf[clientEnv] };
-
-  if (host.includes('localhost')) return { ...ENVS.local, consumer: conf.local };
-  /* c8 ignore start */
-  if (host.includes(`${SLD}.page`)
-    || host.includes(`${SLD}.live`)
-    || host.includes('stage.adobe')
-    || host.includes('corp.adobe')
-    || host.includes('graybox.adobe')) {
-    return { ...ENVS.stage, consumer: conf.stage };
-  }
-  return { ...ENVS.prod, consumer: conf.prod };
-  /* c8 ignore stop */
-}
-
-function getMetadata(name, doc = document) {
-  const attr = name && name.includes(':') ? 'property' : 'name';
-  const meta = doc.head.querySelector(`meta[${attr}="${name}"]`);
-  return meta && meta.content;
-}
-
 const TARGET_TIMEOUT_MS = 4000;
-const params = new URL(window.location.href).searchParams;
-
-const timeout = parseInt(params.get('target-timeout'), 10)
-  || parseInt(getMetadata('target-timeout'), 10)
-  || TARGET_TIMEOUT_MS;
 
 /**
  * Generates a unique UUID based on timestamp and random values.
@@ -92,9 +32,8 @@ function generateUUID() {
  * 
  * @returns {string} Adobe Target property value.
  */
-function getTargetPropertyBasedOnPageRegion() {
+function getTargetPropertyBasedOnPageRegion(env) {
   const { pathname } = window.location;
-  const env = getEnv({})?.name;
 
   if (env !== 'prod') return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default for non-prod environments
 
@@ -279,7 +218,7 @@ function createRequestPayload({ updatedContext, pageName, locale, env }) {
   const prevPageName = getCookie('gpv');
 
   const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
-  let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion();
+  let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion(env);
 
   return {
     event: {
@@ -386,15 +325,11 @@ function updateAMCVCookie(ECID) {
  * 
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
-export const loadAnalyticsAndInteractionData = async ({ locale }) => {
+export const loadAnalyticsAndInteractionData = async ({ locale, env, getMetadata }) => {
 
   if (getCookie('kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_consent') === 'general%3Dout') {
     return Promise.reject('Consent Cookie doesnt allow interact');
   }
-
-  // else return Promise.resolve('Consent Cookie  allow interact');
-
-  const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
   // Define constants based on environment
   const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
@@ -423,6 +358,11 @@ export const loadAnalyticsAndInteractionData = async ({ locale }) => {
   });
 
   try {
+    const params = new URL(window.location.href).searchParams;
+    const timeout = parseInt(params.get('target-timeout'), 10)
+      || parseInt(getMetadata('target-timeout'), 10)
+      || TARGET_TIMEOUT_MS;
+
     const targetResp = await Promise.race([
       fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
         method: 'POST',
