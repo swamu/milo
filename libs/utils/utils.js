@@ -1087,7 +1087,9 @@ async function checkForPageMods() {
     const { locale } = getConfig();
     try{
       const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
-      targetInteractionPromise = loadAnalyticsAndInteractionData({ locale, env: getEnv({})?.name, getMetadata });
+      targetInteractionPromise = loadAnalyticsAndInteractionData(
+        { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') }
+      );
     } catch (err){
       console.log('Interact Call didnt go through', err);
     }

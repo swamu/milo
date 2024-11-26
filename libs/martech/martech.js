@@ -113,7 +113,7 @@ function sendTargetResponseAnalytics(failure, responseStart, timeout, message) {
   });
 }
 
-export const getTargetPersonalization = async (targetInteractionData) => {
+export const getTargetPersonalization = async (targetInteractionPromise) => {
   const responseStart = Date.now();
   window.addEventListener(ALLOY_SEND_EVENT, () => {
     const responseTime = calculateResponseTime(responseStart);
@@ -128,8 +128,9 @@ export const getTargetPersonalization = async (targetInteractionData) => {
   let targetManifests = [];
   let targetPropositions = [];
 
-  if (enablePersonalizationV2() && targetInteractionData) {
+  if (enablePersonalizationV2() && targetInteractionPromise) {
     sendTargetResponseAnalytics(false, responseStart, timeout);
+    const targetInteractionData = await targetInteractionPromise
     return {
       targetManifests: handleAlloyResponse(targetInteractionData.result),
       targetPropositions: targetInteractionData.result?.propositions || []

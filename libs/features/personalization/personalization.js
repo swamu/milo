@@ -1117,7 +1117,7 @@ export const combineMepSources = async (persEnabled, promoEnabled, mepParam) => 
 
 async function callMartech(config, targetInteractionPromise = null) {
   const { getTargetPersonalization } = await import('../../martech/martech.js');
-  const { targetManifests, targetPropositions } = await getTargetPersonalization(await targetInteractionPromise);
+  const { targetManifests, targetPropositions } = await getTargetPersonalization(targetInteractionPromise);
   config.mep.targetManifests = targetManifests;
   if (targetPropositions?.length && window._satellite) {
     window._satellite.track('propositionDisplay', targetPropositions);

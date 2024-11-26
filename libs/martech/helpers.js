@@ -1,4 +1,3 @@
-const TARGET_TIMEOUT_MS = 4000;
 
 /**
  * Generates a unique UUID based on timestamp and random values.
@@ -325,7 +324,7 @@ function updateAMCVCookie(ECID) {
  * 
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
-export const loadAnalyticsAndInteractionData = async ({ locale, env, getMetadata }) => {
+export const loadAnalyticsAndInteractionData = async ({ locale, env, timeoutMeta }) => {
 
   if (getCookie('kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_consent') === 'general%3Dout') {
     return Promise.reject('Consent Cookie doesnt allow interact');
@@ -360,7 +359,7 @@ export const loadAnalyticsAndInteractionData = async ({ locale, env, getMetadata
   try {
     const params = new URL(window.location.href).searchParams;
     const timeout = parseInt(params.get('target-timeout'), 10)
-      || parseInt(getMetadata('target-timeout'), 10)
+      || parseInt(timeoutMeta, 10)
       || TARGET_TIMEOUT_MS;
 
     const targetResp = await Promise.race([
