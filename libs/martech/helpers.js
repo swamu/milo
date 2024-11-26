@@ -1,325 +1,325 @@
-import { getMetadata, getEnv } from "../utils/utils";
+// import { getMetadata, getEnv } from "../utils/utils";
 
-const TARGET_TIMEOUT_MS = 4000;
-const params = new URL(window.location.href).searchParams;
+// const TARGET_TIMEOUT_MS = 4000;
+// const params = new URL(window.location.href).searchParams;
 
-const timeout = parseInt(params.get('target-timeout'), 10)
-  || parseInt(getMetadata('target-timeout'), 10)
-  || TARGET_TIMEOUT_MS;
+// const timeout = parseInt(params.get('target-timeout'), 10)
+//   || parseInt(getMetadata('target-timeout'), 10)
+//   || TARGET_TIMEOUT_MS;
 
-/**
- * Generates a unique UUID based on timestamp and random values.
- * Follows the UUIDv4 pattern.
- * 
- * @returns {string} A UUID string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
- */
-function generateUUID() {
-  let timestamp = new Date().getTime(); // Timestamp
-  let microseconds = (typeof performance !== 'undefined' && performance.now)
-    ? performance.now() * 1000
-    : 0; // Microseconds since page load or 0 if unsupported
+// /**
+//  * Generates a unique UUID based on timestamp and random values.
+//  * Follows the UUIDv4 pattern.
+//  * 
+//  * @returns {string} A UUID string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
+//  */
+// function generateUUID() {
+//   let timestamp = new Date().getTime(); // Timestamp
+//   let microseconds = (typeof performance !== 'undefined' && performance.now)
+//     ? performance.now() * 1000
+//     : 0; // Microseconds since page load or 0 if unsupported
 
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    let randomVal = Math.random() * 16;
+//   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+//     let randomVal = Math.random() * 16;
 
-    if (timestamp > 0) { // Use timestamp until depleted
-      randomVal = (timestamp + randomVal) % 16 | 0;
-      timestamp = Math.floor(timestamp / 16);
-    } else { // Use microseconds since page-load if supported
-      randomVal = (microseconds + randomVal) % 16 | 0;
-      microseconds = Math.floor(microseconds / 16);
-    }
+//     if (timestamp > 0) { // Use timestamp until depleted
+//       randomVal = (timestamp + randomVal) % 16 | 0;
+//       timestamp = Math.floor(timestamp / 16);
+//     } else { // Use microseconds since page-load if supported
+//       randomVal = (microseconds + randomVal) % 16 | 0;
+//       microseconds = Math.floor(microseconds / 16);
+//     }
 
-    return (c === 'x' ? randomVal : (randomVal & 0x3 | 0x8)).toString(16);
-  });
-}
+//     return (c === 'x' ? randomVal : (randomVal & 0x3 | 0x8)).toString(16);
+//   });
+// }
 
-/**
- * Determines the Adobe Target property value based on the page's region.
- * 
- * @returns {string} Adobe Target property value.
- */
-function getTargetPropertyBasedOnPageRegion() {
-  const { pathname } = window.location;
-  const env = getEnv({})?.name;
+// /**
+//  * Determines the Adobe Target property value based on the page's region.
+//  * 
+//  * @returns {string} Adobe Target property value.
+//  */
+// function getTargetPropertyBasedOnPageRegion() {
+//   const { pathname } = window.location;
+//   const env = getEnv({})?.name;
 
-  if (env !== 'prod') return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default for non-prod environments
+//   if (env !== 'prod') return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default for non-prod environments
 
-  //EMEA & LATAM
-  if (
-    pathname.search(
-      /(\/africa\/|\/be_en\/|\/be_fr\/|\/be_nl\/|\/cis_en\/|\/cy_en\/|\/dk\/|\/de\/|\/ee\/|\/es\/|\/fr\/|\/gr_en\/|\/ie\/|\/il_en\/|\/it\/|\/lv\/|\/lu_de\/|\/lu_en\/|\/lu_fr\/|\/hu\/|\/mt\/|\/mena_en\/|\/nl\/|\/no\/|\/pl\/|\/pt\/|\/ro\/|\/ch_de\/|\/si\/|\/sk\/|\/ch_fr\/|\/fi\/|\/se\/|\/ch_it\/|\/tr\/|\/uk\/|\/at\/|\/cz\/|\/bg\/|\/ru\/|\/cis_ru\/|\/ua\/|\/il_he\/|\/mena_ar\/|\/lt\/|\/sa_en\/|\/ae_en\/|\/ae_ar\/|\/sa_ar\/|\/ng\/|\/za\/|\/qa_ar\/|\/eg_en\/|\/eg_ar\/|\/kw_ar\/|\/eg_ar\/|\/qa_en\/|\/kw_en\/|\/gr_el\/|\/br\/|\/cl\/|\/la\/|\/mx\/|\/co\/|\/ar\/|\/pe\/|\/gt\/|\/pr\/|\/ec\/|\/cr\/)/
-    ) !== -1
-  ) {
-    return "488edf5f-3cbe-f410-0953-8c0c5c323772";
-  }
-  else if (  //APAC
-    pathname.search(
-      /(\/au\/|\/hk_en\/|\/in\/|\/nz\/|\/sea\/|\/cn\/|\/hk_zh\/|\/tw\/|\/kr\/|\/sg\/|\/th_en\/|\/th_th\/|\/my_en\/|\/my_ms\/|\/ph_en\/|\/ph_fil\/|\/vn_en\/|\/vn_vi\/|\/in_hi\/|\/id_id\/|\/id_en\/)/
-    ) !== -1
-  ) {
-    return "3de509ee-bbc7-58a3-0851-600d1c2e2918";
-  }
-  //JP
-  else if (pathname.indexOf("/jp/") !== -1) {
-    return "ba5bc9e8-8fb4-037a-12c8-682384720007";
-  }
+//   //EMEA & LATAM
+//   if (
+//     pathname.search(
+//       /(\/africa\/|\/be_en\/|\/be_fr\/|\/be_nl\/|\/cis_en\/|\/cy_en\/|\/dk\/|\/de\/|\/ee\/|\/es\/|\/fr\/|\/gr_en\/|\/ie\/|\/il_en\/|\/it\/|\/lv\/|\/lu_de\/|\/lu_en\/|\/lu_fr\/|\/hu\/|\/mt\/|\/mena_en\/|\/nl\/|\/no\/|\/pl\/|\/pt\/|\/ro\/|\/ch_de\/|\/si\/|\/sk\/|\/ch_fr\/|\/fi\/|\/se\/|\/ch_it\/|\/tr\/|\/uk\/|\/at\/|\/cz\/|\/bg\/|\/ru\/|\/cis_ru\/|\/ua\/|\/il_he\/|\/mena_ar\/|\/lt\/|\/sa_en\/|\/ae_en\/|\/ae_ar\/|\/sa_ar\/|\/ng\/|\/za\/|\/qa_ar\/|\/eg_en\/|\/eg_ar\/|\/kw_ar\/|\/eg_ar\/|\/qa_en\/|\/kw_en\/|\/gr_el\/|\/br\/|\/cl\/|\/la\/|\/mx\/|\/co\/|\/ar\/|\/pe\/|\/gt\/|\/pr\/|\/ec\/|\/cr\/)/
+//     ) !== -1
+//   ) {
+//     return "488edf5f-3cbe-f410-0953-8c0c5c323772";
+//   }
+//   else if (  //APAC
+//     pathname.search(
+//       /(\/au\/|\/hk_en\/|\/in\/|\/nz\/|\/sea\/|\/cn\/|\/hk_zh\/|\/tw\/|\/kr\/|\/sg\/|\/th_en\/|\/th_th\/|\/my_en\/|\/my_ms\/|\/ph_en\/|\/ph_fil\/|\/vn_en\/|\/vn_vi\/|\/in_hi\/|\/id_id\/|\/id_en\/)/
+//     ) !== -1
+//   ) {
+//     return "3de509ee-bbc7-58a3-0851-600d1c2e2918";
+//   }
+//   //JP
+//   else if (pathname.indexOf("/jp/") !== -1) {
+//     return "ba5bc9e8-8fb4-037a-12c8-682384720007";
+//   }
 
-  return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default
-}
+//   return 'bc8dfa27-29cc-625c-22ea-f7ccebfc6231'; // Default
+// }
 
-/**
- * Retrieves device-related information such as screen and viewport dimensions.
- * 
- * @returns {Object} Object containing device and viewport information.
- */
-function getDeviceInfo() {
-  return {
-    screenWidth: window.screen.width,
-    screenHeight: window.screen.height,
-    screenOrientation: window.innerWidth > window.innerHeight ? "landscape" : "portrait",
-    viewportWidth: window.innerWidth,
-    viewportHeight: window.innerHeight,
-  };
-}
+// /**
+//  * Retrieves device-related information such as screen and viewport dimensions.
+//  * 
+//  * @returns {Object} Object containing device and viewport information.
+//  */
+// function getDeviceInfo() {
+//   return {
+//     screenWidth: window.screen.width,
+//     screenHeight: window.screen.height,
+//     screenOrientation: window.innerWidth > window.innerHeight ? "landscape" : "portrait",
+//     viewportWidth: window.innerWidth,
+//     viewportHeight: window.innerHeight,
+//   };
+// }
 
-/**
-   * Retrieves the value of a specific cookie by its key.
-   * 
-   * @param {string} key - The cookie key.
-   * @returns {string|null} The cookie value or null if the cookie doesn't exist.
-   */
-function getCookie(key) {
-  const cookie = document.cookie.split(';')
-    .map(x => x.trim().split('='))
-    .find(([k]) => k === key);
-  return cookie ? cookie[1] : null;
-}
+// /**
+//    * Retrieves the value of a specific cookie by its key.
+//    * 
+//    * @param {string} key - The cookie key.
+//    * @returns {string|null} The cookie value or null if the cookie doesn't exist.
+//    */
+// function getCookie(key) {
+//   const cookie = document.cookie.split(';')
+//     .map(x => x.trim().split('='))
+//     .find(([k]) => k === key);
+//   return cookie ? cookie[1] : null;
+// }
 
-/**
- * Sets a cookie with a specified expiration time (default 730 days).
- * 
- * @param {string} key - The cookie key.
- * @param {string} value - The cookie value.
- * @param {Object} [options={}] - Optional settings for cookie properties.
- */
-function setCookie(key, value, options = {}) {
-  // Default expiration (24 months)
-  const expires = options.expires || 730;
-  const date = new Date();
-  date.setTime(date.getTime() + expires * 24 * 60 * 60 * 1000);
-  const expiresString = `expires=${date.toUTCString()}`;
+// /**
+//  * Sets a cookie with a specified expiration time (default 730 days).
+//  * 
+//  * @param {string} key - The cookie key.
+//  * @param {string} value - The cookie value.
+//  * @param {Object} [options={}] - Optional settings for cookie properties.
+//  */
+// function setCookie(key, value, options = {}) {
+//   // Default expiration (24 months)
+//   const expires = options.expires || 730;
+//   const date = new Date();
+//   date.setTime(date.getTime() + expires * 24 * 60 * 60 * 1000);
+//   const expiresString = `expires=${date.toUTCString()}`;
 
-  document.cookie = `${key}=${value}; ${expiresString}; path=/`;
-}
+//   document.cookie = `${key}=${value}; ${expiresString}; path=/`;
+// }
 
-/**
- * Retrieves the ECID (Experience Cloud ID) from the browser's cookies or generates a new FPID (First Party ID)
- * if the ECID is not found. Returns the ID in a structured object, depending on which ID is available.
- *
- * @function
- * @returns {Object} An object containing either the ECID or FPID.
- *   - If ECID is found, the object will be:
- *     { ECID: [{ id: string, authenticatedState: string, primary: boolean }] }
- *   - If ECID is not found, the object will be:
- *     { FPID: [{ id: string, authenticatedState: string, primary: boolean }] }
- */
-function getOrGenerateUserId() {
-  const experienceCloudCookieName = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
-  const amcvCookieValue = getCookie(experienceCloudCookieName);
+// /**
+//  * Retrieves the ECID (Experience Cloud ID) from the browser's cookies or generates a new FPID (First Party ID)
+//  * if the ECID is not found. Returns the ID in a structured object, depending on which ID is available.
+//  *
+//  * @function
+//  * @returns {Object} An object containing either the ECID or FPID.
+//  *   - If ECID is found, the object will be:
+//  *     { ECID: [{ id: string, authenticatedState: string, primary: boolean }] }
+//  *   - If ECID is not found, the object will be:
+//  *     { FPID: [{ id: string, authenticatedState: string, primary: boolean }] }
+//  */
+// function getOrGenerateUserId() {
+//   const experienceCloudCookieName = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
+//   const amcvCookieValue = getCookie(experienceCloudCookieName);
 
-  // If ECID is not found, generate and return FPID
-  if (!amcvCookieValue) {
-    const fpidValue = generateUUID();
-    return {
-      FPID: [{
-        id: fpidValue,
-        authenticatedState: "ambiguous",
-        primary: true,
-      }],
-    };
-  }
+//   // If ECID is not found, generate and return FPID
+//   if (!amcvCookieValue) {
+//     const fpidValue = generateUUID();
+//     return {
+//       FPID: [{
+//         id: fpidValue,
+//         authenticatedState: "ambiguous",
+//         primary: true,
+//       }],
+//     };
+//   }
 
-  // ECID found, return structured ECID object
-  const extractedEcid = amcvCookieValue.substring(6);  // Extract the ECID value from the cookie
-  return {
-    ECID: [{
-      id: extractedEcid,
-      authenticatedState: "ambiguous",
-      primary: true,
-    }],
-  };
-}
+//   // ECID found, return structured ECID object
+//   const extractedEcid = amcvCookieValue.substring(6);  // Extract the ECID value from the cookie
+//   return {
+//     ECID: [{
+//       id: extractedEcid,
+//       authenticatedState: "ambiguous",
+//       primary: true,
+//     }],
+//   };
+// }
 
 
-/**
- * Retrieves the page name for analytics, modified for the current locale.
- * 
- * @param {Object} params - The parameters.
- * @param {string} params.locale - The locale object containing prefix info.
- * @returns {string} The modified page name.
- */
-function getPageNameForAnalytics({ locale }) {
-  const { host, pathname } = new URL(window.location.href);
-  const [modifiedPath] = pathname.split('/').filter(x => x !== locale.prefix).join(':').split('.');
-  return host.replace('www.', '') + ':' + modifiedPath;
-}
+// /**
+//  * Retrieves the page name for analytics, modified for the current locale.
+//  * 
+//  * @param {Object} params - The parameters.
+//  * @param {string} params.locale - The locale object containing prefix info.
+//  * @returns {string} The modified page name.
+//  */
+// function getPageNameForAnalytics({ locale }) {
+//   const { host, pathname } = new URL(window.location.href);
+//   const [modifiedPath] = pathname.split('/').filter(x => x !== locale.prefix).join(':').split('.');
+//   return host.replace('www.', '') + ':' + modifiedPath;
+// }
 
-/**
- * Creates the updated context for the request payload.
- * 
- * @param {number} screenWidth - Screen width.
- * @param {number} screenHeight - Screen height.
- * @param {string} screenOrientation - Orientation of the screen.
- * @param {number} viewportWidth - Viewport width.
- * @param {number} viewportHeight - Viewport height.
- * @param {string} localTime - The local time in ISO format.
- * @param {number} timezoneOffset - The timezone offset.
- * @returns {Object} The updated context for the request payload.
- */
-function getUpdatedContext({
-  screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, localTime, timezoneOffset
-}) {
-  return {
-    device: {
-      screenHeight,
-      screenWidth,
-      screenOrientation,
-    },
-    environment: {
-      type: "browser",
-      browserDetails: {
-        viewportWidth,
-        viewportHeight,
-      },
-    },
-    placeContext: {
-      localTime,
-      localTimezoneOffset: timezoneOffset,
-    },
-  };
-}
+// /**
+//  * Creates the updated context for the request payload.
+//  * 
+//  * @param {number} screenWidth - Screen width.
+//  * @param {number} screenHeight - Screen height.
+//  * @param {string} screenOrientation - Orientation of the screen.
+//  * @param {number} viewportWidth - Viewport width.
+//  * @param {number} viewportHeight - Viewport height.
+//  * @param {string} localTime - The local time in ISO format.
+//  * @param {number} timezoneOffset - The timezone offset.
+//  * @returns {Object} The updated context for the request payload.
+//  */
+// function getUpdatedContext({
+//   screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, localTime, timezoneOffset
+// }) {
+//   return {
+//     device: {
+//       screenHeight,
+//       screenWidth,
+//       screenOrientation,
+//     },
+//     environment: {
+//       type: "browser",
+//       browserDetails: {
+//         viewportWidth,
+//         viewportHeight,
+//       },
+//     },
+//     placeContext: {
+//       localTime,
+//       localTimezoneOffset: timezoneOffset,
+//     },
+//   };
+// }
 
-/**
-   * Retrieves specific MarTech cookies by their keys.
-   * 
-   * @returns {Array} List of MarTech cookies with key and value.
-   */
-const getMarctechCookies = () => {
-  const KNDCTR_COOKIE_KEYS = [
-    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
-    'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster',
-  ];
-  return document.cookie.split(';')
-    .map(x => x.trim().split('='))
-    .filter(([key]) => KNDCTR_COOKIE_KEYS.includes(key))
-    .map(([key, value]) => ({ key, value }));
-};
+// /**
+//    * Retrieves specific MarTech cookies by their keys.
+//    * 
+//    * @returns {Array} List of MarTech cookies with key and value.
+//    */
+// const getMarctechCookies = () => {
+//   const KNDCTR_COOKIE_KEYS = [
+//     'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
+//     'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_cluster',
+//   ];
+//   return document.cookie.split(';')
+//     .map(x => x.trim().split('='))
+//     .filter(([key]) => KNDCTR_COOKIE_KEYS.includes(key))
+//     .map(([key, value]) => ({ key, value }));
+// };
 
-/**
- * Creates the request payload for Adobe Analytics and Target.
- * 
- * @param {Object} params - Parameters required to create the payload.
- * @returns {Object} The request payload.
- */
-function createRequestPayload({ updatedContext, pageName, locale, env }) {
-  const prevPageName = getCookie('gpv');
+// /**
+//  * Creates the request payload for Adobe Analytics and Target.
+//  * 
+//  * @param {Object} params - Parameters required to create the payload.
+//  * @returns {Object} The request payload.
+//  */
+// function createRequestPayload({ updatedContext, pageName, locale, env }) {
+//   const prevPageName = getCookie('gpv');
 
-  const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
-  let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion();
+//   const REPORT_SUITES_ID = env === 'prod' ? ['adbadobenonacdcprod'] : ['adbadobenonacdcqa'];
+//   let AT_PROPERTY_VAL = getTargetPropertyBasedOnPageRegion();
 
-  return {
-    event: {
-      xdm: {
-        ...updatedContext,
-        identityMap: getOrGenerateUserId(),
-        web: {
-          webPageDetails: {
-            URL: window.location.href,
-            siteSection: "www.adobe.com",
-            server: "www.adobe.com",
-            isErrorPage: false,
-            isHomePage: false,
-            name: pageName,
-            pageViews: { value: 0 },
-          },
-          webInteraction: {
-            name: "Martech-API",
-            type: "other",
-            linkClicks: { value: 1 },
-          },
-          webReferrer: { URL: document.referrer },
-        },
-        timestamp: new Date().toISOString(),
-        eventType: "decisioning.propositionFetch",
-      },
-      data: {
-        __adobe: {
-          target: { is404: false, authState: "loggedOut", hitType: "propositionFetch", isMilo: true, adobeLocale: locale.ietf, hasGnav: true },
-        },
-        _adobe_corpnew: {
-          marketingtech: { adobe: { alloy: { approach: "martech-API" } } },
-          digitalData: {
-            page: { pageInfo: { language: locale.ietf } },
-            diagnostic: { franklin: { implementation: "milo" } },
-            previousPage: { pageInfo: { pageName: prevPageName } },
-            primaryUser: { primaryProfile: { profileInfo: { authState: "loggedOut", returningStatus: "Repeat" } } },
-          },
-        },
-      },
-    },
-    query: {
-      identity: { fetch: ["ECID"] },
-      personalization: {
-        schemas: [
-          "https://ns.adobe.com/personalization/default-content-item",
-          "https://ns.adobe.com/personalization/html-content-item",
-          "https://ns.adobe.com/personalization/json-content-item",
-          "https://ns.adobe.com/personalization/redirect-item",
-          "https://ns.adobe.com/personalization/dom-action",
-        ],
-        decisionScopes: ["__view__"],
-      },
-    },
-    meta: {
-      target: {
-        migration: true,
-      },
-      configOverrides: { com_adobe_analytics: { reportSuites: REPORT_SUITES_ID }, com_adobe_target: { propertyToken: AT_PROPERTY_VAL } },
-      state: {
-        domain: "localhost",
-        cookiesEnabled: true,
-        entries: getMarctechCookies(),
-      },
-    },
-  };
-}
+//   return {
+//     event: {
+//       xdm: {
+//         ...updatedContext,
+//         identityMap: getOrGenerateUserId(),
+//         web: {
+//           webPageDetails: {
+//             URL: window.location.href,
+//             siteSection: "www.adobe.com",
+//             server: "www.adobe.com",
+//             isErrorPage: false,
+//             isHomePage: false,
+//             name: pageName,
+//             pageViews: { value: 0 },
+//           },
+//           webInteraction: {
+//             name: "Martech-API",
+//             type: "other",
+//             linkClicks: { value: 1 },
+//           },
+//           webReferrer: { URL: document.referrer },
+//         },
+//         timestamp: new Date().toISOString(),
+//         eventType: "decisioning.propositionFetch",
+//       },
+//       data: {
+//         __adobe: {
+//           target: { is404: false, authState: "loggedOut", hitType: "propositionFetch", isMilo: true, adobeLocale: locale.ietf, hasGnav: true },
+//         },
+//         _adobe_corpnew: {
+//           marketingtech: { adobe: { alloy: { approach: "martech-API" } } },
+//           digitalData: {
+//             page: { pageInfo: { language: locale.ietf } },
+//             diagnostic: { franklin: { implementation: "milo" } },
+//             previousPage: { pageInfo: { pageName: prevPageName } },
+//             primaryUser: { primaryProfile: { profileInfo: { authState: "loggedOut", returningStatus: "Repeat" } } },
+//           },
+//         },
+//       },
+//     },
+//     query: {
+//       identity: { fetch: ["ECID"] },
+//       personalization: {
+//         schemas: [
+//           "https://ns.adobe.com/personalization/default-content-item",
+//           "https://ns.adobe.com/personalization/html-content-item",
+//           "https://ns.adobe.com/personalization/json-content-item",
+//           "https://ns.adobe.com/personalization/redirect-item",
+//           "https://ns.adobe.com/personalization/dom-action",
+//         ],
+//         decisionScopes: ["__view__"],
+//       },
+//     },
+//     meta: {
+//       target: {
+//         migration: true,
+//       },
+//       configOverrides: { com_adobe_analytics: { reportSuites: REPORT_SUITES_ID }, com_adobe_target: { propertyToken: AT_PROPERTY_VAL } },
+//       state: {
+//         domain: "localhost",
+//         cookiesEnabled: true,
+//         entries: getMarctechCookies(),
+//       },
+//     },
+//   };
+// }
 
-/**
- * Extracts the ECID (Experience Cloud ID) from the API response.
- * 
- * @param {Object} data - The response data from the API.
- * @returns {string|null} The ECID value, or null if not found.
- */
-function extractECID(data) {
-  return data.handle
-    .flatMap(item => item.payload)
-    .find(p => p.namespace?.code === "ECID")?.id || null;
-}
+// /**
+//  * Extracts the ECID (Experience Cloud ID) from the API response.
+//  * 
+//  * @param {Object} data - The response data from the API.
+//  * @returns {string|null} The ECID value, or null if not found.
+//  */
+// function extractECID(data) {
+//   return data.handle
+//     .flatMap(item => item.payload)
+//     .find(p => p.namespace?.code === "ECID")?.id || null;
+// }
 
-/**
- * Updates the AMCV cookie with the new ECID.
- * 
- * @param {string} ECID - The Experience Cloud ID (ECID).
- */
-function updateAMCVCookie(ECID) {
-  const cookieName = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
-  const cookieValue = `MCMID|${ECID}`;
+// /**
+//  * Updates the AMCV cookie with the new ECID.
+//  * 
+//  * @param {string} ECID - The Experience Cloud ID (ECID).
+//  */
+// function updateAMCVCookie(ECID) {
+//   const cookieName = 'AMCV_9E1005A551ED61CA0A490D45%40AdobeOrg';
+//   const cookieValue = `MCMID|${ECID}`;
 
-  if (getCookie(cookieName) !== cookieValue) {
-    setCookie(cookieName, `MCMID|${ECID}`);
-  }
-}
+//   if (getCookie(cookieName) !== cookieValue) {
+//     setCookie(cookieName, `MCMID|${ECID}`);
+//   }
+// }
 
 /**
  * Loads analytics and interaction data based on the user and page context.
@@ -339,70 +339,72 @@ export const loadAnalyticsAndInteractionData = async ({ locale }) => {
     return Promise.reject('Consent Cookie doesnt allow interact');
   }
 
-  const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
+  else return Promise.resolve('Consent Cookie  allow interact');
 
-  // Define constants based on environment
-  const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
-  const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
+  // const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
-  // Device and viewport information
-  const { screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight } = getDeviceInfo();
+  // // Define constants based on environment
+  // const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
+  // const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
 
-  // Date and Time Constants
-  const CURRENT_DATE = new Date();
-  const LOCAL_TIME = CURRENT_DATE.toISOString();
-  const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
+  // // Device and viewport information
+  // const { screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight } = getDeviceInfo();
 
-  const pageName = getPageNameForAnalytics({ locale });
+  // // Date and Time Constants
+  // const CURRENT_DATE = new Date();
+  // const LOCAL_TIME = CURRENT_DATE.toISOString();
+  // const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
 
-  const updatedContext = getUpdatedContext({
-    screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
-  });
+  // const pageName = getPageNameForAnalytics({ locale });
 
-  // Prepare the body for the request
-  const requestBody = createRequestPayload({
-    updatedContext,
-    pageName,
-    locale,
-    env,
-  });
+  // const updatedContext = getUpdatedContext({
+  //   screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
+  // });
 
-  try {
-    const targetResp = await Promise.race([
-      fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), timeout)
-      ),
-    ]);
+  // // Prepare the body for the request
+  // const requestBody = createRequestPayload({
+  //   updatedContext,
+  //   pageName,
+  //   locale,
+  //   env,
+  // });
 
-    if (!targetResp.ok) {
-      throw new Error('Failed to fetch interact call');
-    }
-    const targetRespJson = await targetResp.json();
-    const ECID = extractECID(targetRespJson);
+  // try {
+  //   const targetResp = await Promise.race([
+  //     fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
+  //       method: 'POST',
+  //       body: JSON.stringify(requestBody),
+  //     }),
+  //     new Promise((_, reject) =>
+  //       setTimeout(() => reject(new Error('Request timed out')), timeout)
+  //     ),
+  //   ]);
 
-    // Update the AMCV cookie with ECID
-    updateAMCVCookie(ECID);
+  //   if (!targetResp.ok) {
+  //     throw new Error('Failed to fetch interact call');
+  //   }
+  //   const targetRespJson = await targetResp.json();
+  //   const ECID = extractECID(targetRespJson);
 
-    // Resolve or reject based on propositions
-    const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
+  //   // Update the AMCV cookie with ECID
+  //   updateAMCVCookie(ECID);
 
-    return new Promise((resolve, reject) => {
-      if (resultPayload.length > 0) {
-        resolve({
-          type: 'propositionFetch',
-          result: {
-            propositions: resultPayload,
-          },
-        });
-      } else {
-        reject('No propositions found');
-      }
-    });
-  } catch (err) {
-    return Promise.reject(err);
-  }
+  //   // Resolve or reject based on propositions
+  //   const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
+
+  //   return new Promise((resolve, reject) => {
+  //     if (resultPayload.length > 0) {
+  //       resolve({
+  //         type: 'propositionFetch',
+  //         result: {
+  //           propositions: resultPayload,
+  //         },
+  //       });
+  //     } else {
+  //       reject('No propositions found');
+  //     }
+  //   });
+  // } catch (err) {
+  //   return Promise.reject(err);
+  // }
 }
