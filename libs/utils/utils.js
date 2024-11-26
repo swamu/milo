@@ -148,7 +148,7 @@ export const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
 
 const PROMO_PARAM = 'promo';
 
-function getEnv(conf) {
+export function getEnv(conf) {
   const { host } = window.location;
   const query = PAGE_URL.searchParams.get('env');
 
@@ -1060,7 +1060,7 @@ function isSignedOut() {
  * 
  * @returns {boolean} True if personalization is enabled, otherwise false.
  */
-function enablePersonalizationV2() {
+export function enablePersonalizationV2() {
   const enablePersV2 = document.head.querySelector(`meta[name="personalization-v2"]`);
   return enablePersV2 && isSignedOut();
 }

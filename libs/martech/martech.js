@@ -1,11 +1,13 @@
 import {
-  getConfig, getMetadata, loadIms, loadLink, loadScript, getMepEnablement,
+  getConfig, loadIms, loadLink, loadScript, getMepEnablement, enablePersonalizationV2
 } from '../utils/utils.js';
-import { enablePersonalizationV2, timeout } from './helpers.js';
 
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
 const ALLOY_SEND_EVENT_ERROR = 'alloy_sendEvent_error';
 const ENTITLEMENT_TIMEOUT = 3000;
+const timeout = parseInt(params.get('target-timeout'), 10)
+  || parseInt(getMetadata('target-timeout'), 10)
+  || TARGET_TIMEOUT_MS;
 
 const setDeep = (obj, path, value) => {
   const pathArr = path.split('.');

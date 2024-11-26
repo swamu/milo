@@ -1,63 +1,11 @@
+import { getMetadata, getEnv } from "../utils/utils";
+
 const TARGET_TIMEOUT_MS = 4000;
 const params = new URL(window.location.href).searchParams;
+
 const timeout = parseInt(params.get('target-timeout'), 10)
   || parseInt(getMetadata('target-timeout'), 10)
   || TARGET_TIMEOUT_MS;
-
-function getMetadata(name, doc = document) {
-  const attr = name && name.includes(':') ? 'property' : 'name';
-  const meta = doc.head.querySelector(`meta[${attr}="${name}"]`);
-  return meta && meta.content;
-}
-
-function getEnv(conf) {
-  const PAGE_URL = new URL(window.location.href);
-  const SLD = PAGE_URL.hostname.includes('.aem.') ? 'aem' : 'hlx';
-  const ENVS = {
-    stage: {
-      name: 'stage',
-      ims: 'stg1',
-      adobeIO: 'cc-collab-stage.adobe.io',
-      adminconsole: 'stage.adminconsole.adobe.com',
-      account: 'stage.account.adobe.com',
-      edgeConfigId: '8d2805dd-85bf-4748-82eb-f99fdad117a6',
-      pdfViewerClientId: '600a4521c23d4c7eb9c7b039bee534a0',
-    },
-    prod: {
-      name: 'prod',
-      ims: 'prod',
-      adobeIO: 'cc-collab.adobe.io',
-      adminconsole: 'adminconsole.adobe.com',
-      account: 'account.adobe.com',
-      edgeConfigId: '2cba807b-7430-41ae-9aac-db2b0da742d5',
-      pdfViewerClientId: '3c0a5ddf2cc04d3198d9e48efc390fa9',
-    },
-  };
-  ENVS.local = {
-    ...ENVS.stage,
-    name: 'local',
-  };
-
-  const { host } = window.location;
-  const query = PAGE_URL.searchParams.get('env');
-
-  if (query) return { ...ENVS[query], consumer: conf[query] };
-
-  const { clientEnv } = conf;
-  if (clientEnv) return { ...ENVS[clientEnv], consumer: conf[clientEnv] };
-
-  if (host.includes('localhost')) return { ...ENVS.local, consumer: conf.local };
-  /* c8 ignore start */
-  if (host.includes(`${SLD}.page`)
-    || host.includes(`${SLD}.live`)
-    || host.includes('stage.adobe')
-    || host.includes('corp.adobe')
-    || host.includes('graybox.adobe')) {
-    return { ...ENVS.stage, consumer: conf.stage };
-  }
-  return { ...ENVS.prod, consumer: conf.prod };
-  /* c8 ignore stop */
-}
 
 /**
  * Generates a unique UUID based on timestamp and random values.
@@ -459,4 +407,4 @@ async function loadAnalyticsAndInteractionData({ locale }) {
   }
 }
 
-export { loadAnalyticsAndInteractionData, isSignedOut, enablePersonalizationV2, timeout, getMetadata, getEnv }
+export { loadAnalyticsAndInteractionData }
