@@ -1,9 +1,9 @@
 
 /**
- * Generates a unique UUID based on timestamp and random values.
- * Follows the UUIDv4 pattern.
+ * Generates a unique UUID-like string based on timestamp and random values.
+ * Follows a variation of the UUIDv4 pattern using time-based and random values.
  * 
- * @returns {string} A UUID string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
+ * @returns {string} A UUID-like string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
  */
 function generateUUID() {
   let timestamp = new Date().getTime(); // Timestamp
@@ -29,6 +29,7 @@ function generateUUID() {
 /**
  * Determines the Adobe Target property value based on the page's region.
  * 
+ * @param {string} env - The environment (e.g., 'prod' for production, 'dev' for development).
  * @returns {string} Adobe Target property value.
  */
 function getTargetPropertyBasedOnPageRegion(env) {
@@ -75,11 +76,11 @@ function getDeviceInfo() {
 }
 
 /**
-   * Retrieves the value of a specific cookie by its key.
-   * 
-   * @param {string} key - The cookie key.
-   * @returns {string|null} The cookie value or null if the cookie doesn't exist.
-   */
+ * Retrieves the value of a specific cookie by its key.
+ * 
+ * @param {string} key - The cookie key.
+ * @returns {string|null} The cookie value, or null if the cookie doesn't exist.
+ */
 function getCookie(key) {
   const cookie = document.cookie.split(';')
     .map(x => x.trim().split('='))
@@ -92,7 +93,7 @@ function getCookie(key) {
  * 
  * @param {string} key - The cookie key.
  * @param {string} value - The cookie value.
- * @param {Object} [options={}] - Optional settings for cookie properties.
+ * @param {Object} [options={}] - Optional settings for cookie properties. Defaults to an expiration of 730 days.
  */
 function setCookie(key, value, options = {}) {
   // Default expiration (24 months)
@@ -108,7 +109,6 @@ function setCookie(key, value, options = {}) {
  * Retrieves the ECID (Experience Cloud ID) from the browser's cookies or generates a new FPID (First Party ID)
  * if the ECID is not found. Returns the ID in a structured object, depending on which ID is available.
  *
- * @function
  * @returns {Object} An object containing either the ECID or FPID.
  *   - If ECID is found, the object will be:
  *     { ECID: [{ id: string, authenticatedState: string, primary: boolean }] }
@@ -147,7 +147,7 @@ function getOrGenerateUserId() {
  * Retrieves the page name for analytics, modified for the current locale.
  * 
  * @param {Object} params - The parameters.
- * @param {string} params.locale - The locale object containing prefix info.
+ * @param {Object} params.locale - The locale object containing language/region info (e.g., { ietf: 'en-US', prefix: 'us' }).
  * @returns {string} The modified page name.
  */
 function getPageNameForAnalytics({ locale }) {
@@ -157,7 +157,7 @@ function getPageNameForAnalytics({ locale }) {
 }
 
 /**
- * Creates the updated context for the request payload.
+ * Creates the updated context for the request payload for analytics or personalization requests.
  * 
  * @param {number} screenWidth - Screen width.
  * @param {number} screenHeight - Screen height.
@@ -192,10 +192,10 @@ function getUpdatedContext({
 }
 
 /**
-   * Retrieves specific MarTech cookies by their keys.
-   * 
-   * @returns {Array} List of MarTech cookies with key and value.
-   */
+ * Retrieves specific MarTech cookies by their keys.
+ * 
+ * @returns {Array<Object>} List of MarTech cookies with each object containing 'key' and 'value' properties.
+ */
 const getMarctechCookies = () => {
   const KNDCTR_COOKIE_KEYS = [
     'kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_identity',
@@ -211,7 +211,11 @@ const getMarctechCookies = () => {
  * Creates the request payload for Adobe Analytics and Target.
  * 
  * @param {Object} params - Parameters required to create the payload.
- * @returns {Object} The request payload.
+ * @param {Object} params.updatedContext - The updated context for the request.
+ * @param {string} params.pageName - The page name for the analytics request.
+ * @param {Object} params.locale - The locale object containing language/region info.
+ * @param {string} params.env - The environment (e.g., 'prod' for production).
+ * @returns {Object} The request payload for Adobe Analytics and Target.
  */
 function createRequestPayload({ updatedContext, pageName, locale, env }) {
   const prevPageName = getCookie('gpv');
@@ -287,7 +291,7 @@ function createRequestPayload({ updatedContext, pageName, locale, env }) {
 }
 
 /**
- * Extracts the ECID (Experience Cloud ID) from the API response.
+ * Extracts the ECID (Experience Cloud ID) from the API response data.
  * 
  * @param {Object} data - The response data from the API.
  * @returns {string|null} The ECID value, or null if not found.
@@ -316,11 +320,10 @@ function updateAMCVCookie(ECID) {
  * Loads analytics and interaction data based on the user and page context.
  * Sends the data to Adobe Analytics and Adobe Target for personalization.
  * 
- * This function gathers data such as device details, user authentication state, and page information.
- * It sends the data to Adobe's marketing solutions to enable personalized content and tracking.
- * 
  * @param {Object} params - The parameters for the function.
- * @param {string} params.locale - The locale object containing language/region info.
+ * @param {Object} params.locale - The locale object containing language/region info.
+ * @param {string} params.env - The environment (e.g., 'prod' for production).
+ * @param {string} [params.timeoutMeta] - Optional timeout value for the request in milliseconds.
  * 
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
