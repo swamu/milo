@@ -1,5 +1,5 @@
 import {
-  getConfig, loadIms, loadLink, loadScript, getMepEnablement, enablePersonalizationV2
+  getConfig, loadIms, loadLink, loadScript, getMepEnablement, enablePersonalizationV2, getMetadata
 } from '../utils/utils.js';
 
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
