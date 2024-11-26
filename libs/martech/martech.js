@@ -5,6 +5,8 @@ import {
 const ALLOY_SEND_EVENT = 'alloy_sendEvent';
 const ALLOY_SEND_EVENT_ERROR = 'alloy_sendEvent_error';
 const ENTITLEMENT_TIMEOUT = 3000;
+
+const params = new URL(window.location.href).searchParams;
 const timeout = parseInt(params.get('target-timeout'), 10)
   || parseInt(getMetadata('target-timeout'), 10)
   || TARGET_TIMEOUT_MS;
