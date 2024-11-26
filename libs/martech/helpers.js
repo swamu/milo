@@ -1,38 +1,38 @@
 // import { getMetadata, getEnv } from "../utils/utils";
 
-// const TARGET_TIMEOUT_MS = 4000;
-// const params = new URL(window.location.href).searchParams;
+const TARGET_TIMEOUT_MS = 4000;
+const params = new URL(window.location.href).searchParams;
 
-// const timeout = parseInt(params.get('target-timeout'), 10)
-//   || parseInt(getMetadata('target-timeout'), 10)
-//   || TARGET_TIMEOUT_MS;
+const timeout = parseInt(params.get('target-timeout'), 10)
+  || parseInt(getMetadata('target-timeout'), 10)
+  || TARGET_TIMEOUT_MS;
 
-// /**
-//  * Generates a unique UUID based on timestamp and random values.
-//  * Follows the UUIDv4 pattern.
-//  * 
-//  * @returns {string} A UUID string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
-//  */
-// function generateUUID() {
-//   let timestamp = new Date().getTime(); // Timestamp
-//   let microseconds = (typeof performance !== 'undefined' && performance.now)
-//     ? performance.now() * 1000
-//     : 0; // Microseconds since page load or 0 if unsupported
+/**
+ * Generates a unique UUID based on timestamp and random values.
+ * Follows the UUIDv4 pattern.
+ * 
+ * @returns {string} A UUID string in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.
+ */
+function generateUUID() {
+  let timestamp = new Date().getTime(); // Timestamp
+  let microseconds = (typeof performance !== 'undefined' && performance.now)
+    ? performance.now() * 1000
+    : 0; // Microseconds since page load or 0 if unsupported
 
-//   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-//     let randomVal = Math.random() * 16;
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    let randomVal = Math.random() * 16;
 
-//     if (timestamp > 0) { // Use timestamp until depleted
-//       randomVal = (timestamp + randomVal) % 16 | 0;
-//       timestamp = Math.floor(timestamp / 16);
-//     } else { // Use microseconds since page-load if supported
-//       randomVal = (microseconds + randomVal) % 16 | 0;
-//       microseconds = Math.floor(microseconds / 16);
-//     }
+    if (timestamp > 0) { // Use timestamp until depleted
+      randomVal = (timestamp + randomVal) % 16 | 0;
+      timestamp = Math.floor(timestamp / 16);
+    } else { // Use microseconds since page-load if supported
+      randomVal = (microseconds + randomVal) % 16 | 0;
+      microseconds = Math.floor(microseconds / 16);
+    }
 
-//     return (c === 'x' ? randomVal : (randomVal & 0x3 | 0x8)).toString(16);
-//   });
-// }
+    return (c === 'x' ? randomVal : (randomVal & 0x3 | 0x8)).toString(16);
+  });
+}
 
 // /**
 //  * Determines the Adobe Target property value based on the page's region.
