@@ -341,70 +341,70 @@ export const loadAnalyticsAndInteractionData = async ({ locale }) => {
 
   else return Promise.resolve('Consent Cookie  allow interact');
 
-  // const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
+  const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
-  // // Define constants based on environment
-  // const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
-  // const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
+  // Define constants based on environment
+  const DATA_STREAM_ID = env === 'prod' ? '5856abb0-95d8-4f9a-bb92-37f99d2bd492' : '87f9b644-5fd3-4015-81d5-f68ad81c3561';
+  const TARGET_API_URL = 'https://edge.adobedc.net/ee/v2/interact';
 
-  // // Device and viewport information
-  // const { screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight } = getDeviceInfo();
+  // Device and viewport information
+  const { screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight } = getDeviceInfo();
 
-  // // Date and Time Constants
-  // const CURRENT_DATE = new Date();
-  // const LOCAL_TIME = CURRENT_DATE.toISOString();
-  // const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
+  // Date and Time Constants
+  const CURRENT_DATE = new Date();
+  const LOCAL_TIME = CURRENT_DATE.toISOString();
+  const LOCAL_TIMEZONE_OFFSET = CURRENT_DATE.getTimezoneOffset();
 
-  // const pageName = getPageNameForAnalytics({ locale });
+  const pageName = getPageNameForAnalytics({ locale });
 
-  // const updatedContext = getUpdatedContext({
-  //   screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
-  // });
+  const updatedContext = getUpdatedContext({
+    screenWidth, screenHeight, screenOrientation, viewportWidth, viewportHeight, LOCAL_TIME, LOCAL_TIMEZONE_OFFSET
+  });
 
-  // // Prepare the body for the request
-  // const requestBody = createRequestPayload({
-  //   updatedContext,
-  //   pageName,
-  //   locale,
-  //   env,
-  // });
+  // Prepare the body for the request
+  const requestBody = createRequestPayload({
+    updatedContext,
+    pageName,
+    locale,
+    env,
+  });
 
-  // try {
-  //   const targetResp = await Promise.race([
-  //     fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
-  //       method: 'POST',
-  //       body: JSON.stringify(requestBody),
-  //     }),
-  //     new Promise((_, reject) =>
-  //       setTimeout(() => reject(new Error('Request timed out')), timeout)
-  //     ),
-  //   ]);
+  try {
+    const targetResp = await Promise.race([
+      fetch(`${TARGET_API_URL}?dataStreamId=${DATA_STREAM_ID}`, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), timeout)
+      ),
+    ]);
 
-  //   if (!targetResp.ok) {
-  //     throw new Error('Failed to fetch interact call');
-  //   }
-  //   const targetRespJson = await targetResp.json();
-  //   const ECID = extractECID(targetRespJson);
+    if (!targetResp.ok) {
+      throw new Error('Failed to fetch interact call');
+    }
+    const targetRespJson = await targetResp.json();
+    const ECID = extractECID(targetRespJson);
 
-  //   // Update the AMCV cookie with ECID
-  //   updateAMCVCookie(ECID);
+    // Update the AMCV cookie with ECID
+    updateAMCVCookie(ECID);
 
-  //   // Resolve or reject based on propositions
-  //   const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
+    // Resolve or reject based on propositions
+    const resultPayload = targetRespJson?.handle?.find(d => d.type === 'personalization:decisions')?.payload;
 
-  //   return new Promise((resolve, reject) => {
-  //     if (resultPayload.length > 0) {
-  //       resolve({
-  //         type: 'propositionFetch',
-  //         result: {
-  //           propositions: resultPayload,
-  //         },
-  //       });
-  //     } else {
-  //       reject('No propositions found');
-  //     }
-  //   });
-  // } catch (err) {
-  //   return Promise.reject(err);
-  // }
+    return new Promise((resolve, reject) => {
+      if (resultPayload.length > 0) {
+        resolve({
+          type: 'propositionFetch',
+          result: {
+            propositions: resultPayload,
+          },
+        });
+      } else {
+        reject('No propositions found');
+      }
+    });
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
