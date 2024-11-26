@@ -225,7 +225,7 @@ function getOrGenerateUserId() {
   } 
 
   // ECID found, return structured ECID object
-  const extractedEcid = amcvCookieValue.substring(7);  // Extract the ECID value from the cookie
+  const extractedEcid = amcvCookieValue.substring(6);  // Extract the ECID value from the cookie
   return {
     ECID: [{
       id: extractedEcid,
