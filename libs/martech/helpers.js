@@ -222,7 +222,7 @@ function getOrGenerateUserId() {
         primary: true,
       }],
     };
-  } 
+  }
 
   // ECID found, return structured ECID object
   const extractedEcid = amcvCookieValue.substring(6);  // Extract the ECID value from the cookie
@@ -339,7 +339,7 @@ function createRequestPayload({ updatedContext, pageName, locale, env }) {
       },
       data: {
         __adobe: {
-          target: { is404: false, authState: "loggedOut", hitType: "propositionFetch", isMilo: true, adobeLocale: locale.ietf,  hasGnav: true },
+          target: { is404: false, authState: "loggedOut", hitType: "propositionFetch", isMilo: true, adobeLocale: locale.ietf, hasGnav: true },
         },
         _adobe_corpnew: {
           marketingtech: { adobe: { alloy: { approach: "martech-API" } } },
@@ -418,8 +418,10 @@ function updateAMCVCookie(ECID) {
  * @returns {Promise<Object>} A promise that resolves to the personalization propositions fetched from Adobe Target.
  */
 async function loadAnalyticsAndInteractionData({ locale }) {
-  if(getCookie('kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_consent') === 'general%3Dout')
-  return Promise.reject('Consent Cookie doesnt allow interact');
+
+  if (getCookie('kndctr_9E1005A551ED61CA0A490D45_AdobeOrg_consent') === 'general%3Dout') {
+    return Promise.reject('Consent Cookie doesnt allow interact');
+  }
 
   const env = getEnv({})?.name;  // Get the current environment (prod, dev, etc.)
 
