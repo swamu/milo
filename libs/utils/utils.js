@@ -1036,10 +1036,14 @@ export async function loadMartech({
  *
  * @returns {boolean} True if the user is signed out, otherwise false.
  */
-const isSignedOut = () => window.performance
-  ?.getEntriesByType('navigation')?.[0]
-  ?.serverTiming
-  ?.find(({ name, description }) => name === 'sis' && description === '0');
+function isSignedOut() {
+  const serverTiming = window.performance?.getEntriesByType('navigation')?.[0]?.serverTiming?.reduce(
+    (acc, { name, description }) => ({ ...acc, [name]: description }),
+    {},
+  );
+
+  return !Object.keys(serverTiming || {}).length || serverTiming?.sis === '0';
+}
 
 /**
  * Enables personalization (V2) for the page.
