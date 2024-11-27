@@ -1082,7 +1082,13 @@ async function checkForPageMods() {
         ));
       });
     });
-  } else if (target || xlg) {
+    const { init } = await import('../features/personalization/personalization.js');
+    await init({
+      mepParam, mepHighlight, mepButton, pzn, promo, target, targetInteractionPromise,
+    });
+    return;
+  }
+  if (target || xlg) {
     loadMartech();
   } else if (pzn && martech !== 'off') {
     loadIms()
@@ -1107,6 +1113,9 @@ async function loadPostLCP(config) {
     /* c8 ignore next 2 */
     const { init } = await import('../features/personalization/personalization.js');
     await init({ postLCP: true });
+    if (enablePersonalizationV2()) {
+      loadMartech();
+    }
   } else {
     loadMartech();
   }
