@@ -1075,14 +1075,18 @@ async function checkForPageMods() {
   const enablePersV2 = enablePersonalizationV2();
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
+    const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
+    targetInteractionPromise = loadAnalyticsAndInteractionData(
+      { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
+    );
 
-    targetInteractionPromise = new Promise((res) => {
-      import('../martech/helpers.js').then(({ loadAnalyticsAndInteractionData }) => {
-        res(loadAnalyticsAndInteractionData(
-          { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
-        ));
-      });
-    });
+    // targetInteractionPromise = new Promise((res) => {
+    //   import('../martech/helpers.js').then(({ loadAnalyticsAndInteractionData }) => {
+    //     res(loadAnalyticsAndInteractionData(
+    //       { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
+    //     ));
+    //   });
+    // });
   } else if (target || xlg) {
     loadMartech();
   } else if (pzn && martech !== 'off') {
