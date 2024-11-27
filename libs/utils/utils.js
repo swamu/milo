@@ -1025,7 +1025,7 @@ export async function loadMartech({
   }
 
   window.targetGlobalSettings = { bodyHidingEnabled: false };
-  loadIms().catch(() => {});
+  loadIms().catch(() => { });
 
   const { default: initMartech } = await import('../martech/martech.js');
   await initMartech({ persEnabled, persManifests, postLCP });
@@ -1035,17 +1035,18 @@ export async function loadMartech({
 
 /**
  * Checks if the user is signed out based on the server timing and navigation performance.
- * 
+ *
  * @returns {boolean} True if the user is signed out, otherwise false.
  */
 function isSignedOut() {
-  let w = window, perf = w.performance, serverTiming = {};
+  const w = window; const perf = w.performance; let
+    serverTiming = {};
 
   if (perf && perf.getEntriesByType) {
     serverTiming = Object.fromEntries(
-      perf.getEntriesByType("navigation")?.[0]?.serverTiming?.map?.(
-        ({ name, description }) => ([name, description])
-      ) ?? []
+      perf.getEntriesByType('navigation')?.[0]?.serverTiming?.map?.(
+        ({ name, description }) => ([name, description]),
+      ) ?? [],
     );
   }
 
@@ -1057,11 +1058,11 @@ function isSignedOut() {
 
 /**
  * Enables personalization (V2) for the page.
- * 
+ *
  * @returns {boolean} True if personalization is enabled, otherwise false.
  */
 export function enablePersonalizationV2() {
-  const enablePersV2 = document.head.querySelector(`meta[name="personalization-v2"]`);
+  const enablePersV2 = document.head.querySelector('meta[name="personalization-v2"]');
   return enablePersV2 && isSignedOut();
 }
 
@@ -1081,18 +1082,14 @@ async function checkForPageMods() {
 
   if (!(pzn || target || promo || mepParam
     || mepHighlight || mepButton || mepParam === '' || xlg)) return;
-    
+
   const enablePersV2 = enablePersonalizationV2();
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    try{
-      const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
-      targetInteractionPromise = loadAnalyticsAndInteractionData(
-        { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') }
-      );
-    } catch (err){
-      console.log('Interact Call didnt go through', err);
-    }
+    const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
+    targetInteractionPromise = loadAnalyticsAndInteractionData(
+      { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
+    );
     delayedMartech = true;
   } else if (target || xlg) {
     loadMartech();
@@ -1113,7 +1110,7 @@ async function checkForPageMods() {
 
 async function loadPostLCP(config) {
   const enablePersV2 = enablePersonalizationV2();
-  if(enablePersV2 && delayedMartech){
+  if (enablePersV2 && delayedMartech) {
     await loadMartech();
   }
   await decoratePlaceholders(document.body.querySelector('header'), config);
@@ -1123,10 +1120,8 @@ async function loadPostLCP(config) {
     /* c8 ignore next 2 */
     const { init } = await import('../features/personalization/personalization.js');
     await init({ postLCP: true });
-  } else {
-    if(!enablePersV2) {
-      loadMartech();
-    }
+  } else if (!enablePersV2) {
+    loadMartech();
   }
 
   const georouting = getMetadata('georouting') || config.geoRouting;
