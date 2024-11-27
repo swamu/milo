@@ -1172,9 +1172,9 @@ export async function init(enablements = {}) {
       ? callMartech(config, targetInteractionPromise)
       : callMartech(config); // this is the 'postlcp' call to martech
 
-    if (target === true || enablePersonalizationV2()) {
+    if (target === true) {
       const localManifests = await callMartechPromise;
-      if (!enablePersonalizationV2()) manifests = manifests.concat(localManifests);
+      manifests = manifests.concat(localManifests);
     }
   }
 
