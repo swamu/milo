@@ -170,8 +170,6 @@ export function getEnv(conf) {
   /* c8 ignore stop */
 }
 
-let delayedMartech = false;
-
 export function getLocale(locales, pathname = window.location.pathname) {
   if (!locales) {
     return { ietf: 'en-US', tk: 'hah7vzn.css', prefix: '' };
@@ -1086,11 +1084,14 @@ async function checkForPageMods() {
   const enablePersV2 = enablePersonalizationV2();
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
     const { locale } = getConfig();
-    const { loadAnalyticsAndInteractionData } = await import('../martech/helpers.js');
-    targetInteractionPromise = loadAnalyticsAndInteractionData(
-      { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
-    );
-    delayedMartech = true;
+
+    targetInteractionPromise = new Promise((res) => {
+      import('../martech/helpers.js').then(({ loadAnalyticsAndInteractionData }) => {
+        res(loadAnalyticsAndInteractionData(
+          { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
+        ));
+      });
+    });
   } else if (target || xlg) {
     loadMartech();
   } else if (pzn && martech !== 'off') {
@@ -1104,15 +1105,11 @@ async function checkForPageMods() {
 
   const { init } = await import('../features/personalization/personalization.js');
   await init({
-    mepParam, mepHighlight, mepButton, pzn, promo, target,
-  }, targetInteractionPromise);
+    mepParam, mepHighlight, mepButton, pzn, promo, target, targetInteractionPromise,
+  });
 }
 
 async function loadPostLCP(config) {
-  const enablePersV2 = enablePersonalizationV2();
-  if (enablePersV2 && delayedMartech) {
-    await loadMartech();
-  }
   await decoratePlaceholders(document.body.querySelector('header'), config);
   const sk = document.querySelector('aem-sidekick, helix-sidekick');
   if (sk) import('./sidekick-decorate.js').then((mod) => { mod.default(sk); });
@@ -1120,7 +1117,7 @@ async function loadPostLCP(config) {
     /* c8 ignore next 2 */
     const { init } = await import('../features/personalization/personalization.js');
     await init({ postLCP: true });
-  } else if (!enablePersV2) {
+  } else {
     loadMartech();
   }
 

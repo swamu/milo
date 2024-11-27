@@ -1139,10 +1139,10 @@ const awaitMartech = () => new Promise((resolve) => {
   window.addEventListener(MARTECH_RETURNED_EVENT, listener, { once: true });
 });
 
-export async function init(enablements = {}, targetInteractionPromise = null) {
+export async function init(enablements = {}) {
   let manifests = [];
   const {
-    mepParam, mepHighlight, mepButton, pzn, promo, target, postLCP,
+    mepParam, mepHighlight, mepButton, pzn, promo, target, postLCP, targetInteractionPromise,
   } = enablements;
   const config = getConfig();
   if (postLCP) {
@@ -1167,23 +1167,17 @@ export async function init(enablements = {}, targetInteractionPromise = null) {
     if (pzn) loadLink(getXLGListURL(config), { as: 'fetch', crossorigin: 'anonymous', rel: 'preload' });
   }
 
-  if (target === true) {
-    let localManifests = [];
-    if (enablePersonalizationV2()) {
-      localManifests = await callMartech(config, targetInteractionPromise);
-    } else {
-      localManifests = await callMartech(config);
+  if (target === true || target === 'postlcp') {
+    const callMartechPromise = enablePersonalizationV2()
+      ? callMartech(config, targetInteractionPromise)
+      : callMartech(config); // this is the 'postlcp' call to martech
+
+    if (target === true || enablePersonalizationV2()) {
+      const localManifests = await callMartechPromise;
+      if (!enablePersonalizationV2()) manifests = manifests.concat(localManifests);
     }
-    manifests = manifests.concat(localManifests);
   }
 
-  if (target === 'postlcp') {
-    if (enablePersonalizationV2()) {
-      await callMartech(config, targetInteractionPromise);
-    } else {
-      callMartech(config);
-    }
-  }
   if (postLCP) {
     if (!config.mep.targetManifests) await awaitMartech();
     manifests = config.mep.targetManifests;
