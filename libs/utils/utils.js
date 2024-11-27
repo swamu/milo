@@ -1036,23 +1036,10 @@ export async function loadMartech({
  *
  * @returns {boolean} True if the user is signed out, otherwise false.
  */
-function isSignedOut() {
-  const w = window; const perf = w.performance; let
-    serverTiming = {};
-
-  if (perf && perf.getEntriesByType) {
-    serverTiming = Object.fromEntries(
-      perf.getEntriesByType('navigation')?.[0]?.serverTiming?.map?.(
-        ({ name, description }) => ([name, description]),
-      ) ?? [],
-    );
-  }
-
-  const isSignedOutOnStagingOrProd = serverTiming && serverTiming.sis === '0';
-
-  // Return true if it's a dev environment or signed out on staging/prod
-  return !Object.keys(serverTiming || {}).length || isSignedOutOnStagingOrProd;
-}
+const isSignedOut = () => window.performance
+  ?.getEntriesByType('navigation')?.[0]
+  ?.serverTiming
+  ?.find(({ name, description }) => name === 'sis' && description === '0');
 
 /**
  * Enables personalization (V2) for the page.
