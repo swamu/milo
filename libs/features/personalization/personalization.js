@@ -1257,7 +1257,7 @@ export async function init(enablements = {}) {
     if (pzn) loadLink(getXLGListURL(config), { as: 'fetch', crossorigin: 'anonymous', rel: 'preload' });
   }
 
-  if (!enablePersonalizationV2()) {
+  if (enablePersonalizationV2()) {
     manifests = manifests.concat(await handleMartechTargetInteraction(config));
   } else {
     if (target === true) manifests = manifests.concat(await callMartech(config));
