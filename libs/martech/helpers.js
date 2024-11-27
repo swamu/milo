@@ -1,56 +1,45 @@
 /**
- * Generates a version 4 UUID with cryptographically secure randomness.
- * The generated UUID is in the format: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
- * where 'x' is any hexadecimal digit and 'y' is one of 8, 9, a, or b.
+ * Generates a Version 4 (UUIDv4) UUID.
+ * UUIDv4 is generated using random values and follows the RFC 4122 standard.
+ * The format of the UUID is `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx` where:
+ * - The version is always 4 (the '4' in the third group).
+ * - The variant is always in the range [8, 9, A, B] for the 'y' in the fourth group.
  *
  * @returns {string} The generated UUID.
  */
 function generateUUID() {
-  // Constants for UUID generation
-  const UUID_FORMAT = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-  const VARIANT_RANGE_START = 8; // The variant byte must be between 8 and b (inclusive)
-  const VARIANT_RANGE_END = 11; // The valid range for the variant part is [8, 11]
-  const HEX_BASE = 16; // Base for hexadecimal representation (16 is the range for hex digits)
-
-  // Get current timestamp (milliseconds since UNIX epoch)
-  let timestamp = new Date().getTime();
-
-  // Get high precision time (microseconds) if available
-  let microseconds = (typeof performance !== 'undefined' && performance.now)
-    ? performance.now() * 1000
-    : 0;
-
-  // Create an array of 16 cryptographically secure random values
+  // Create a cryptographically secure random value array of length 16
   const randomValues = new Uint8Array(16);
-  crypto.getRandomValues(randomValues); // Populate the array with secure random values
+  crypto.getRandomValues(randomValues);
 
-  // Generate the UUID in the format 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-  return UUID_FORMAT.replace(/[xy]/g, (c, i) => {
-    let randomVal;
+  // Initialize UUID string with the random values
+  let uuid = '';
 
-    // Use timestamp for 'x' and 'y' positions if timestamp is still available
-    if (timestamp > 0) {
-      randomVal = (timestamp + randomValues[i]) % HEX_BASE;
-      timestamp = Math.floor(timestamp / HEX_BASE);
-    } else if (microseconds > 0) {
-      // Fallback to microseconds if timestamp is depleted
-      randomVal = (microseconds + randomValues[i]) % HEX_BASE;
-      microseconds = Math.floor(microseconds / HEX_BASE);
-    } else {
-      // If no time-based entropy left, just use random values
-      randomVal = randomValues[i] % HEX_BASE;
+  // Loop over each byte and build the UUID
+  for (let i = 0; i < 16; i += 1) {
+    let hex = randomValues[i].toString(16).padStart(2, '0'); // Convert each byte to a 2-digit hex string
+
+    // Force the version to '4' in the 7th byte (index 6)
+    if (i === 6) {
+      hex = `4${hex.slice(1)}`; // Ensure the 4th group starts with '4'
     }
 
-    // For 'y' positions (variant byte), ensure the value is in the range [8, 11]
-    if (c === 'y') {
-      randomVal = (randomVal >= VARIANT_RANGE_START && randomVal <= VARIANT_RANGE_END)
-        ? randomVal
-        : randomVal + VARIANT_RANGE_START;
+    // Force the variant to be in the [8, 9, A, B] range in the 9th byte (index 8)
+    if (i === 8) {
+      // Ensure the variant is in the range [8, 9, A, B]
+      const variant = (randomValues[i] % 4) + 8; // This ensures the variant is within [8, 9, A, B]
+      hex = variant.toString(16); // Convert the value to hex
     }
 
-    // Return the hexadecimal string representation of the random value
-    return randomVal.toString(HEX_BASE);
-  });
+    // Append the hex value to the UUID string
+    uuid += hex;
+  }
+
+  // Format the string to match the UUIDv4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  return uuid.replace(
+    /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+    '$1-$2-$3-$4-$5', // Insert dashes in the correct places
+  );
 }
 
 /**
