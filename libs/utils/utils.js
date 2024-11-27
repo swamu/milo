@@ -140,6 +140,7 @@ ENVS.local = {
 };
 
 export const MILO_EVENTS = { DEFERRED: 'milo:deferred' };
+const TARGET_TIMEOUT_MS = 4000;
 
 const LANGSTORE = 'langstore';
 const PREVIEW = 'target-preview';
@@ -1074,17 +1075,29 @@ async function checkForPageMods() {
 
   const enablePersV2 = enablePersonalizationV2();
   if (martech !== 'off' && (target || xlg || pzn) && enablePersV2) {
+    const params = new URL(window.location.href).searchParams;
+    const calculatedTimeout = parseInt(params.get('target-timeout'), 10)
+  || parseInt(getMetadata('target-timeout'), 10)
+  || TARGET_TIMEOUT_MS;
+
     const { locale } = getConfig();
     targetInteractionPromise = new Promise((res) => {
       import('../martech/helpers.js').then(({ loadAnalyticsAndInteractionData }) => {
         res(loadAnalyticsAndInteractionData(
-          { locale, env: getEnv({})?.name, timeoutMeta: getMetadata('target-timeout') },
+          { locale, env: getEnv({})?.name, calculatedTimeout },
         ));
       });
     });
     const { init } = await import('../features/personalization/personalization.js');
     await init({
-      mepParam, mepHighlight, mepButton, pzn, promo, target, targetInteractionPromise,
+      mepParam,
+      mepHighlight,
+      mepButton,
+      pzn,
+      promo,
+      target,
+      targetInteractionPromise,
+      calculatedTimeout,
     });
     return;
   }

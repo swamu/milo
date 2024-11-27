@@ -1189,7 +1189,9 @@ const handleAlloyResponse = (response) => {
     .filter(Boolean);
 };
 
-async function handleMartechTargetInteraction({ config, targetInteractionPromise, timeout }) {
+async function handleMartechTargetInteraction(
+  { config, targetInteractionPromise, calculatedTimeout },
+) {
   let targetManifests = [];
   let targetPropositions = [];
   let responseStart;
@@ -1197,7 +1199,7 @@ async function handleMartechTargetInteraction({ config, targetInteractionPromise
     try {
       responseStart = Date.now();
       const targetInteractionData = await targetInteractionPromise;
-      sendTargetResponseAnalytics(false, responseStart, timeout);
+      sendTargetResponseAnalytics(false, responseStart, calculatedTimeout);
       const responseTime = calculateResponseTime(responseStart);
       try {
         window.lana.log(`target response time: ${responseTime}`, { tags: 'martech', errorType: 'i' });
@@ -1232,7 +1234,8 @@ const awaitMartech = () => new Promise((resolve) => {
 export async function init(enablements = {}) {
   let manifests = [];
   const {
-    mepParam, mepHighlight, mepButton, pzn, promo, target, postLCP,
+    mepParam, mepHighlight, mepButton, pzn, promo,
+    target, targetInteractionPromise, calculatedTimeout, postLCP,
   } = enablements;
   const config = getConfig();
   if (postLCP) {
@@ -1258,7 +1261,9 @@ export async function init(enablements = {}) {
   }
 
   if (enablePersonalizationV2()) {
-    manifests = manifests.concat(await handleMartechTargetInteraction(config));
+    manifests = manifests.concat(await handleMartechTargetInteraction(
+      { config, targetInteractionPromise, calculatedTimeout },
+    ));
   } else {
     if (target === true) manifests = manifests.concat(await callMartech(config));
     if (target === 'postlcp') callMartech(config);
