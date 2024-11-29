@@ -1053,7 +1053,7 @@ function isSignedOut() {
  */
 export function enablePersonalizationV2() {
   const enablePersV2 = document.head.querySelector('meta[name="personalization-v2"]');
-  return enablePersV2 && isSignedOut();
+  return !!enablePersV2 && isSignedOut();
 }
 
 async function checkForPageMods() {

@@ -1,60 +1,79 @@
 import { expect } from '@esm-bundle/chai';
-import sinon from 'sinon';
 import { enablePersonalizationV2 } from '../../libs/utils/utils.js';
 
+function mockPerformanceData(serverTimingData) {
+  window.performance.getEntriesByType = () => [{ serverTiming: serverTimingData }];
+}
+
 describe('enablePersonalizationV2', () => {
-  let querySelectorStub;
-  let isSignedOutStub;
+  let originalQuerySelector;
 
   beforeEach(() => {
-    querySelectorStub = sinon.stub(document.head, 'querySelector');
-    isSignedOutStub = sinon.stub(global, 'isSignedOut');
+    originalQuerySelector = document.head.querySelector;
   });
 
   afterEach(() => {
-    querySelectorStub.restore();
-    isSignedOutStub.restore();
+    document.head.querySelector = originalQuerySelector;
   });
 
-  it('should return true if personalization-v2 meta tag is present and user is signed out', () => {
-    querySelectorStub.returns({ name: 'personalization-v2' });
-    isSignedOutStub.returns(true);
+  it('should return true when personalization-v2 meta tag is present and user is signed out', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
 
-    expect(enablePersonalizationV2()).to.be.true;
+    mockPerformanceData([]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.true;
   });
 
-  it('should return false if personalization-v2 meta tag is absent', () => {
-    querySelectorStub.returns(null);
-    isSignedOutStub.returns(true);
+  it('should return false when personalization-v2 meta tag is present and user is signed in', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
 
-    expect(enablePersonalizationV2()).to.be.false;
+    mockPerformanceData([{ name: 'sis', description: '1' }]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.false;
   });
 
-  it('should return false if user is signed in (isSignedOut returns false)', () => {
-    querySelectorStub.returns({ name: 'personalization-v2' });
-    isSignedOutStub.returns(false);
+  it('should return false when personalization-v2 meta tag is absent', () => {
+    document.head.querySelector = () => null;
 
-    expect(enablePersonalizationV2()).to.be.false;
+    const result = enablePersonalizationV2();
+    expect(result).to.be.false;
   });
 
-  it('should return false if both conditions are not met (no meta tag, user signed in)', () => {
-    querySelectorStub.returns(null);
-    isSignedOutStub.returns(false);
+  it('should return true when serverTiming is empty (signed out)', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
 
-    expect(enablePersonalizationV2()).to.be.false;
+    mockPerformanceData([]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.true;
   });
 
-  it('should return false if personalization-v2 meta tag is present but user is signed in', () => {
-    querySelectorStub.returns({ name: 'personalization-v2' });
-    isSignedOutStub.returns(false);
+  it('should return false when serverTiming has `sis` other than `0` (signed in)', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
 
-    expect(enablePersonalizationV2()).to.be.false;
+    mockPerformanceData([{ name: 'sis', description: '1' }]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.false;
   });
 
-  it('should return false if personalization-v2 meta tag is present but isSignedOut is undefined or unavailable', () => {
-    querySelectorStub.returns({ name: 'personalization-v2' });
-    isSignedOutStub.returns(undefined);
+  it('should return true when serverTiming has `sis` equal to `0` (signed out)', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
 
-    expect(enablePersonalizationV2()).to.be.false;
+    mockPerformanceData([{ name: 'sis', description: '0' }]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.true;
+  });
+
+  it('should return false when serverTiming has other data but `sis` is missing (signed in)', () => {
+    document.head.querySelector = () => ({ name: 'personalization-v2' });
+
+    mockPerformanceData([{ name: 'other', description: 'value' }]);
+
+    const result = enablePersonalizationV2();
+    expect(result).to.be.false;
   });
 });
